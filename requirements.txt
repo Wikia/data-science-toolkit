@@ -1,0 +1,26 @@
+Flask==0.10.1
+Flask-RESTful==0.2.11
+Jinja2==2.7.2
+MarkupSafe==0.18
+PyYAML==3.10
+Pyro4==4.23
+Werkzeug==0.9.4
+aniso8601==0.82
+bidict==0.1.1
+boto==2.24.0
+corenlp-xml-lib==0.0.1
+gensim==0.8.9
+itsdangerous==0.23
+lxml==3.3.0
+mock==1.0.1
+mrg-utils==0.0.1
+-e git+https://github.com/relwell/nlp_services.git#egg=nlp_services
+nltk==2.0.4
+numpy==1.8.0
+phpserialize==1.3
+pytz==2013.9
+scikit-learn==0.14.1
+scipy==0.13.3
+serpent==1.4
+six==1.5.2
+wsgiref==0.1.2

@@ -1,10 +1,8 @@
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
-import requests
 import argparse
-import os, sys
+import os
 import gensim
-from sklearn.svm import SVC
 from multiprocessing import Pool
 
 parser = argparse.ArgumentParser(description='Generate a per-page topic model using latent dirichlet analysis.')
@@ -19,13 +17,13 @@ args = parser.parse_args()
 
 def get_data(line):
     split = line.split('\t')
-    split_filtered = filter(lambda x: x != '' and len(x.split('~')) > 1 and x.split('~')[1].strip() != '', split[1:])
+    split_filtered = filter(lambda y: y != '' and len(y.split('~')) > 1 and x.split('~')[1].strip() != '', split[1:])
     return [(split[0], split_filtered)]
 
 
-def vec2dense(vec, num_terms):
+def vec2dense(vecto, num_terms):
     """Convert from sparse gensim format to dense list of numbers"""
-    return list(gensim.matutils.corpus2dense([vec], num_terms=num_terms).T[0])
+    return list(gensim.matutils.corpus2dense([vecto], num_terms=num_terms).T[0])
 
 print "Loading terms..."
 doc_id_to_terms_tuples = []
@@ -47,7 +45,7 @@ for doc_id in doc_id_to_terms:
 
 print "\n---LDA Model---"
 lda_docs = {}
-modelname = 'video-%dtopics.model' % (args.num_topics)
+modelname = 'video-%dtopics.model' % args.num_topics
 model_location = args.model_dest+'/'+modelname
 if os.path.exists(model_location):
     print "(loading from file)"
@@ -64,9 +62,9 @@ else:
 
 
 print "Writing topics to files"
-sparse_filename = args.model_dest+'/video-%dtopics-sparse-topics.csv' % (args.num_topics)
-dense_filename = args.model_dest+'/video-%dtopics-dense-topics.csv' % (args.num_topics)
-text_filename = args.model_dest+'/video-%dtopics-words.txt' % (args.num_topics)
+sparse_filename = args.model_dest+'/video-%dtopics-sparse-topics.csv' % args.num_topics
+dense_filename = args.model_dest+'/video-%dtopics-dense-topics.csv' % args.num_topics
+text_filename = args.model_dest+'/video-%dtopics-words.txt' % args.num_topics
 with open(sparse_filename, 'w') as sparse_csv:
     with open(dense_filename, 'w') as dense_csv:
         for doc_id in doc_id_to_terms:

@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 import tarfile
-from . import EC2Connection
+from . import EC2Connection, chrono_sort
 from boto import connect_s3, connect_ec2
 from boto.s3.key import Key
 from boto.exception import S3ResponseError
@@ -13,7 +13,6 @@ from boto.utils import get_instance_metadata
 from socket import gethostname
 from subprocess import Popen, call
 from time import time, sleep
-from utils import chrono_sort
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
@@ -89,7 +88,7 @@ while True:
             os.mkdir(directory)
 
     inqueue = len(os.listdir(TEXT_DIR))
-    
+
     if inqueue < 10:
         added = add_files()
         # shut this instance down if we have an empty queue and we're above desired capacity
@@ -129,7 +128,7 @@ while True:
         os.remove(xmlfilename)
 
     print "[%s] Uploaded %d files (rate of %.2f docs/sec)" % (hostname, len(xmlfiles), float(len(xmlfiles))/30.0)
-        
+
     # write events to a new file
     event_key = Key(bucket)
     event_key.key = '/data_events/'+SIG

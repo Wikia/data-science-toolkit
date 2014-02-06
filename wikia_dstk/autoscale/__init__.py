@@ -1,10 +1,15 @@
+import os
 from boto.ec2 import connect_to_region
 from time import sleep
 
+def chrono_sort(directory):
+    """Return a list of files in a directory, sorted chronologically"""
+    files = [(os.path.join(directory, filename), os.path.getmtime(os.path.join(directory, filename))) for filename in os.listdir(directory)]
+    files.sort(key=lambda x: x[1])
+    return files
+
 class EC2Connection(object):
-    """
-    A connection to a specified EC2 region.
-    """
+    """A connection to a specified EC2 region."""
     def __init__(self, options):
         """
         Instantiate a boto.ec2.connection.EC2Connection object upon which to

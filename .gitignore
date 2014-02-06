@@ -52,3 +52,6 @@ docs/_build/
 
 # Virtual Env
 venv/
+
+# Swap files
+*.swp

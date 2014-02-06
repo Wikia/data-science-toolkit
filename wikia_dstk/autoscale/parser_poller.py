@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 import tarfile
-from autoscale import EC2Connection
+from . import EC2Connection
 from boto import connect_s3, connect_ec2
 from boto.s3.key import Key
 from boto.exception import S3ResponseError

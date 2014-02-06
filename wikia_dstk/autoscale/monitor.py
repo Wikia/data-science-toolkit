@@ -36,11 +36,6 @@ op.add_option('-m', '--max-size', dest='max_size', type='int',
               help='The maximum allowable number of simultaneous instances')
 (options, args) = op.parse_args()
 
-if options.tag not in QUEUES:
-    raise OptionError('missing or invalid value', 'tag')
-params = json.loads(open('%s_config.json' % options.tag).read())
-params.update([(k, v) for (k, v) in vars(options).items() if v is not None])
-
 if options.tag == 'parser':
     from ..config.parser import config
 elif options.tag == 'data_extraction':
@@ -50,9 +45,6 @@ else:
 
 config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 
-print config
-
-import sys; sys.exit(0)
 
 s3_conn = connect_s3()
 bucket = s3_conn.get_bucket('nlp-data')

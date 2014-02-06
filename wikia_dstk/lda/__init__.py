@@ -12,7 +12,7 @@ from nltk.corpus import stopwords
 
 
 dictlogger = logging.getLogger('gensim.corpora.dictionary')
-stemmer = SnowballStemmer()
+stemmer = SnowballStemmer('english')
 english_stopwords = stopwords.words('english')
 
 
@@ -33,7 +33,6 @@ class WikiaDSTKDictionary(Dictionary):
         """
         Uses statistical methods  to filter out stopwords
         See http://www.cs.cityu.edu.hk/~lwang/research/hangzhou06.pdf for more info on the algo
-
         """
         word_probabilities_summed = dict()
         num_documents = len(documents)
@@ -44,10 +43,9 @@ class WikiaDSTKDictionary(Dictionary):
                 word_probabilities_summed[token_id] = word_probabilities_summed.get(token_id, []) + [probability]
         mean_word_probabilities = [(token_id, sum(probabilities)/num_documents)
                                    for token_id, probabilities in word_probabilities_summed.items()]
-        """
-        For variance of probability, using Numpy's variance metric, padding zeroes where necessary.
-        Should do the same job as figure (3) in the paper
-        """
+
+        # For variance of probability, using Numpy's variance metric, padding zeroes where necessary.
+        # Should do the same job as figure (3) in the paper
         word_statistical_value_and_entropy = [(token_id,
                                                probability   # statistical value
                                                / np.var(probabilities + ([0] * (num_documents - len(probabilities)))),
@@ -71,7 +69,7 @@ class WikiaDSTKDictionary(Dictionary):
                                key=lambda x: x[1])
 
         dictlogger.info("keeping %i tokens, removing %i 'stopwords'" %
-                        (len(borda_ranking - num_stops), num_stops))
+                        (len(borda_ranking) - num_stops, num_stops))
 
         # do the actual filtering, then rebuild dictionary to remove gaps in ids
         self.filter_tokens(good_ids=[token_id for token_id, _ in borda_ranking[num_stops:]])

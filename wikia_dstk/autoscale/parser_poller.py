@@ -6,7 +6,7 @@ import shutil
 import sys
 import tarfile
 from . import EC2Connection
-from .. import chrono_sort
+from .. import chrono_sort, ensure_dir_exists
 from boto import connect_s3, connect_ec2
 from boto.s3.key import Key
 from boto.exception import S3ResponseError
@@ -18,9 +18,9 @@ from time import time, sleep
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 SIG = str(os.getpid()) + '_' + str(int(time()))
-TEXT_DIR = '/tmp/text/'
-XML_DIR = '/tmp/xml/'
-PACKAGE_DIR = "/tmp/event_packages/"
+TEXT_DIR = ensure_dir_exists('/tmp/text/')
+XML_DIR = ensure_dir_exists('/tmp/xml/')
+PACKAGE_DIR = ensure_dir_exists('/tmp/event_packages/')
 BUCKET_NAME = 'nlp-data'
 REGION = 'us-west-2'
 

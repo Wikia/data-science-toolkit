@@ -21,7 +21,7 @@ while True:
     while len(keys) > 0:
         counter = 0
         while len(processes) < workers:
-            processes.append(Popen(['/usr/bin/python', 'cache_data_child.py', keys.pop()]))
+            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.autoscale.cache_data_child %s' % keys.pop()))
         processes = filter(lambda x: x.poll() is None, processes)
         time.sleep(0.25)
     counter += 1

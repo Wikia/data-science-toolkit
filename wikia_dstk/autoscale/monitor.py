@@ -73,7 +73,7 @@ while True:
 
     if lastInQueue is not None and lastInQueue != inqueue:
         delta = (lastInQueue - inqueue)
-        intervals += [(mins, delta * 250)]
+        intervals.append((mins, delta * 250))
         avg = reduce(lambda x, y: x + y, map(lambda x: x[1]/(x[0]*60), intervals))/len(intervals);
         rate = ", %.3f docs/sec; %d in the last %d minute(s)" % (avg, delta * 250, mins)
     else:

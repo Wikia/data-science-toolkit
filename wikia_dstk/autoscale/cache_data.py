@@ -21,7 +21,7 @@ while True:
     while len(keys) > 0:
         counter = 0
         while len(processes) < workers:
-            processes += [Popen(['/usr/bin/python', 'cache_data_child.py', keys.pop()])]
+            processes.append(Popen(['/usr/bin/python', 'cache_data_child.py', keys.pop()]))
         processes = filter(lambda x: x.poll() is None, processes)
         time.sleep(0.25)
     counter += 1

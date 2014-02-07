@@ -123,7 +123,7 @@ while True:
         key = Key(bucket)
         new_key = '/xml/%s/%s.xml' % tuple(xmlfile.replace('.xml', '').split('_'))
         key.key = new_key
-        data_events += [new_key]
+        data_events.append(new_key)
         xmlfilename = XML_DIR+xmlfile
         key.set_contents_from_filename(xmlfilename)
         os.remove(xmlfilename)

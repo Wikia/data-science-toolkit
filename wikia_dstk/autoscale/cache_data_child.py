@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import re
 import sys
@@ -17,8 +18,12 @@ from nlp_services.caching import use_caching
 
 BUCKET = connect_s3().get_bucket('nlp-data')
 
-service_file = sys.argv[2] if len(sys.argv) > 2 else 'services-config.json'
-SERVICES = json.loads(open(service_file).read())['services']
+# Get absolute path
+BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+
+# Load serialized hostnames into memory
+with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
+    SERVICES = json.loads(f.read())['services']
 
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 

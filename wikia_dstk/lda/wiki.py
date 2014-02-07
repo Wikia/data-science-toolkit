@@ -38,7 +38,7 @@ def get_args():
     ap.add_argument('--max-topic-frequency', dest='max_topic_frequency', type=int,
                     default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
                     help="Threshold for number of wikis a given topic appears in")
-    ap.add_argument('--wamids-file', dest='wamids_file', type=argparse.FileType,
+    ap.add_argument('--wamids-file', dest='wamids_file', type=argparse.FileType('r'),
                     default=os.getenv('WAMIDS_FILE', 'topwams.txt'),
                     help="File listing for top WAM wikis by WAM descending")  # I want an API for this, yo
     ap.add_argument('--num-processes', dest="num_processes", type=int,
@@ -67,6 +67,7 @@ def main():
     entities = dict(r.get())
 
     wid_to_features = defaultdict(list)
+    # todo: add wiki features from api
     for wid in entities:
         for heads_to_count, entities_to_count in entities[wid]:
             wid_to_features[wid] += [word for head, count in heads_to_count for word in [normalize(head)] * count]
@@ -103,11 +104,11 @@ def main():
         key = bucket.get_key(args.s3_prefix+modelname)
         if key is not None:
             log("(loading from s3)")
-            with open('/tmp/modelname', 'w') as fl:
+            with open('/tmp/%s' % modelname, 'w') as fl:
                 key.get_contents_to_file(fl)
-            lda_model = gensim.models.LdaModel.load('/tmp/modelname')
+            lda_model = gensim.models.LdaModel.load('/tmp/%s' % modelname)
         else:
-            built = True
+            # todo load up slave instances
             log("(building... this will take a while)")
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
@@ -115,6 +116,7 @@ def main():
                                                distributed=True)
             log("Done, saving model.")
             lda_model.save(args.path_prefix+modelname)
+            built = True
 
     # counting number of features so that we can filter
     tally = defaultdict(int)
@@ -126,8 +128,8 @@ def main():
 
     # Write to sparse_csv here, excluding anything exceding our max frequency
     log("Writing topics to sparse CSV")
-    sparse_csv_filename = '%d-%swiki-%stopics-sparse-topics.csv' % (args.model_prefix, args.num_wikis, args.num_topics)
-    text_filename = '%d-%swiki-%stopics-topic_names.text' % (args.model_prefix, args.num_wikis, args.num_topics)
+    sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
+    text_filename = modelname.replace('.model', '-topic-features.csv')
     with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
         for name in wid_to_features:
             vec = bow_docs[name]
@@ -151,8 +153,8 @@ def main():
 
     if built:
         log("uploading model to s3")
-        key = bucket.new_key(modelname)
-        key.set_contents_from_file(modelname)
+        key = bucket.new_key(args.s3_prefix+modelname)
+        key.set_contents_from_file(args.path_prefix+modelname)
 
 
 if __name__ == '__main__':

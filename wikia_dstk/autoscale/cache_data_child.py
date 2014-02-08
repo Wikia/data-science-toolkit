@@ -21,9 +21,11 @@ BUCKET = connect_s3().get_bucket('nlp-data')
 # Get absolute path
 BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
-# Load serialized hostnames into memory
+# Load serialized services into memory
 with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
     SERVICES = json.loads(f.read())['services']
+
+print SERVICES #DEBUG
 
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 

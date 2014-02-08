@@ -57,8 +57,10 @@ def process_file(filename):
 def call_services(keyname):
     global BUCKET
 
+    print keyname
     key = BUCKET.get_key(keyname)
     if key is None:
+        print 'no key found'
         return
 
     eventfile = "data_processing/%s_%s_%s" % (get_instance_metadata()['local-hostname'], str(time.time()), str(int(random.randint(0, 100))))

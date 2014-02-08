@@ -41,13 +41,15 @@ def process_file(filename):
 
     doc_id = '%s_%s' % (match.group(1), match.group(2))
     for service in SERVICES:
-        try:
-            getattr(sys.modules[__name__], service)().get(doc_id)
-        except KeyboardInterrupt:
-            sys.exit()
-        except Exception as e:
-            print 'Could not call %s on %s!' % (service, doc_id)
-            print traceback.format_exc()
+        print service
+        getattr(sys.modules[__name__], service)().get(doc_id)
+        #try:
+        #    getattr(sys.modules[__name__], service)().get(doc_id)
+        #except KeyboardInterrupt:
+        #    sys.exit()
+        #except Exception as e:
+        #    print 'Could not call %s on %s!' % (service, doc_id)
+        #    print traceback.format_exc()
 
 
 def call_services(keyname):

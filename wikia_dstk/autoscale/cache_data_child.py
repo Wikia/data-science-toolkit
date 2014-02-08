@@ -31,6 +31,7 @@ print __name__
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 
 def process_file(filename):
+    print filename
     if filename.strip() == '':
         return  # newline at end of file
     global SERVICES
@@ -40,6 +41,7 @@ def process_file(filename):
         return
 
     doc_id = '%s_%s' % (match.group(1), match.group(2))
+    print doc_id
     for service in SERVICES:
         print service
         getattr(sys.modules[__name__], service)().get(doc_id)

@@ -26,6 +26,7 @@ with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
     SERVICES = json.loads(f.read())['services']
 
 print SERVICES #DEBUG
+print __name__
 
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 

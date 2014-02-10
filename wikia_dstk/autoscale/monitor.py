@@ -48,7 +48,7 @@ config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 
 s3_conn = connect_s3()
 bucket = s3_conn.get_bucket('nlp-data')
-ec2_conn = EC2Connection(params)
+ec2_conn = EC2Connection(config)
 
 lastInQueue = None
 intervals = []

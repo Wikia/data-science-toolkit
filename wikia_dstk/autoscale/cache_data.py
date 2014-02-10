@@ -28,7 +28,7 @@ while True:
     print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
     if counter > 20:
         print 'Scaling down, shutting down.'
-        current_id = get_instance_metdata()['instance-id']
+        current_id = get_instance_metadata()['instance-id']
         ec2_conn = connect_to_region(config['region'])
         ec2_conn.terminate_instances([current_id])
     time.sleep(15)

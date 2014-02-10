@@ -34,6 +34,9 @@ def get_args():
     parser.add_argument('--s3-prefix', dest='s3_prefix', type=str,
                         default=os.getenv('S3_PREFIX', "models/wiki/"),
                         help="Prefix on s3 for model location")
+    parser.add_argument('--auto-launch', dest='auto_launch', type=bool,
+                        default=os.getenv('AUTOLAUNCH_SLAVES', True),
+                        help="Whether to automatically launch distributed nodes")
     return parser.parse_args()
 
 
@@ -129,8 +132,6 @@ def main():
         log("uploading model to s3")
         key = bucket.new_key(args.s3_prefix+modelname)
         key.set_contents_from_file(args.path_prefix+modelname)
-    
-    log("Done")
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import time
 import warnings
 import os
+import requests
 import argparse
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 import gensim
@@ -10,14 +11,8 @@ from nlp_services.caching import use_caching
 from multiprocessing import Pool
 from boto import connect_s3
 from collections import defaultdict
-from . import normalize, WikiaDSTKDictionary
-
-
-def log(*args):
-    """
-    TODO: use a real logger
-    """
-    print args
+from . import normalize, unis_bis_tris, launch_lda_nodes, terminate_lda_nodes
+from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
 
 def get_data(wiki_id):
@@ -25,6 +20,10 @@ def get_data(wiki_id):
                                    'HeadsCountService.get': {'dont_compute': True}})
     return [(wiki_id, [sorted(HeadsCountService().get_value(wiki_id).items(), key=lambda y: y[1], reverse=True)[:50],
                        TopEntitiesService().get_value(wiki_id).items()])]
+
+
+def get_wiki_data_from_api(wiki_ids):
+    return requests.get('http://www.wikia.com/api/v1/Wikis/Details', params={'ids': wiki_ids}).json().get('items', {})
 
 
 def get_args():
@@ -53,48 +52,52 @@ def get_args():
     ap.add_argument('--s3-prefix', dest='s3_prefix', type=str,
                     default=os.getenv('S3_PREFIX', "models/wiki/"),
                     help="Prefix on s3 for model location")
+    ap.add_argument('--auto-launch', dest='auto_launch', type=bool,
+                    default=os.getenv('AUTOLAUNCH_NODES', True),
+                    help="Whether to automatically launch distributed nodes")
+    ap.add_argument('--instance-count', dest='instance_count', type=int,
+                    default=os.getenv('NODE_INSTANCES', 20),
+                    help="Number of node instances to launch")
+    ap.add_argument('--node-ami', dest='node_ami', type=str,
+                    default=os.getenv('NODE_AMI', "ami-40701570"),
+                    help="AMI of the node machines")
     return ap.parse_args()
 
 
-def main():
-
-    args = get_args()
+def get_feature_data(args):
     wids = [str(int(ln)) for ln in args.wamids_file.readlines()][args.num_wikis]
 
     log("Loading entities and heads...")
-    r = Pool(processes=args.num_processes).map_async(get_data, wids)
+    pool = Pool(processes=args.num_processes)
+    r = pool.map_async(get_data, wids)
     r.wait()
     entities = dict(r.get())
 
+    log("Getting data from API")
+    wids_to_api_data = {}
+    widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
+    r = pool.map_async(get_wiki_data_from_api, widstrings, callback=wids_to_api_data.update)
+    r.wait()
+
     wid_to_features = defaultdict(list)
-    # todo: add wiki features from api
     for wid in entities:
+        api_data = wids_to_api_data.get(wid, {})
         for heads_to_count, entities_to_count in entities[wid]:
             wid_to_features[wid] += [word for head, count in heads_to_count for word in [normalize(head)] * count]
             wid_to_features[wid] += [word for entity, count in entities_to_count
                                      for word in [normalize(entity)] * count]
+            wid_to_features[wid] += unis_bis_tris(api_data.get('title', ''))
+            wid_to_features[wid] += unis_bis_tris(api_data.get('headline', ''))
+            wid_to_features[wid] += unis_bis_tris(api_data.get('desc', ''))
 
     log(len(wid_to_features), "wikis")
     log(len(set([value for values in wid_to_features.values() for value in values])), "features")
+    return wid_to_features
 
-    log("Extracting to dictionary...")
 
-    documents = wid_to_features.values()
-    dct = WikiaDSTKDictionary(documents)
-    dct.filter_stops(documents)
-
-    log("---Bag of Words Corpus---")
-
-    bow_docs = {}
-    for name in wid_to_features:
-        sparse = dct.doc2bow(wid_to_features[name])
-        bow_docs[name] = sparse
-
+def get_model_from_args(args):
     log("\n---LDA Model---")
-
     modelname = '%d-lda-%swikis-%stopics.model' % (args.model_prefix, args.num_wikis, args.num_topics)
-
-    built = False
     bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log("(loading from file)")
@@ -108,53 +111,29 @@ def main():
                 key.get_contents_to_file(fl)
             lda_model = gensim.models.LdaModel.load('/tmp/%s' % modelname)
         else:
-            # todo load up slave instances
             log("(building... this will take a while)")
+            if args.auto_launch:
+                launch_lda_nodes(args.instance_count, args.ami)
+            wid_to_features = get_feature_data(args)
+            dct, bow_docs = get_dct_and_bow_from_features(wid_to_features)
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
                                                id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
                                                distributed=True)
             log("Done, saving model.")
             lda_model.save(args.path_prefix+modelname)
-            built = True
+            write_csv_and_text_data(args, bucket, modelname, wid_to_features, bow_docs, lda_model)
+            log("uploading model to s3")
+            key = bucket.new_key(args.s3_prefix+modelname)
+            key.set_contents_from_file(args.path_prefix+modelname)
+            terminate_lda_nodes()
+    return lda_model
 
-    # counting number of features so that we can filter
-    tally = defaultdict(int)
-    for name in wid_to_features:
-        vec = bow_docs[name]
-        sparse = lda_model[vec]
-        for (feature, frequency) in sparse:
-            tally[feature] += 1
 
-    # Write to sparse_csv here, excluding anything exceding our max frequency
-    log("Writing topics to sparse CSV")
-    sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
-    text_filename = modelname.replace('.model', '-topic-features.csv')
-    with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
-        for name in wid_to_features:
-            vec = bow_docs[name]
-            sparse = dict(lda_model[vec])
-            sparse_csv.write(",".join([str(name)]
-                                      + ['%d-%.8f' % (n, sparse.get(n, 0))
-                                         for n in range(args.num_topics)
-                                         if tally[n] < args.max_topic_frequency])
-                             + "\n")
+def main():
+    args = get_args()
+    get_model_from_args(args)
 
-    with open(args.path_prefix+text_filename, 'w') as text_output:
-        text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
-
-    log("Uploading data to S3")
-    csv_key = bucket.new_key(args.s3_prefix+sparse_csv_filename)
-    csv_key.set_contents_from_file(args.path_prefix+sparse_csv_filename)
-    text_key = bucket.new_key(args.s3_prefix+text_filename)
-    text_key.set_contents_from_file(args.path_prefix+text_filename)
-
-    log("Done")
-
-    if built:
-        log("uploading model to s3")
-        key = bucket.new_key(args.s3_prefix+modelname)
-        key.set_contents_from_file(args.path_prefix+modelname)
 
 
 if __name__ == '__main__':

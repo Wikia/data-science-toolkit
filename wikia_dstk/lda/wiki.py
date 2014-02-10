@@ -133,7 +133,7 @@ def get_model_from_args(args):
 def main():
     args = get_args()
     get_model_from_args(args)
-
+    log("Done")
 
 
 if __name__ == '__main__':

@@ -127,7 +127,6 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     text_key.set_contents_from_file(args.path_prefix+text_filename)
 
 
-
 class WikiaDSTKDictionary(Dictionary):
 
     def filter_stops(self, documents, num_stops=300):

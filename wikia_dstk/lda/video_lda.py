@@ -5,9 +5,8 @@ import os
 import gensim
 import time
 from multiprocessing import Pool
-from . import WikiaDSTKDictionary
+from . import launch_lda_nodes, terminate_lda_nodes, log, get_dct_and_bow_from_features, write_csv_and_text_data
 from boto import connect_s3
-from collections import defaultdict
 
 
 def get_args():
@@ -35,8 +34,14 @@ def get_args():
                         default=os.getenv('S3_PREFIX', "models/wiki/"),
                         help="Prefix on s3 for model location")
     parser.add_argument('--auto-launch', dest='auto_launch', type=bool,
-                        default=os.getenv('AUTOLAUNCH_SLAVES', True),
+                        default=os.getenv('AUTOLAUNCH_NODES', True),
                         help="Whether to automatically launch distributed nodes")
+    parser.add_argument('--instance-count', dest='instance_count', type=int,
+                        default=os.getenv('NODE_INSTANCES', 20),
+                        help="Number of node instances to launch")
+    parser.add_argument('--node-ami', dest='node_ami', type=str,
+                        default=os.getenv('NODE_AMI', "ami-40701570"),
+                        help="AMI of the node machines")
     return parser.parse_args()
 
 
@@ -46,37 +51,10 @@ def get_data(line):
     return [(split[0], split_filtered)]
 
 
-def log(*args):
-    # todo real logging
-    log(args)
-
-
-def main():
-    args = get_args()
-
-    log("Loading terms...")
-
-    pool = Pool(processes=args.num_processes)
-    r = pool.map_async(get_data, args.datafile)
-    doc_id_to_terms = dict(r.get())
-
-    log(len(doc_id_to_terms), "instances")
-    
-    log("Extracting to dictionary...")
-    documents = doc_id_to_terms.values()
-    dct = WikiaDSTKDictionary(documents)
-    dct.filter_stops(documents)
-    
-    log("Bag of Words Corpus...")
-    bow_docs = {}
-    for doc_id in doc_id_to_terms:
-        bow_docs[doc_id] = dct.doc2bow(doc_id_to_terms[doc_id])
-    
+def get_model_from_args(args):
     log("\n---LDA Model---")
-    lda_docs = {}
     modelname = '%s-video-%dtopics.model' % (args.model_prefix, args.num_topics)
     model_location = args.path_prefix+'/'+modelname
-    built = False
     bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(model_location):
         log("(loading from file)")
@@ -90,48 +68,30 @@ def main():
                 key.get_contents_to_file(fl)
             lda_model = gensim.models.LdaModel.load('/tmp/%s' % modelname)
         else:
-            # todo -- load up slave instances
             log("(building...)")
+            launch_lda_nodes()
+            pool = Pool(processes=args.num_processes)
+            r = pool.map_async(get_data, args.datafile)
+            doc_id_to_terms = dict(r.get())
+            dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
                                                id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
                                                distributed=True)
             log("Done, saving model.")
             lda_model.save(model_location)
-            built = True
+            write_csv_and_text_data(args, bucket, modelname, doc_id_to_terms, bow_docs, lda_model)
+            log("uploading model to s3")
+            key = bucket.new_key(args.s3_prefix+modelname)
+            key.set_contents_from_file(args.path_prefix+modelname)
+            terminate_lda_nodes()
+    return lda_model
 
-    tally = defaultdict(int)
-    for name in doc_id_to_terms:
-        vec = bow_docs[name]
-        sparse = lda_model[vec]
-        for (feature, frequency) in sparse:
-            tally[feature] += 1
 
-    log("Writing topics to files")
-    sparse_filename = args.path_prefix+modelname.replace('.model', '-sparse-topics.csv')
-    text_filename = args.path_prefix+modelname.replace('.model', '-topic-words.txt')
-    with open(sparse_filename, 'w') as sparse_csv:
-        for doc_id in doc_id_to_terms:
-            vec = bow_docs[doc_id]
-            sparse = lda_model[vec]
-            lda_docs[doc_id] = sparse
-            sparse_csv.write(",".join([str(doc_id)]+['%d-%.8f' % x for x in sparse])+"\n")
-    
-    with open(text_filename, 'w') as text_output:
-        text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
-
-    log("Uploading data to S3")
-    csv_key = bucket.new_key(args.s3_prefix+sparse_filename)
-    csv_key.set_contents_from_file(args.path_prefix+sparse_filename)
-    text_key = bucket.new_key(args.s3_prefix+text_filename)
-    text_key.set_contents_from_file(args.path_prefix+text_filename)
-
+def main():
+    args = get_args()
+    get_model_from_args(args)
     log("Done")
-
-    if built:
-        log("uploading model to s3")
-        key = bucket.new_key(args.s3_prefix+modelname)
-        key.set_contents_from_file(args.path_prefix+modelname)
 
 
 if __name__ == '__main__':

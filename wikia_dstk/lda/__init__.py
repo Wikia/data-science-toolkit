@@ -56,45 +56,15 @@ def normalize(phrase):
     return u'_'.join(nonstops_stemmed).strip().lower()
 
 
-def unis_base(string_or_list):
-    if not string_or_list:
-        return []
+def unis_bis_tris(string_or_list, prefix=u''):
     try:
-        totes_list = re.split(splitter_pattern,  string_or_list)  # flags=re.UNICODE if we didn't have 2.6 on nlp-s1
+        totes_list = string_or_list.split(u' ')
     except AttributeError:
         totes_list = string_or_list  # can't split a list dawg
-    unigrams = [normalize(word) for word in totes_list if word]
-    unigrams = [u for u in unigrams if u]  # filter empty string
-    return unigrams
-
-
-def unis(string_or_list, prefix=u''):
-    return [u'%s%s' % (prefix, word) for word in unis_base(string_or_list)]
-
-
-def unis_bis(string_or_list, prefix=u''):
-    unigrams = unis_base(string_or_list)
-    return ([u'%s%s' % (prefix, word) for word in unigrams]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unigrams)])
-
-
-def unis_bis_tris(string_or_list, prefix=u''):
-    unigrams = unis_base(string_or_list)
-    return ([u'%s%s' % (prefix, word) for word in unigrams]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unigrams)]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unigrams)])
-
-
-def get_my_hostname():
-    return get_instance_metadata()['local-hostname'].split('.')[1]
-
-
-def get_my_ip():
-    return get_instance_metadata()['local-ipv4']
-
-
-def get_my_id():
-    return get_instance_metadata()['instance-id']
+    unis = [normalize(word) for word in totes_list]
+    return ([u'%s%s' % (prefix, word) for word in unis]
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)]
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])
 
 
 def harakiri():

@@ -24,9 +24,6 @@ def get_args():
     parser.add_argument('--model-prefix', dest='model_prefix', type=str,
                         default=os.getenv('MODEL_PREFIX', time.time()),
                         help="Prefix to uniqueify model")
-    parser.add_argument('--path-prefix', dest='path_prefix', type=str,
-                        default=os.getenv('PATH_PREFIX', "/mnt/"),
-                        help="Prefix to path")
     parser.add_argument('--s3-prefix', dest='s3_prefix', type=str,
                         default=os.getenv('S3_PREFIX', "models/video/"),
                         help="Prefix on s3 for model location")
@@ -39,9 +36,9 @@ def get_args():
     parser.add_argument('--node-ami', dest='node_ami', type=str,
                         default=os.getenv('NODE_AMI', "ami-40701570"),
                         help="AMI of the node machines")
-    parser.add__argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
-                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
-                         help="Prevent terminating this instance")
+    parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
+                        default=os.getenv('TERMINATE_ON_COMPLETE', True),
+                        help="Prevent terminating this instance")
     return parser.parse_args()
 
 

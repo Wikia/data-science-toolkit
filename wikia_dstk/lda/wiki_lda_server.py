@@ -11,7 +11,7 @@ from nlp_services.caching import use_caching
 from multiprocessing import Pool
 from boto import connect_s3
 from collections import defaultdict
-from . import normalize, unis_bis_tris, launch_lda_nodes, terminate_lda_nodes
+from . import normalize, unis_bis_tris, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
 
@@ -61,6 +61,9 @@ def get_args():
     ap.add_argument('--node-ami', dest='node_ami', type=str,
                     default=os.getenv('NODE_AMI', "ami-40701570"),
                     help="AMI of the node machines")
+    ap.add__argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
+                     default=os.getenv('TERMINATE_ON_COMPLETE', True),
+                     help="Prevent terminating this instance")
     return ap.parse_args()
 
 
@@ -134,6 +137,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
+    if args.terminate_on_complete:
+        harakiri()
 
 
 if __name__ == '__main__':

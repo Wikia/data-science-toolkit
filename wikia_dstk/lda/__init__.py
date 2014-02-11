@@ -12,6 +12,7 @@ from nltk import SnowballStemmer, bigrams, trigrams
 from nltk.corpus import stopwords
 from collections import defaultdict
 from boto.ec2 import connect_to_region
+from boto.utils import get_instance_metadata
 
 
 dictlogger = logging.getLogger('gensim.corpora.dictionary')
@@ -19,6 +20,7 @@ stemmer = SnowballStemmer('english')
 english_stopwords = stopwords.words('english')
 instances_launched = []
 connection = None
+video_json_key = 'feature-data/video.json'
 
 
 def get_ec2_connection():
@@ -35,15 +37,19 @@ def vec2dense(vector, num_terms):
 
 def normalize(phrase):
     global stemmer, english_stopwords
-    nonstops_stemmed = [stemmer.stem(token) for token in phrase.split(' ') if token not in english_stopwords]
-    return '_'.join(nonstops_stemmed).strip().lower()
+    nonstops_stemmed = [stemmer.stem(token) for token in phrase.split(u' ') if token not in english_stopwords]
+    return u'_'.join(nonstops_stemmed).strip().lower()
 
 
-def unis_bis_tris(string, prefix=''):
-    unis = [normalize(word) for word in string.split(' ')]
-    return (['%s%s' % (prefix, word) for word in unis]
-            + ['%s%s' % (prefix, '_'.join(gram)) for gram in bigrams(unis)]
-            + ['%s%s' % (prefix, '_'.join(gram)) for gram in trigrams(unis)])
+def unis_bis_tris(string, prefix=u''):
+    unis = [normalize(word) for word in string.split(u' ')]
+    return ([u'%s%s' % (prefix, word) for word in unis]
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)]
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])
+
+
+def harakiri():
+    get_ec2_connection().terminate_instances(instance_ids=[get_instance_metadata()['local-hostname'].split('.')[1]])
 
 
 def launch_lda_nodes(instance_count=20, ami="ami-40701570"):

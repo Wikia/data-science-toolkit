@@ -4,8 +4,10 @@ import argparse
 import os
 import gensim
 import time
+import json
 from multiprocessing import Pool
-from . import launch_lda_nodes, terminate_lda_nodes, log, get_dct_and_bow_from_features, write_csv_and_text_data
+from . import launch_lda_nodes, terminate_lda_nodes, log, harakiri
+from . import video_json_key, get_dct_and_bow_from_features, write_csv_and_text_data
 from boto import connect_s3
 
 
@@ -42,6 +44,9 @@ def get_args():
     parser.add_argument('--node-ami', dest='node_ami', type=str,
                         default=os.getenv('NODE_AMI', "ami-40701570"),
                         help="AMI of the node machines")
+    parser.add__argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
+                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
+                         help="Prevent terminating this instance")
     return parser.parse_args()
 
 
@@ -70,9 +75,12 @@ def get_model_from_args(args):
         else:
             log("(building...)")
             launch_lda_nodes()
-            pool = Pool(processes=args.num_processes)
-            r = pool.map_async(get_data, args.datafile)
-            doc_id_to_terms = dict(r.get())
+            if args.datafile:
+                pool = Pool(processes=args.num_processes)
+                r = pool.map_async(get_data, args.datafile)
+                doc_id_to_terms = dict(r.get())
+            else:
+                doc_id_to_terms = json.loads(bucket.get_key(video_json_key).get_contents_as_string())
             dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
@@ -92,6 +100,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
+    if args.terminate_on_complete:
+        harakiri()
 
 
 if __name__ == '__main__':

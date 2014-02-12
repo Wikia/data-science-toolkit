@@ -157,9 +157,9 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
 
 class WikiaDSTKDictionary(Dictionary):
 
-    def __init__(self, documents=None):
+    def __init__(self, *args):
+        super(WikiaDSTKDictionary, self).__init__(args)
         self.d2bmemo = {}
-        super(WikiaDSTKDictionary, self).__init__(documents=documents)
 
     def document2hash(self, document):
         return hashlib.sha1(' '.join(document)).hexdigest()

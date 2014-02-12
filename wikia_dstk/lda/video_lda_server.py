@@ -62,7 +62,7 @@ def get_model_from_args(args):
         else:
             log("(building...)")
             #async_result = launch_lda_nodes()
-            log("LDA nodes launched, now getting features")
+            log("Getting features while LDA nodes launch")
             doc_id_to_terms = json.loads(bucket.get_key(video_json_key).get_contents_as_string())
             dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
             sys.exit()

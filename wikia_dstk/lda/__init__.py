@@ -19,7 +19,8 @@ from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
 
 
-alphanumeric_unicode_pattern = re.compile(r'[^\w\s]', re.U)
+alphanumeric_unicode_pattern = re.compile(ur'[^\w\s]', re.U)
+splitter_pattern = ur"[\u200b\s]+"
 dictlogger = logging.getLogger('gensim.corpora.dictionary')
 stemmer = PorterStemmer()
 english_stopwords = stopwords.words('english')
@@ -44,7 +45,9 @@ def normalize(phrase):
     global stemmer, english_stopwords, alphanumeric_unicode_pattern
     nonstops_stemmed = filter(lambda x: x,
                               [stemmer.stem(token)
-                               for token in re.sub(alphanumeric_unicode_pattern, ' ', phrase).split(u' ')
+                               for token in re.split(splitter_pattern,
+                                                     re.sub(alphanumeric_unicode_pattern, ' ', phrase),
+                                                     flags=re.UNICODE)
                                if token and token not in english_stopwords]
                               )
     return u'_'.join(nonstops_stemmed).strip().lower()
@@ -52,10 +55,10 @@ def normalize(phrase):
 
 def unis_bis_tris(string_or_list, prefix=u''):
     try:
-        totes_list = string_or_list.split(u' ')
+        totes_list = re.split(splitter_pattern,  string_or_list, flags=re.UNICODE)
     except AttributeError:
         totes_list = string_or_list  # can't split a list dawg
-    unis = [normalize(word) for word in totes_list]
+    unis = [normalize(word) for word in totes_list if word]
     return ([u'%s%s' % (prefix, word) for word in unis]
             + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)]
             + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])

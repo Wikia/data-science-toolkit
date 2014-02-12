@@ -86,12 +86,9 @@ def etl_concurrent(pool):
     log("Got all docs, now building features")
     doclen = len(docs)
     features = {}
-    r = pool.map_async(doc_to_vectors, docs, callback=features.update)
-    threshold = 0.95 * doclen
-    while len(features) < threshold:
-        log("%.2f" % (100 * len(features)/doclen))
-        time.sleep(15)
-    r.wait()
+    for i in range(0, doclen, 5000):
+        log("%.2f%%" % (float(i)/float(doclen) * 100))
+        map(features.update, pool.map_async(doc_to_vectors, docs[i:i+5000]))
     return features
 
 

@@ -98,10 +98,11 @@ def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
     documents = id_to_features.values()
     dct = WikiaDSTKDictionary(documents)
+
+    log("Filtering stopwords")
     dct.filter_stops(documents)
 
     log("---Bag of Words Corpus---")
-
     bow_docs = {}
     for name in id_to_features:
         sparse = dct.doc2bow(id_to_features[name])

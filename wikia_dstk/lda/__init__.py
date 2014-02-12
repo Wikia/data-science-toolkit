@@ -169,7 +169,7 @@ class WikiaDSTKDictionary(Dictionary):
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)
-        document = [d for d in document if type(d) == str]  # fixes bug i'm having a hard time understanding
+        print len(document)
         hash = self.document2hash(document)
         if allow_update or hash not in self.d2bmemo:
             self.d2bmemo[hash] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
@@ -182,10 +182,7 @@ class WikiaDSTKDictionary(Dictionary):
         """
         word_probabilities_summed = dict()
         num_documents = len(documents)
-        intervals = range(0, num_documents, num_documents/100)
-        for counter, document in enumerate(documents):
-            if counter in intervals:
-                log("Filter data collection: %.2f%%" % (float(counter)/float(num_documents) * 100))
+        for document in documents:
             doc_bow = self.doc2bow(document)
             sum_counts = sum([float(count) for _, count in doc_bow])
             for token_id, probability in [(token_id, float(count)/sum_counts) for token_id, count in doc_bow]:
@@ -203,19 +200,16 @@ class WikiaDSTKDictionary(Dictionary):
                                               for token_id, probability in mean_word_probabilities]
 
         # Use Borda counts to combine the rank votes of statistical value and entropy
-        log("Filtering: Getting SAT Ranking")
         sat_ranking = dict(
             map(lambda y: (y[1], y[0]),
                 list(enumerate(map(lambda x: x[0],
                                    sorted(word_statistical_value_and_entropy, key=lambda x: x[1])))))
         )
-        log("Filtering: Getting Entropy Ranking")
         entropy_ranking = dict(
             map(lambda y: (y[1], y[0]),
                 list(enumerate(map(lambda x: x[0],
                                    sorted(word_statistical_value_and_entropy, key=lambda x: x[2])))))
         )
-        log("Filtering: Borda ranking")
         borda_ranking = sorted([(token_id, entropy_ranking[token_id] + sat_ranking[token_id])
                                 for token_id in sat_ranking],
                                key=lambda x: x[1])

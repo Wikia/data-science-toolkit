@@ -7,6 +7,8 @@ import numpy as np
 import math
 import time
 import re
+import random
+from multiprocessing import Pool
 from gensim.corpora import Dictionary
 from gensim.matutils import corpus2dense
 from nltk import PorterStemmer, bigrams, trigrams
@@ -62,6 +64,23 @@ def harakiri():
     get_ec2_connection().terminate_instances(instance_ids=[get_instance_metadata()['local-hostname'].split('.')[1]])
 
 
+def check_lda_node(instance_request):
+    conn = get_ec2_connection()
+    fulfilled = False
+    while not fulfilled:
+        time.sleep(random.randint(10, 20))
+        requests = conn.get_all_spot_instance_requests(request_ids=[instance_request.id])
+        if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
+            raise StandardError("Bid price too low -- try again later")
+        fulfilled = len(filter(lambda x: x.status == 'fulfilled', requests)) > 0
+    return requests[0].instance_id
+
+
+def load_instance_ids(instance_ids):
+    global instances_launched
+    instances_launched = get_ec2_connection().get_all_instances(instance_ids=instance_ids)
+
+
 def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
     global instances_launched
     conn = get_ec2_connection()
@@ -71,15 +90,7 @@ def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
                                            subnet_id='subnet-e4d087a2',
                                            security_group_ids=['sg-72190a10']
                                            )
-    fulfilled = False
-    while not fulfilled:
-        time.sleep(15)
-        requests = conn.get_all_spot_instance_requests(request_ids=[r.id for r in requests])
-        if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
-            raise StandardError("Bid price too low -- try again later")
-        fulfilled = len(filter(lambda x: x.status == 'fulfilled', requests)) == instance_count
-    instance_ids = [instance.instance_id for instance in requests if instance.instance_id]
-    instances_launched = conn.get_all_instances(instance_ids=instance_ids)
+    return Pool(processes=instance_count).map_async(check_lda_node, requests, callback=load_instance_ids)
 
 
 def terminate_lda_nodes():
@@ -152,7 +163,10 @@ class WikiaDSTKDictionary(Dictionary):
         """
         word_probabilities_summed = dict()
         num_documents = len(documents)
-        for document in documents:
+        intervals = range(0, num_documents, num_documents/100)
+        for counter, document in enumerate(documents):
+            if counter in intervals:
+                log("%.2f" % (float(counter)/float(num_documents) * 100))
             doc_bow = self.doc2bow(document)
             sum_counts = sum([float(count) for _, count in doc_bow])
             for token_id, probability in [(token_id, float(count)/sum_counts) for token_id, count in doc_bow]:

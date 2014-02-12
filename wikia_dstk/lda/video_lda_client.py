@@ -66,7 +66,7 @@ def doc_to_vectors(doc):
                 + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis_tris(li)]
                 + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis_tris(li)]
                 ]
-        return dict([(data[0], data[1])])
+        return dict([(data[0], data[1:])])
     except (IndexError, TypeError) as e:
         log(e)
         return []

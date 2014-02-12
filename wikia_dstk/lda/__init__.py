@@ -60,7 +60,6 @@ def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
     global instances_launched
     conn = get_ec2_connection()
     requests = conn.request_spot_instances('0.80', ami,
-                                           key_name='LDA Node',
                                            count=instance_count,
                                            instance_type='m2.4xlarge',
                                            subnet_id='subnet-e4d087a2',

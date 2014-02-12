@@ -5,6 +5,7 @@ import os
 import gensim
 import time
 import json
+import sys
 from . import launch_lda_nodes, terminate_lda_nodes, log, harakiri
 from . import video_json_key, get_dct_and_bow_from_features, write_csv_and_text_data
 from boto import connect_s3
@@ -60,9 +61,12 @@ def get_model_from_args(args):
             lda_model = gensim.models.LdaModel.load('/tmp/%s' % modelname)
         else:
             log("(building...)")
-            launch_lda_nodes()
+            #launch_lda_nodes()
+            log("LDA nodes launched, now getting features")
             doc_id_to_terms = json.loads(bucket.get_key(video_json_key).get_contents_as_string())
             dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
+            sys.exit()
+            log("Got features, building model")
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
                                                id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),

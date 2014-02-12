@@ -88,7 +88,7 @@ def etl_concurrent(pool):
     features = {}
     for i in range(0, doclen, 5000):
         log("%.2f%%" % (float(i)/float(doclen) * 100))
-        map(features.update, pool.map_async(doc_to_vectors, docs[i:i+5000]))
+        map(features.update, pool.map_async(doc_to_vectors, docs[i:i+5000]).get())
     return features
 
 

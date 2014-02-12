@@ -165,7 +165,11 @@ class WikiaDSTKDictionary(Dictionary):
         self.d2bmemo = {}
 
     def document2hash(self, document):
-        return hashlib.sha1(' '.join(document)).hexdigest()
+        print type(document)
+        try:
+            return hashlib.sha1(' '.join(document)).hexdigest()
+        except:
+            print document
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)

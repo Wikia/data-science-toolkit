@@ -6,6 +6,7 @@ import logging
 import numpy as np
 import math
 import time
+import re
 from gensim.corpora import Dictionary
 from gensim.matutils import corpus2dense
 from nltk import PorterStemmer, bigrams, trigrams
@@ -15,6 +16,7 @@ from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
 
 
+alphanumeric_unicode_pattern = re.compile(r'[^\w\s]', re.U)
 dictlogger = logging.getLogger('gensim.corpora.dictionary')
 stemmer = PorterStemmer()
 english_stopwords = stopwords.words('english')
@@ -36,8 +38,12 @@ def vec2dense(vector, num_terms):
 
 
 def normalize(phrase):
-    global stemmer, english_stopwords
-    nonstops_stemmed = [stemmer.stem(token) for token in phrase.split(u' ') if token not in english_stopwords]
+    global stemmer, english_stopwords, alphanumeric_unicode_pattern
+    nonstops_stemmed = filter(lambda x: x,
+                              [stemmer.stem(token)
+                               for token in re.sub(alphanumeric_unicode_pattern, ' ', phrase).split(u' ')
+                               if token and token not in english_stopwords]
+                              )
     return u'_'.join(nonstops_stemmed).strip().lower()
 
 

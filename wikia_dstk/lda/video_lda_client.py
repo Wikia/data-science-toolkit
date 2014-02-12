@@ -55,17 +55,19 @@ def get_args():
 
 def doc_to_vectors(doc):
     try:
-        return [d.encode('utf-8') for d in
-                [doc[u'id']]
-                + unis_bis_tris(doc[u'title_en'].replace(u'File:', u''))
-                + map(normalize, doc.get(u'video_actors_txt', []))
-                + map(normalize, doc.get(u'video_tags_txt', []))
-                + map(normalize, doc.get(u'categories_mv_en', []))
-                + map(normalize, doc.get(u'video_tags_txt', []))
-                + map(normalize, doc.get(u'video_genres_txt', []))
-                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis_tris(li)]
-                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis_tris(li)]
-                ]
+        return dict(
+            [(li[0], li[1:]) for li in
+             [d.encode('utf-8') for d in
+             [doc[u'id']]
+             + unis_bis_tris(doc[u'title_en'].replace(u'File:', u''))
+             + map(normalize, doc.get(u'video_actors_txt', []))
+             + map(normalize, doc.get(u'video_tags_txt', []))
+             + map(normalize, doc.get(u'categories_mv_en', []))
+             + map(normalize, doc.get(u'video_tags_txt', []))
+             + map(normalize, doc.get(u'video_genres_txt', []))
+             + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis_tris(li)]
+             + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis_tris(li)]
+             ]])
     except (IndexError, TypeError) as e:
         log(e)
         return []
@@ -82,14 +84,16 @@ def etl_concurrent(pool):
     r = pool.map_async(get_docs, range(0, response['response']['numFound'], 500))
     r.wait()
     docs = [doc for docset in r.get() for doc in docset]
-    log("Got all docs")
+    log("Got all docs, now building features")
     doclen = len(docs)
-    features = []
-    for i in range(0, doclen, 5000):
-        log("%.2f%%" % (float(i)/float(doclen) * 100))
-        r = pool.map_async(doc_to_vectors, docs[i:i+5000])
-        features += r.get()
-    return dict([(li[0], li[1:]) for li in features if len(li) > 1])
+    features = {}
+    r = pool.map_async(doc_to_vectors, docs, features.update)
+    threshold = 0.95 * doclen
+    while len(features) < threshold:
+        log("%.2f" % (100 * len(features)/doclen))
+        time.sleep(15)
+    r.wait()
+    return features
 
 
 def get_docs(start):
@@ -146,7 +150,7 @@ def main():
     if args.build:
         start = time.time()
         data_to_s3(args.num_processes)
-        log("Finished upload to S3 in %d seconds" % time.time() - start)
+        log("Finished upload to S3 in %d seconds" % (time.time() - start))
     if not args.build_only:
         log("Running LDA, which will auto-terminate upon completion")
         connection = connect_to_region('us-west-2')

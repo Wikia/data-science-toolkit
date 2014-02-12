@@ -161,14 +161,15 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
 class WikiaDSTKDictionary(Dictionary):
 
     def __init__(self, *args):
-        super(WikiaDSTKDictionary, self).__init__(args)
         self.d2bmemo = {}
+        super(WikiaDSTKDictionary, self).__init__(args)
 
     def document2hash(self, document):
         return hashlib.sha1(' '.join(document)).hexdigest()
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)
+        document = [d for d in document if type(d) == str]  # fixes bug i'm having a hard time understanding
         hash = self.document2hash(document)
         if allow_update or hash not in self.d2bmemo:
             self.d2bmemo[hash] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)

@@ -45,9 +45,9 @@ def normalize(phrase):
     global stemmer, english_stopwords, alphanumeric_unicode_pattern
     nonstops_stemmed = filter(lambda x: x,
                               [stemmer.stem(token)
+                               # flags=re.UNICODE if we didn't have 2.6 on nlp-s1
                                for token in re.split(splitter_pattern,
-                                                     re.sub(alphanumeric_unicode_pattern, ' ', phrase),
-                                                     flags=re.UNICODE)
+                                                     re.sub(alphanumeric_unicode_pattern, ' ', phrase))
                                if token and token not in english_stopwords]
                               )
     return u'_'.join(nonstops_stemmed).strip().lower()
@@ -55,7 +55,7 @@ def normalize(phrase):
 
 def unis_bis_tris(string_or_list, prefix=u''):
     try:
-        totes_list = re.split(splitter_pattern,  string_or_list, flags=re.UNICODE)
+        totes_list = re.split(splitter_pattern,  string_or_list)  # flags=re.UNICODE if we didn't have 2.6 on nlp-s1
     except AttributeError:
         totes_list = string_or_list  # can't split a list dawg
     unis = [normalize(word) for word in totes_list if word]

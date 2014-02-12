@@ -22,6 +22,7 @@ class EC2Connection(object):
         self.tag = options.get('tag')
         self.threshold = options.get('threshold')
         self.max_size = options.get('max_size')
+        self.user_data = options.get('user_data')
         self.conn = connect_to_region(self.region)
 
     def _request_instances(self, count):
@@ -39,6 +40,7 @@ class EC2Connection(object):
                                                 count=count,
                                                 key_name=self.key,
                                                 security_groups=self.sec,
+                                                user_data=self.user_data,
                                                 instance_type=self.type)
 
     def _get_instance_ids(self, reservation):

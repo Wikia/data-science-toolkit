@@ -160,18 +160,19 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
 
 class WikiaDSTKDictionary(Dictionary):
 
-    def __init__(self, *args):
+    def __init__(self, documents=None):
         self.d2bmemo = {}
-        super(WikiaDSTKDictionary, self).__init__(args)
+        super(WikiaDSTKDictionary, self).__init__(documents=documents)
 
     def document2hash(self, document):
-        return hashlib.sha1(' '.join(document)).hexdigest()
+        return hashlib.sha1(u' '.join(document).encode('utf-8')).hexdigest()
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)
-        print len(document)
         hash = self.document2hash(document)
         if allow_update or hash not in self.d2bmemo:
+            if not allow_update:
+                print 'got here'
             self.d2bmemo[hash] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
         return self.d2bmemo[hash]
 

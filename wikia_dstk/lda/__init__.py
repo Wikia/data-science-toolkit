@@ -196,7 +196,7 @@ class WikiaDSTKDictionary(Dictionary):
         wpl_items = word_probabilities_list.items()
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
-        log("At probabilities, initializing zero matrix")
+        log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
         probs_zeros = np.zeros((len(probabilities), num_documents))
         for i, probs in enumerate(probabilities):
             probs_zeros[i][0:len(probs)] = probs

@@ -158,7 +158,8 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     text_key.set_contents_from_file(args.path_prefix+text_filename)
 
 
-def get_sat_h(probabilities, matrix_length):
+def get_sat_h(tup):
+    probabilities, matrix_length = tup
     log('.')
     probs_zeros = np.zeros((len(probabilities), matrix_length))
     for i, probs in enumerate(probabilities):
@@ -208,7 +209,8 @@ class WikiaDSTKDictionary(Dictionary):
         # padding with zeroes for numpy
         log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
         sats_and_hs = Pool(processes=8).map(get_sat_h,
-                                            [probabilities[i:i+1000] for i in range(0, len(probabilities), 10000)])
+                                            [(probabilities[i:i+1000], num_documents)
+                                             for i in range(0, len(probabilities), 10000)])
         log('fully calculated')
         token_to_sat = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[0]])
         token_to_entropy = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[1]])

@@ -158,6 +158,15 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     text_key.set_contents_from_file(args.path_prefix+text_filename)
 
 
+def get_sat_h(probabilities, matrix_length):
+    probs_zeros = np.zeros((len(probabilities), matrix_length))
+    for i, probs in enumerate(probabilities):
+        probs_zeros[i][0:len(probs)] = probs
+    probabilities = probs_zeros
+    return (np.divide(np.mean(probabilities, axis=1), np.var(probabilities, axis=1)),
+            np.nansum(np.multiply(probabilities, np.log(1/probabilities)), axis=1))
+
+
 class WikiaDSTKDictionary(Dictionary):
 
     def __init__(self, documents=None):
@@ -197,19 +206,20 @@ class WikiaDSTKDictionary(Dictionary):
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
         log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
-        probs_zeros = np.zeros((len(probabilities), num_documents))
-        for i, probs in enumerate(probabilities):
-            probs_zeros[i][0:len(probs)] = probs
-        probabilities = probs_zeros
-        log("built from zeros")
+        token_to_sat = []
+        token_to_entropy = []
+        for i in range(0, len(probabilities), 10000):
+            log("Getting sat in slice", i)
+            sat, h = get_sat_h(probabilities[i:i+1000], num_documents)
+            token_to_sat += zip(token_ids[i:i+1000], sat)
+            token_to_entropy += zip(token_ids[i:i+1000], h)
+
         dtype = [('token_id', 'i'), ('value', 'f')]
-        log("At SAT")
-        token_to_sat = zip(token_ids, np.divide(np.mean(probabilities, axis=1), np.var(probabilities, axis=1)))
+        log("Sorting SAT")
         sorted_token_sat = np.sort(np.array(token_to_sat, dtype=dtype), order='value')
-        log("At Entropy")
-        token_to_entropy = zip(token_ids, np.nansum(np.multiply(probabilities, np.log(1/probabilities))), axis=1)
+        log("Sorting Entropy")
         sorted_token_entropy = np.sort(np.array(token_to_entropy, dtype=dtype), order='value')
-        log("At Borda")
+        log("Finally calculating Borda")
         token_to_borda = defaultdict(int)
         for order, tup in enumerate(sorted_token_entropy):
             token_to_borda[tup[0]] += order

@@ -88,6 +88,7 @@ def load_instance_ids(instance_ids):
 def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
     global instances_launched
     conn = get_ec2_connection()
+    log("trying to launch", instance_count, "instances")
     requests = conn.request_spot_instances('0.80', ami,
                                            count=instance_count,
                                            instance_type='m2.4xlarge',

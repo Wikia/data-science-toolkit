@@ -181,7 +181,6 @@ class WikiaDSTKDictionary(Dictionary):
         Uses statistical methods  to filter out stopwords
         See http://www.cs.cityu.edu.hk/~lwang/research/hangzhou06.pdf for more info on the algo
         """
-        word_probabilities_summed = defaultdict(int)
         word_probabilities_list = defaultdict(list)
         num_documents = len(documents)
         intervals = range(0, num_documents, num_documents/100)
@@ -189,35 +188,26 @@ class WikiaDSTKDictionary(Dictionary):
             if counter in intervals:
                 print counter
             doc_bow = self.doc2bow(document)
-            sum_counts = sum([float(count) for _, count in doc_bow])
+            sum_counts = float(sum([count for _, count in doc_bow]))
             for token_id, count in doc_bow:
-                prob = count/sum_counts
-                word_probabilities_summed[token_id] += prob
-                word_probabilities_list[token_id] += [prob]
+                word_probabilities_list[token_id].append(count/sum_counts)
 
-        # For variance of probability, using Numpy's variance metric, padding zeroes where necessary.
-        # Should do the same job as figure (3) in the paper
-        word_statistical_value_and_entropy = [(token_id,
-                                               word_probabilities_summed[token_id]/num_documents  # statistical value
-                                               / np.var(probabilities + ([0] * (num_documents - len(probabilities)))),
-                                               sum([prob * math.log(1.0/prob) for prob in probabilities])  # entropy
-                                               )
-                                              for token_id, probabilities in word_probabilities_list.items()]
-
-        # Use Borda counts to combine the rank votes of statistical value and entropy
-        sat_ranking = dict(
-            map(lambda y: (y[1], y[0]),
-                list(enumerate(map(lambda x: x[0],
-                                   sorted(word_statistical_value_and_entropy, key=lambda x: x[1])))))
-        )
-        entropy_ranking = dict(
-            map(lambda y: (y[1], y[0]),
-                list(enumerate(map(lambda x: x[0],
-                                   sorted(word_statistical_value_and_entropy, key=lambda x: x[2])))))
-        )
-        borda_ranking = sorted([(token_id, entropy_ranking[token_id] + sat_ranking[token_id])
-                                for token_id in sat_ranking],
-                               key=lambda x: x[1])
+        log("Calculating borda ranking")
+        wpl_items = word_probabilities_list.items()
+        token_ids, probabilities = zip(*wpl_items)
+        # padding with zeroes for numpy
+        probabilities = np.array([probs + ([0] * (num_documents - len(probs))) for probs in probabilities])
+        dtype = [('token_id', 'i'), ('value', 'f')]
+        token_to_sat = zip(token_ids, np.divide(np.mean(probabilities, axis=1), np.var(probabilities, axis=1)))
+        sorted_token_sat = np.sort(np.array(token_to_sat, dtype=dtype), order='value')
+        token_to_entropy = zip(token_ids, np.nansum(np.multiply(probabilities, np.log(1/probabilities))), axis=1)
+        sorted_token_entropy = np.sort(np.array(token_to_entropy, dtype=dtype), order='value')
+        token_to_borda = defaultdict(int)
+        for order, tup in enumerate(sorted_token_entropy):
+            token_to_borda[tup[0]] += order
+        for order, tup in enumerate(sorted_token_sat):
+            token_to_borda[tup[0]] += order
+        borda_ranking = sorted(token_to_borda.items(), key=lambda x: x[1])
 
         dictlogger.info("keeping %i tokens, removing %i 'stopwords'" %
                         (len(borda_ranking) - num_stops, num_stops))

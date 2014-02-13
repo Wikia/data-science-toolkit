@@ -9,7 +9,6 @@ from boto import connect_s3
 from boto.exception import S3ResponseError
 from boto.s3.key import Key
 from boto.utils import get_instance_metadata
-from multiprocessing import Pool
 
 from nlp_services.caching import use_caching
 from config import *

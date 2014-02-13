@@ -60,7 +60,7 @@ def get_model_from_args(args):
             lda_model = gensim.models.LdaModel.load('/tmp/%s' % modelname)
         else:
             log("(building...)")
-            async_result = launch_lda_nodes()
+            async_result = launch_lda_nodes(instance_count=args.instance_count, ami=args.node_ami)
             log("Getting features while LDA nodes launch")
             doc_id_to_terms = json.loads(bucket.get_key(video_json_key).get_contents_as_string())
             dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)

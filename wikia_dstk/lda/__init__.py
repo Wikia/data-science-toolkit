@@ -115,7 +115,7 @@ def get_dct_and_bow_from_features(id_to_features):
     dct = WikiaDSTKDictionary(documents)
 
     log("Filtering stopwords")
-    dct.filter_stops(documents)
+    dct.filter_stops()
 
     log("---Bag of Words Corpus---")
     bow_docs = {}
@@ -170,6 +170,11 @@ def get_sat_h(tup):
             np.nansum(np.multiply(probabilities, np.log(1/probabilities)), axis=1))
 
 
+def get_doc_bow_probs(doc_bow):
+    sum_counts = float(sum([count for _, count in doc_bow]))
+    return [(token_id, count/sum_counts) for token_id, count in doc_bow]
+
+
 class WikiaDSTKDictionary(Dictionary):
 
     def __init__(self, documents=None):
@@ -181,37 +186,36 @@ class WikiaDSTKDictionary(Dictionary):
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)
-        hash = self.document2hash(document)
-        if allow_update or hash not in self.d2bmemo:
+        hsh = self.document2hash(document)
+        if allow_update or hsh not in self.d2bmemo:
             if not allow_update:
                 print 'got here'
-            self.d2bmemo[hash] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
-        return self.d2bmemo[hash]
+            self.d2bmemo[hsh] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
+        return self.d2bmemo[hsh]
 
-    def filter_stops(self, documents, num_stops=300):
+    def filter_stops(self, num_stops=300):
         """
         Uses statistical methods  to filter out stopwords
         See http://www.cs.cityu.edu.hk/~lwang/research/hangzhou06.pdf for more info on the algo
         """
+        pool = Pool(processes=8)
         word_probabilities_list = defaultdict(list)
+        documents = self.d2bmemo.values()
         num_documents = len(documents)
-        intervals = range(0, num_documents, num_documents/100)
-        for counter, document in enumerate(documents):
-            if counter in intervals:
-                print counter
-            doc_bow = self.doc2bow(document)
-            sum_counts = float(sum([count for _, count in doc_bow]))
-            for token_id, count in doc_bow:
-                word_probabilities_list[token_id].append(count/sum_counts)
+
+        log("Getting probabilities")
+        for tupleset in pool.map(get_doc_bow_probs, documents):
+            for token_id, prob in tupleset:
+                word_probabilities_list[token_id] += prob
 
         log("Calculating borda ranking between SAT and entropy")
         wpl_items = word_probabilities_list.items()
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
         log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
-        sats_and_hs = Pool(processes=8).map(get_sat_h,
-                                            [(probabilities[i:i+1000], num_documents)
-                                             for i in range(0, len(probabilities), 10000)])
+        sats_and_hs = pool.map(get_sat_h,
+                               [(probabilities[i:i+1000], num_documents)
+                               for i in range(0, len(probabilities), 10000)])
         log('fully calculated')
         token_to_sat = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[0]])
         token_to_entropy = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[1]])

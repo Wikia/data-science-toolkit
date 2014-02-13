@@ -181,13 +181,17 @@ class WikiaDSTKDictionary(Dictionary):
         Uses statistical methods  to filter out stopwords
         See http://www.cs.cityu.edu.hk/~lwang/research/hangzhou06.pdf for more info on the algo
         """
-        word_probabilities_summed = dict()
+        word_probabilities_summed = defaultdict(int)
         num_documents = len(documents)
-        for document in documents:
+        intervals = range(0, num_documents, num_documents/100)
+        for counter, document in enumerate(documents):
+            if counter in intervals:
+                print counter
             doc_bow = self.doc2bow(document)
             sum_counts = sum([float(count) for _, count in doc_bow])
-            for token_id, probability in [(token_id, float(count)/sum_counts) for token_id, count in doc_bow]:
-                word_probabilities_summed[token_id] = word_probabilities_summed.get(token_id, []) + [probability]
+            for token_id, count in doc_bow:
+                word_probabilities_summed[token_id] += count/sum_counts
+
         mean_word_probabilities = [(token_id, sum(probabilities)/num_documents)
                                    for token_id, probabilities in word_probabilities_summed.items()]
 

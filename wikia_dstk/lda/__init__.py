@@ -195,13 +195,10 @@ class WikiaDSTKDictionary(Dictionary):
                 word_probabilities_summed[token_id] += prob
                 word_probabilities_list[token_id] += [prob]
 
-        mean_word_probabilities = [(token_id, total_probability/num_documents)
-                                   for token_id, total_probability in word_probabilities_list.items()]
-
         # For variance of probability, using Numpy's variance metric, padding zeroes where necessary.
         # Should do the same job as figure (3) in the paper
         word_statistical_value_and_entropy = [(token_id,
-                                               mean_word_probabilities[token_id]  # statistical value
+                                               word_probabilities_summed[token_id]/num_documents  # statistical value
                                                / np.var(probabilities + ([0] * (num_documents - len(probabilities)))),
                                                sum([prob * math.log(1.0/prob) for prob in probabilities])  # entropy
                                                )

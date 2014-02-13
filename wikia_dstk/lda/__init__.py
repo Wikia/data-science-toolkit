@@ -160,7 +160,6 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
 
 def get_sat_h(tup):
     probabilities, matrix_length = tup
-    log('.')
     probs_zeros = np.zeros((len(probabilities), matrix_length))
     for i, probs in enumerate(probabilities):
         probs_zeros[i][0:len(probs)] = probs

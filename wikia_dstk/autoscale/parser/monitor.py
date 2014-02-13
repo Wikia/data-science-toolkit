@@ -1,6 +1,7 @@
 from __future__ import division
 import json
-from . import EC2Connection
+from .. import EC2Connection
+from config import config
 from boto import connect_s3
 from datetime import datetime
 from math import ceil
@@ -14,10 +15,8 @@ We need this script for two reasons:
 2) You can't create metric alarms for EC2 instances hosted outside of us-east-1
 """
 
-QUEUES = {
-    'parser': 'text_events',
-    'data_extraction': 'data_events'
-}
+TAG = 'parser'
+QUEUE = 'text_events'
 
 op = OptionParser()
 op.add_option('-r', '--region', dest='region', help='The EC2 region to connect to')
@@ -28,20 +27,12 @@ op.add_option('-s', '--security-groups', dest='sec',
               help='The security groups with which to associate instances')
 op.add_option('-i', '--instance-type', dest='type',
               help='The type of instance to run')
-op.add_option('-t', '--tag', dest='tag', help='The tag name to operate over')
 op.add_option('-e', '--threshold', dest='threshold', type='int',
               help='Acceptable number of events per process we will tolerate as ' +
                    'backlog')
 op.add_option('-m', '--max-size', dest='max_size', type='int',
               help='The maximum allowable number of simultaneous instances')
 (options, args) = op.parse_args()
-
-if options.tag == 'parser':
-    from ..config.parser import config
-elif options.tag == 'data_extraction':
-    from ..config.data_extraction import config
-else:
-    raise OptionError('missing or invalid value', 'tag')
 
 config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 
@@ -53,13 +44,13 @@ ec2_conn = EC2Connection(config)
 lastInQueue = None
 intervals = []
 while True:
-    inqueue = len([k for k in bucket.list(QUEUES[config['tag']])]) - 1 #because it lists itself, #lame
+    inqueue = len([k for k in bucket.list(QUEUE)]) - 1 #because it lists itself, #lame
     if inqueue < 0: inqueue = 0 #sometimes the directory gets deleted when empty
-    instances = ec2_conn.get_tagged_instances(config['tag'])
+    instances = ec2_conn.get_tagged_instances(TAG)
     numinstances = len(instances)
 
     if not inqueue:
-        print "[%s %s] Just chillin' (%d in queue, %d instances)" % (config['tag'], datetime.today().isoformat(' '), inqueue, numinstances)
+        print "[%s %s] Just chillin' (%d in queue, %d instances)" % (TAG, datetime.today().isoformat(' '), inqueue, numinstances)
         sleep(60)
         continue
 
@@ -67,9 +58,9 @@ while True:
         optimal = int(ceil(inqueue / config['threshold']))
         instances_to_add = optimal if optimal <= config['max_size'] else config['max_size']
         ec2_conn.add_instances(instances_to_add)
-        instances = ec2_conn.get_tagged_instances(config['tag'])
+        instances = ec2_conn.get_tagged_instances(TAG)
         numinstances = len(instances)
-        print "[%s %s] Scaled up to %d (%d in queue)" % (config['tag'], datetime.today().isoformat(' '), numinstances, inqueue)
+        print "[%s %s] Scaled up to %d (%d in queue)" % (TAG, datetime.today().isoformat(' '), numinstances, inqueue)
         continue
 
     if lastInQueue is not None and lastInQueue != inqueue:
@@ -90,12 +81,12 @@ while True:
             allowed = config['max_size'] - numinstances
             instances_to_add = optimal if optimal <= allowed else allowed
             ec2_conn.add_instances(instances_to_add)
-            instances = ec2_conn.get_tagged_instances(config['tag'])
+            instances = ec2_conn.get_tagged_instances(TAG)
             numinstances = len(instances)
             ratio = inqueue / numinstances
-        print "[%s %s] Scaled up to %d (%d in queue%s)" % (config['tag'], datetime.today().isoformat(' '), numinstances, inqueue, rate)
+        print "[%s %s] Scaled up to %d (%d in queue%s)" % (TAG, datetime.today().isoformat(' '), numinstances, inqueue, rate)
     else:
-        print "[%s %s] Just chillin' (%d in queue, %d instances%s)" % (config['tag'], datetime.today().isoformat(' '), inqueue, numinstances, rate)
+        print "[%s %s] Just chillin' (%d in queue, %d instances%s)" % (TAG, datetime.today().isoformat(' '), inqueue, numinstances, rate)
 
     if inqueue == lastInQueue:
         mins += 1

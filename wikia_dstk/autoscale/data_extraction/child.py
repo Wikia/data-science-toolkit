@@ -11,10 +11,8 @@ from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 from multiprocessing import Pool
 
-from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService, HeadsService
-from nlp_services.discourse.entities import CoreferenceCountsService, EntityCountsService
-from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentEntitySentimentService, WpDocumentEntitySentimentService
 from nlp_services.caching import use_caching
+from config import *
 
 BUCKET = connect_s3().get_bucket('nlp-data')
 
@@ -25,13 +23,9 @@ BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
     SERVICES = json.loads(f.read())['services']
 
-print SERVICES #DEBUG
-print __name__
-
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 
 def process_file(filename):
-    print filename
     if filename.strip() == '':
         return  # newline at end of file
     global SERVICES
@@ -40,10 +34,11 @@ def process_file(filename):
         print "No match for %s" % filename
         return
 
+    wiki_id = match.group(1)
     doc_id = '%s_%s' % (match.group(1), match.group(2))
-    print doc_id
+    print 'Calling doc-level services on %s' % wiki_id
     for service in SERVICES:
-        print service
+        print wiki_id, service
         getattr(sys.modules[__name__], service)().get(doc_id)
         #try:
         #    getattr(sys.modules[__name__], service)().get(doc_id)
@@ -52,6 +47,11 @@ def process_file(filename):
         #except Exception as e:
         #    print 'Could not call %s on %s!' % (service, doc_id)
         #    print traceback.format_exc()
+
+    # write events to a new file
+    wiki_event = Key(BUCKET)
+    wiki_event.key = 'wiki_data_events/%s' % wiki_id
+    wiki_event.set_contents_from_string(wiki_id)
 
 
 def call_services(keyname):

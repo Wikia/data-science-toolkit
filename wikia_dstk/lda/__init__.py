@@ -182,6 +182,7 @@ class WikiaDSTKDictionary(Dictionary):
         See http://www.cs.cityu.edu.hk/~lwang/research/hangzhou06.pdf for more info on the algo
         """
         word_probabilities_summed = defaultdict(int)
+        word_probabilities_list = defaultdict(list)
         num_documents = len(documents)
         intervals = range(0, num_documents, num_documents/100)
         for counter, document in enumerate(documents):
@@ -190,19 +191,21 @@ class WikiaDSTKDictionary(Dictionary):
             doc_bow = self.doc2bow(document)
             sum_counts = sum([float(count) for _, count in doc_bow])
             for token_id, count in doc_bow:
-                word_probabilities_summed[token_id] += count/sum_counts
+                prob = count/sum_counts
+                word_probabilities_summed[token_id] += prob
+                word_probabilities_list[token_id] += [prob]
 
-        mean_word_probabilities = [(token_id, sum(probabilities)/num_documents)
-                                   for token_id, probabilities in word_probabilities_summed.items()]
+        mean_word_probabilities = [(token_id, total_probability/num_documents)
+                                   for token_id, total_probability in word_probabilities_list.items()]
 
         # For variance of probability, using Numpy's variance metric, padding zeroes where necessary.
         # Should do the same job as figure (3) in the paper
         word_statistical_value_and_entropy = [(token_id,
-                                               probability   # statistical value
+                                               mean_word_probabilities[token_id]  # statistical value
                                                / np.var(probabilities + ([0] * (num_documents - len(probabilities)))),
-                                               sum([prob * math.log(1.0/prob) for prob in probability])  # entropy
+                                               sum([prob * math.log(1.0/prob) for prob in probabilities])  # entropy
                                                )
-                                              for token_id, probability in mean_word_probabilities]
+                                              for token_id, probabilities in word_probabilities_list.items()]
 
         # Use Borda counts to combine the rank votes of statistical value and entropy
         sat_ranking = dict(

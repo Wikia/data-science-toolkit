@@ -165,6 +165,7 @@ def get_sat_h(tup):
     for i, probs in enumerate(probabilities):
         probs_zeros[i][0:len(probs)] = probs
     probabilities = probs_zeros
+    log(probabilities)
     return (np.divide(np.mean(probabilities, axis=1), np.var(probabilities, axis=1)),
             np.nansum(np.multiply(probabilities, np.log(1/probabilities)), axis=1))
 

@@ -159,6 +159,7 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
 
 
 def get_sat_h(probabilities, matrix_length):
+    log('.')
     probs_zeros = np.zeros((len(probabilities), matrix_length))
     for i, probs in enumerate(probabilities):
         probs_zeros[i][0:len(probs)] = probs
@@ -206,12 +207,16 @@ class WikiaDSTKDictionary(Dictionary):
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
         log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
-        token_to_sat = []
-        token_to_entropy = []
+        sats_and_hs = Pool(processes=8).map(get_sat_h,
+                                            [probabilities[i:i+1000] for i in range(0, len(probabilities, 10000))])
+        log('fully calculated')
+        token_to_sat = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[0]])
+        token_to_entropy = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[1]])
+
         for i in range(0, len(probabilities), 10000):
             log("Getting sat in slice", i)
-            sat, h = get_sat_h(probabilities[i:i+1000], num_documents)
-            token_to_sat += zip(token_ids[i:i+1000], sat)
+            sat, h = get_sat_h(probabilities[i:i+10000], num_documents)
+            token_to_sat += zip(token_ids[i:i+10000], sat)
             token_to_entropy += zip(token_ids[i:i+1000], h)
 
         dtype = [('token_id', 'i'), ('value', 'f')]

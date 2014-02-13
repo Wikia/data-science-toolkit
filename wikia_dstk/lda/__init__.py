@@ -205,6 +205,7 @@ class WikiaDSTKDictionary(Dictionary):
 
         log("Getting probabilities")
         for tupleset in pool.map(get_doc_bow_probs, documents):
+            print tupleset
             for token_id, prob in tupleset:
                 word_probabilities_list[token_id] += prob
 

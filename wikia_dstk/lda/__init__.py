@@ -192,16 +192,20 @@ class WikiaDSTKDictionary(Dictionary):
             for token_id, count in doc_bow:
                 word_probabilities_list[token_id].append(count/sum_counts)
 
-        log("Calculating borda ranking")
+        log("Calculating borda ranking between SAT and entropy")
         wpl_items = word_probabilities_list.items()
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
+        log("At probabilities")
         probabilities = np.array([probs + ([0] * (num_documents - len(probs))) for probs in probabilities])
         dtype = [('token_id', 'i'), ('value', 'f')]
+        log("At SAT")
         token_to_sat = zip(token_ids, np.divide(np.mean(probabilities, axis=1), np.var(probabilities, axis=1)))
         sorted_token_sat = np.sort(np.array(token_to_sat, dtype=dtype), order='value')
+        log("At Entropy")
         token_to_entropy = zip(token_ids, np.nansum(np.multiply(probabilities, np.log(1/probabilities))), axis=1)
         sorted_token_entropy = np.sort(np.array(token_to_entropy, dtype=dtype), order='value')
+        log("At Borda")
         token_to_borda = defaultdict(int)
         for order, tup in enumerate(sorted_token_entropy):
             token_to_borda[tup[0]] += order

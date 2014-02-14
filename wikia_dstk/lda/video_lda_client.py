@@ -142,10 +142,11 @@ export NODE_AMI="%s"
 export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
-python -m Pyro4.naming -n 0.0.0.0 &
-python -m gensim.models.lda_dispatcher.py &
-python -m wikia_dstk.lda.video_lda_server.py""" % (args.num_topics, args.max_topic_frequency, args.model_prefix,
-                                                   args.s3_prefix, args.node_count, args.ami))
+python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server &
+python -m gensim.models.lda_dispatcher.py > /var/log/lda_dispatcher &
+python -m wikia_dstk.lda.video_lda_server.py > /var/log/lda_server""" % (args.num_topics, args.max_topic_frequency,
+                                                                         args.model_prefix, args.s3_prefix,
+                                                                         args.node_count, args.ami))
 
 
 def main():

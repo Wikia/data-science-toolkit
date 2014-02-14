@@ -97,7 +97,7 @@ def launch_lda_nodes(instance_count=20, ami="ami-d6e785e6"):
 export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST=%s
-python -m gensim.models.lda_worker
+python -m gensim.models.lda_worker > /var/log/lda_worker &
 """ % get_my_hostname()
 
     requests = conn.request_spot_instances('0.80', ami,

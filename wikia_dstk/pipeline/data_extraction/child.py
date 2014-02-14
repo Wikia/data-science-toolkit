@@ -39,19 +39,6 @@ def process_file(filename):
     for service in SERVICES:
         print wiki_id, service
         getattr(sys.modules[__name__], service)().get(doc_id)
-        #try:
-        #    getattr(sys.modules[__name__], service)().get(doc_id)
-        #except KeyboardInterrupt:
-        #    sys.exit()
-        #except Exception as e:
-        #    print 'Could not call %s on %s!' % (service, doc_id)
-        #    print traceback.format_exc()
-
-    # write events to a new file
-    wiki_event = Key(BUCKET)
-    wiki_event.key = 'wiki_data_events/%s' % wiki_id
-    wiki_event.set_contents_from_string(wiki_id)
-
 
 def call_services(keyname):
     global BUCKET

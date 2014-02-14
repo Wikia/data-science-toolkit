@@ -100,7 +100,7 @@ export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST=%s
 echo `date` `hostname -i ` "Starting Worker" >> /var/log/my_startup.log
-python -m gensim.models.lda_worker > /var/log/lda_worker &
+python -m gensim.models.lda_worker > /var/log/lda_worker 2>&1 &
 echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
 """ % get_my_hostname()
 

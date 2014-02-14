@@ -80,7 +80,7 @@ def check_lda_node(instance_request):
         requests = conn.get_all_spot_instance_requests(request_ids=[instance_request.id])
         if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
             raise StandardError("Bid price too low -- try again later")
-        print [x. status for x in requests]
+        print [type(x.status) for x in requests]
         fulfilled = len(filter(lambda x: x.status == 'fulfilled', requests)) > 0
     return requests[0].instance_id
 

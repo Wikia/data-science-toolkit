@@ -80,7 +80,7 @@ def check_lda_node(instance_request):
         requests = conn.get_all_spot_instance_requests(request_ids=[instance_request.id])
         if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
             raise StandardError("Bid price too low -- try again later")
-        print requests
+        print [x. status for x in requests]
         fulfilled = len(filter(lambda x: x.status == 'fulfilled', requests)) > 0
     return requests[0].instance_id
 
@@ -199,8 +199,6 @@ class WikiaDSTKDictionary(Dictionary):
         parent = super(WikiaDSTKDictionary, self)
         hsh = self.document2hash(document)
         if allow_update or hsh not in self.d2bmemo:
-            if not allow_update:
-                print 'got here'
             self.d2bmemo[hsh] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
         return self.d2bmemo[hsh]
 

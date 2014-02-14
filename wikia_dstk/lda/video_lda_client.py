@@ -157,12 +157,12 @@ def main():
     if not args.build_only:
         log("Running LDA, which will auto-terminate upon completion")
         connection = connect_to_region('us-west-2')
-        reservations = connection.run_instances(args.ami,
-                                                instance_type='m2.4xlarge',
-                                                user_data=user_data_from_args(args),
-                                                subnet_id='subnet-e4d087a2',
-                                                security_group_ids=['sg-72190a10'])
-        reso = reservations[0]
+        reservation = connection.run_instances(args.ami,
+                                               instance_type='m2.4xlarge',
+                                               user_data=user_data_from_args(args),
+                                               subnet_id='subnet-e4d087a2',
+                                               security_group_ids=['sg-72190a10'])
+        reso = reservation.instances[0]
         while True:
             reso.update()
             print reso.id, reso.public_dns_name, reso.private_dns_name

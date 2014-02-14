@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.exception import EC2ResponseError
+from boto.ec2 import networkinterface
 
 
 def get_args():
@@ -150,6 +151,7 @@ export NODE_AMI="%s"
 export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
+export ASSIGN_IP="%s"
 echo `date` `hostname -i ` "Starting Nameserver" >> /var/log/my_startup.log
 python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server &
 echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
@@ -158,7 +160,7 @@ echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.lo
 python -m wikia_dstk.lda.video_lda_server.py > /var/log/lda_server &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
                                                                             args.model_prefix, args.s3_prefix,
-                                                                            args.node_count, args.ami))
+                                                                            args.node_count, args.ami, args.master_ip))
 
 
 def main():
@@ -171,23 +173,20 @@ def main():
         try:
             log("Running LDA, which will auto-terminate upon completion")
             connection = connect_to_region('us-west-2')
+
+            interface = networkinterface.NetworkInterfaceSpecification(subnet_id='subnet-e4d087a2',
+                                                                       groups=['sg-72190a10'],
+                                                                       associate_public_ip_address=True)
+            interfaces = networkinterface.NetworkInterfaceCollection(interface)
+
             reservation = connection.run_instances(args.ami,
                                                    instance_type='m2.4xlarge',
                                                    user_data=user_data_from_args(args),
-                                                   subnet_id='subnet-e4d087a2',
-                                                   security_group_ids=['sg-72190a10'])
+                                                   network_interfaces=interfaces)
             reso = reservation.instances[0]
-            addresses = connection.get_all_addresses([args.master_ip])
-            print addresses[0]
-            if len(addresses) == 0:
-                # terminate instance?
-                raise Exception("Public address not available")
             connection.create_tags([reso.id], {"Name": "LDA Master Node"})
             while True:
                 reso.update()
-                # connection.associate_address(instance_id=reso.id,
-                #                          #public_ip=addresses[0].public_ip,
-                #                          allocation_id=addresses[0].allocation_id)
                 print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
                 time.sleep(15)
         except EC2ResponseError as e:
@@ -196,9 +195,8 @@ def main():
                 connection.terminate_instances([reso.id])
                 print "TERMINATED MASTER"
         except KeyboardInterrupt:
-            if not args.killable:
+            if args.killable:
                 connection.terminate_instances([reso.id])
-
 
 
 if __name__ == '__main__':

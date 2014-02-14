@@ -173,7 +173,12 @@ def main():
                                                subnet_id='subnet-e4d087a2',
                                                security_group_ids=['sg-72190a10'])
         reso = reservation.instances[0]
-        connection.associate_address(reso.id, args.master_ip)
+        addresses = connection.get_all_addresses([args.master_ip])
+        print addresses[0]
+        if len(addresses) == 0:
+            # terminate instance?
+            raise Exception("Public address not available")
+        addresses[0].associate(reso.id)
         connection.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()

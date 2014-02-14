@@ -178,7 +178,7 @@ def main():
         if len(addresses) == 0:
             # terminate instance?
             raise Exception("Public address not available")
-        addresses[0].associate(reso.id)
+        connection.associate_address(reso.instance_id, addresses[0].public_ip, addresses[0].allocation_id)
         connection.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()

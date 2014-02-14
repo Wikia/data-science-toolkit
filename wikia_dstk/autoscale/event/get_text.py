@@ -1,3 +1,5 @@
+# TODO: use multiprocessing.Pool instead of Queue, since we only expect 4 (a static number of) event files
+
 """
 Iterates over query queue files and writes text from queries specified in the
 query queue files.

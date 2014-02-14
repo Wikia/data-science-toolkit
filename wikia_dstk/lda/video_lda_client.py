@@ -51,6 +51,8 @@ def get_args():
     parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
                         help="Prevent terminating this instance")
+    parser.add_argument('--master-ip', dest='master_ip', default='54.200.131.148',
+                        help="The elastic IP address to associate with the master server")
     return parser.parse_args()
 
 
@@ -171,6 +173,7 @@ def main():
                                                subnet_id='subnet-e4d087a2',
                                                security_group_ids=['sg-72190a10'])
         reso = reservation.instances[0]
+        connection.associate_address(args.master_ip)
         connection.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()

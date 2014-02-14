@@ -152,6 +152,10 @@ export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
 export ASSIGN_IP="%s"
+touch /var/log/lda_dispatcher
+touch /var/log/lda_server
+chmod 777 /var/log/lda_server
+chmod 777 /var/log/lda_dispatcher
 exec 2>&1
 echo `date` `hostname -i ` "Starting Nameserver" >> /var/log/my_startup.log
 exec python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server &

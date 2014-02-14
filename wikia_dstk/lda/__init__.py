@@ -89,7 +89,7 @@ def load_instance_ids(instance_ids):
     instances_launched = get_ec2_connection().get_all_instances(instance_ids=instance_ids)
 
 
-def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
+def launch_lda_nodes(instance_count=20, ami="ami-d6e785e6"):
     global instances_launched
     conn = get_ec2_connection()
     user_data = """#!/bin/sh

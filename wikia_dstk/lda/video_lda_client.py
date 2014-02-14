@@ -16,6 +16,7 @@ def get_args():
     parser.add_argument('--build-only', dest='build_only', action='store_true', default=False,
                         help="Build new feature set for S3")
     parser.add_argument('--ami', dest='ami', type=str,
+                        default="ami-d6e785e6",
                         help='The AMI to launch')
     parser.add_argument('--num-nodes', dest='node_count', type=int,
                         default=20,
@@ -45,7 +46,7 @@ def get_args():
                         default=os.getenv('NODE_INSTANCES', 20),
                         help="Number of node instances to launch")
     parser.add_argument('--node-ami', dest='node_ami', type=str,
-                        default=os.getenv('NODE_AMI', "ami-40701570"),
+                        default=os.getenv('NODE_AMI', "ami-d6e785e6"),
                         help="AMI of the node machines")
     parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
@@ -130,6 +131,8 @@ def data_to_s3(num_processes):
 def user_data_from_args(args):
     return ("""#!/bin/sh
 mkdir -p /mnt/
+cd /home/ubuntu/data-science-toolkit
+git pull origin master && sudo python setup.py install
 export NUM_TOPICS=%d
 export MAX_TOPIC_FREQUENCY=%d
 export MODEL_PREFIX="%s"
@@ -141,9 +144,8 @@ export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
 python -m Pyro4.naming -n 0.0.0.0 &
 python -m gensim.models.lda_dispatcher.py &
-python -m wikia_dstk.lda.video_lda_server.py
-    """ % (args.num_topics, args.max_topic_frequency, args.model_prefix,
-           args.s3_prefix, args.node_count, args.ami))
+python -m wikia_dstk.lda.video_lda_server.py""" % (args.num_topics, args.max_topic_frequency, args.model_prefix,
+                                                   args.s3_prefix, args.node_count, args.ami))
 
 
 def main():

@@ -165,7 +165,7 @@ def main():
         reso = reservation.instances[0]
         while True:
             reso.update()
-            print reso.id, reso.public_dns_name, reso.private_dns_name
+            print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
             time.sleep(15)
 
 

@@ -163,6 +163,7 @@ def main():
                                                subnet_id='subnet-e4d087a2',
                                                security_group_ids=['sg-72190a10'])
         reso = reservation.instances[0]
+        connection.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()
             print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name

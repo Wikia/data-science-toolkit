@@ -132,7 +132,7 @@ def get_dct_and_bow_from_features(id_to_features):
 
     log("---Bag of Words Corpus---")
     bow_docs = {}
-    for name in id_to_features[:100]:
+    for name in id_to_features.keys()[:100]:
         sparse = dct.doc2bow(id_to_features[name])
         bow_docs[name] = sparse
     return dct, bow_docs

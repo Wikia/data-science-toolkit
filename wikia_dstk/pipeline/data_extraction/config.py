@@ -3,6 +3,7 @@ from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentE
 from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService, HeadsService
 
 config = {
+             "queue": "data_events",
              "region": "us-west-2",
              "price": "0.300",
              "ami": "ami-000f6d30",

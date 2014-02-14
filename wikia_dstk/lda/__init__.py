@@ -94,10 +94,14 @@ def launch_lda_nodes(instance_count=20, ami="ami-d6e785e6"):
     global instances_launched
     conn = get_ec2_connection()
     user_data = """#!/bin/sh
+
+echo `date` `hostname -i ` "Configuring Environment" >> /var/log/my_startup.log
 export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST=%s
+echo `date` `hostname -i ` "Starting Worker" >> /var/log/my_startup.log
 python -m gensim.models.lda_worker > /var/log/lda_worker &
+echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
 """ % get_my_hostname()
 
     requests = conn.request_spot_instances('0.80', ami,

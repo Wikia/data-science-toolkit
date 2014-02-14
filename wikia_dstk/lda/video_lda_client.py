@@ -7,6 +7,7 @@ from . import normalize, unis_bis_tris, video_json_key, log, check_lda_node, get
 from multiprocessing import Pool
 from boto import connect_s3
 from boto.ec2 import connect_to_region
+from boto.exception import EC2ResponseError
 
 
 def get_args():
@@ -165,25 +166,32 @@ def main():
         data_to_s3(args.num_processes)
         log("Finished upload to S3 in %d seconds" % (time.time() - start))
     if not args.build_only:
-        log("Running LDA, which will auto-terminate upon completion")
-        connection = connect_to_region('us-west-2')
-        reservation = connection.run_instances(args.ami,
-                                               instance_type='m2.4xlarge',
-                                               user_data=user_data_from_args(args),
-                                               subnet_id='subnet-e4d087a2',
-                                               security_group_ids=['sg-72190a10'])
-        reso = reservation.instances[0]
-        addresses = connection.get_all_addresses([args.master_ip])
-        print addresses[0]
-        if len(addresses) == 0:
-            # terminate instance?
-            raise Exception("Public address not available")
-        connection.create_tags([reso.id], {"Name": "LDA Master Node"})
-        connection.associate_address(reso.id, addresses[0].public_ip, addresses[0].allocation_id)
-        while True:
-            reso.update()
-            print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
-            time.sleep(15)
+        try:
+            log("Running LDA, which will auto-terminate upon completion")
+            connection = connect_to_region('us-west-2')
+            reservation = connection.run_instances(args.ami,
+                                                   instance_type='m2.4xlarge',
+                                                   user_data=user_data_from_args(args),
+                                                   subnet_id='subnet-e4d087a2',
+                                                   security_group_ids=['sg-72190a10'])
+            reso = reservation.instances[0]
+            addresses = connection.get_all_addresses([args.master_ip])
+            print addresses[0]
+            if len(addresses) == 0:
+                # terminate instance?
+                raise Exception("Public address not available")
+            connection.create_tags([reso.id], {"Name": "LDA Master Node"})
+            print "allocation id is", addresses[0].allocation_id
+            connection.associate_address(reso.id, addresses[0].public_ip, addresses[0].allocation_id)
+            while True:
+                reso.update()
+                print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
+                time.sleep(15)
+        except EC2ResponseError as e:
+            print e
+            if reso:
+                connection.terminate_instances([reso.id])
+                print "TERMINATED MASTER"
 
 
 

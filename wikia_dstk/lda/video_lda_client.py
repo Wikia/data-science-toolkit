@@ -173,7 +173,7 @@ def main():
                                                subnet_id='subnet-e4d087a2',
                                                security_group_ids=['sg-72190a10'])
         reso = reservation.instances[0]
-        connection.associate_address(args.master_ip)
+        connection.associate_address(reso.id, args.master_ip)
         connection.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()

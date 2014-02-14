@@ -152,12 +152,13 @@ export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
 export ASSIGN_IP="%s"
+exec 2>&1
 echo `date` `hostname -i ` "Starting Nameserver" >> /var/log/my_startup.log
-python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server &
+exec python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server &
 echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
-python -m gensim.models.lda_dispatcher.py > /var/log/lda_dispatcher &
+exec python -m gensim.models.lda_dispatcher.py > /var/log/lda_dispatcher &
 echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
-python -m wikia_dstk.lda.video_lda_server.py > /var/log/lda_server &
+exec python -m wikia_dstk.lda.video_lda_server.py > /var/log/lda_server &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
                                                                             args.model_prefix, args.s3_prefix,
                                                                             args.node_count, args.ami, args.master_ip))

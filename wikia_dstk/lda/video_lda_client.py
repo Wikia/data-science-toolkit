@@ -11,7 +11,7 @@ from boto.ec2 import connect_to_region
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--build', dest='build', action='store_true',
+    parser.add_argument('--build', dest='build', action='store_true', default=False,
                         help="Build new feature set for S3")
     parser.add_argument('--build-only', dest='build_only', action='store_true', default=False,
                         help="Build new feature set for S3")

@@ -4,7 +4,6 @@ Some shared functionality between all of the below scripts
 
 import logging
 import numpy as np
-import math
 import time
 import re
 import random

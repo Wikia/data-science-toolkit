@@ -3,7 +3,7 @@ import json
 import argparse
 import os
 import time
-from . import normalize, unis_bis_tris, video_json_key, log
+from . import normalize, unis_bis_tris, video_json_key, log, check_lda_node, get_ec2_connection
 from multiprocessing import Pool
 from boto import connect_s3
 from boto.ec2 import connect_to_region
@@ -157,11 +157,18 @@ def main():
     if not args.build_only:
         log("Running LDA, which will auto-terminate upon completion")
         connection = connect_to_region('us-west-2')
-        connection.run_instances(args.ami,
-                                 instance_type='m2.4xlarge',
-                                 user_data=user_data_from_args(args),
-                                 subnet_id='subnet-e4d087a2',
-                                 security_group_ids=['sg-72190a10'])
+        instance_requests = connection.run_instances(args.ami,
+                                                     instance_type='m2.4xlarge',
+                                                     user_data=user_data_from_args(args),
+                                                     subnet_id='subnet-e4d087a2',
+                                                     security_group_ids=['sg-72190a10'])
+        log(instance_requests)
+        r = Pool(args.num_processes).map_async(check_lda_node, instance_requests)
+        r.wait()
+        for instance in get_ec2_connection().get_instances(request_ids=[ir.instance_id for ir in instance_requests]):
+            print instance.public_dns_name, instance.private_dns_name
+
+
 
 if __name__ == '__main__':
     main()

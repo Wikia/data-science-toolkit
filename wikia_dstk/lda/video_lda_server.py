@@ -65,7 +65,6 @@ def get_model_from_args(args):
             doc_id_to_terms = json.loads(bucket.get_key(video_json_key).get_contents_as_string())
             dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
             log("Got features, building model")
-            async_result.wait()
             lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                num_topics=args.num_topics,
                                                id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),

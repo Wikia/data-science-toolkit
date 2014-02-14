@@ -64,8 +64,12 @@ def unis_bis_tris(string_or_list, prefix=u''):
             + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])
 
 
+def get_my_hostname():
+    return get_instance_metadata()['local-hostname'].split('.')[1]
+
+
 def harakiri():
-    get_ec2_connection().terminate_instances(instance_ids=[get_instance_metadata()['local-hostname'].split('.')[1]])
+    get_ec2_connection().terminate_instances(instance_ids=[get_my_hostname()])
 
 
 def check_lda_node(instance_request):
@@ -76,6 +80,7 @@ def check_lda_node(instance_request):
         requests = conn.get_all_spot_instance_requests(request_ids=[instance_request.id])
         if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
             raise StandardError("Bid price too low -- try again later")
+        print requests
         fulfilled = len(filter(lambda x: x.status == 'fulfilled', requests)) > 0
     return requests[0].instance_id
 
@@ -88,11 +93,19 @@ def load_instance_ids(instance_ids):
 def launch_lda_nodes(instance_count=20, ami="ami-40701570"):
     global instances_launched
     conn = get_ec2_connection()
+    user_data = """#!/bin/sh
+export PYRO_SERIALIZERS_ACCEPTED=pickle
+export PYRO_SERIALIZER=pickle
+export PYRO_NS_HOST=%s
+python -m gensim.models.lda_worker
+""" % get_my_hostname()
+
     requests = conn.request_spot_instances('0.80', ami,
                                            count=instance_count,
                                            instance_type='m2.4xlarge',
                                            subnet_id='subnet-e4d087a2',
-                                           security_group_ids=['sg-72190a10']
+                                           security_group_ids=['sg-72190a10'],
+                                           user_data=user_data
                                            )
     return Pool(processes=instance_count).map_async(check_lda_node, requests, callback=load_instance_ids)
 

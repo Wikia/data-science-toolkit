@@ -128,7 +128,7 @@ def data_to_s3(num_processes):
 
 
 def user_data_from_args(args):
-    return ("""#!/usr/bin/bash
+    return ("""#!/bin/sh
 mkdir -p /mnt/
 export NUM_TOPICS=%d
 export MAX_TOPIC_FREQUENCY=%d
@@ -136,6 +136,11 @@ export MODEL_PREFIX="%s"
 export S3_PREFIX="%s"
 export NODE_INSTANCES=%d
 export NODE_AMI="%s"
+export PYRO_SERIALIZERS_ACCEPTED=pickle
+export PYRO_SERIALIZER=pickle
+export PYRO_NS_HOST="hostname -i"
+python -m Pyro4.naming -n 0.0.0.0 &
+python -m gensim.models.lda_dispatcher.py &
 python -m wikia_dstk.lda.video_lda_server.py
     """ % (args.num_topics, args.max_topic_frequency, args.model_prefix,
            args.s3_prefix, args.node_count, args.ami))

@@ -54,6 +54,8 @@ def get_args():
                         help="Prevent terminating this instance")
     parser.add_argument('--master-ip', dest='master_ip', default='54.200.131.148',
                         help="The elastic IP address to associate with the master server")
+    parser.add_argument('--killable', dest='killable', action='store_true', default=False,
+                        help="Keyboard interrupt terminates master")
     return parser.parse_args()
 
 
@@ -181,11 +183,11 @@ def main():
                 # terminate instance?
                 raise Exception("Public address not available")
             connection.create_tags([reso.id], {"Name": "LDA Master Node"})
-            connection.associate_address(instance_id=reso.id,
-                                         #public_ip=addresses[0].public_ip,
-                                         allocation_id=addresses[0].allocation_id)
             while True:
                 reso.update()
+                # connection.associate_address(instance_id=reso.id,
+                #                          #public_ip=addresses[0].public_ip,
+                #                          allocation_id=addresses[0].allocation_id)
                 print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
                 time.sleep(15)
         except EC2ResponseError as e:
@@ -193,6 +195,9 @@ def main():
             if reso:
                 connection.terminate_instances([reso.id])
                 print "TERMINATED MASTER"
+        except KeyboardInterrupt:
+            if not args.killable:
+                connection.terminate_instances([reso.id])
 
 
 

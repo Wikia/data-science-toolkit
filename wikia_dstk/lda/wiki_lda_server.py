@@ -6,6 +6,7 @@ import argparse
 import sys
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 import gensim
+import traceback
 from nlp_services.discourse.entities import TopEntitiesService
 from nlp_services.syntax import HeadsCountService
 from nlp_services.caching import use_caching
@@ -87,7 +88,7 @@ def data_to_features(data_dict):
     except Exception as e:
         log(data_dict)
         print e
-        print sys.exc_info()[1]
+        print traceback.format_exc()
     return features
 
 

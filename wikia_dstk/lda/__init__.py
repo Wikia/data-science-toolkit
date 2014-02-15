@@ -14,8 +14,10 @@ from gensim.matutils import corpus2dense
 from nltk import PorterStemmer, bigrams, trigrams
 from nltk.corpus import stopwords
 from collections import defaultdict
-from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
+from boto.ec2 import connect_to_region
+from boto.exception import EC2ResponseError
+from boto.ec2 import networkinterface
 
 
 alphanumeric_unicode_pattern = re.compile(ur'[^\w\s]', re.U)
@@ -173,6 +175,71 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     csv_key.set_contents_from_file(args.path_prefix+sparse_csv_filename)
     text_key = bucket.new_key(args.s3_prefix+text_filename)
     text_key.set_contents_from_file(args.path_prefix+text_filename)
+
+
+def server_user_data_from_args(args, server_model_name):
+    return ("""#!/bin/sh
+echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
+mkdir -p /mnt/
+cd /home/ubuntu/data-science-toolkit
+echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
+git pull origin master && sudo python setup.py install
+echo `date` `hostname -i ` "Setting Environment Variables" >> /var/log/my_startup.log
+export NUM_TOPICS=%d
+export MAX_TOPIC_FREQUENCY=%d
+export MODEL_PREFIX="%s"
+export S3_PREFIX="%s"
+export NODE_INSTANCES=%d
+export NODE_AMI="%s"
+export PYRO_SERIALIZERS_ACCEPTED=pickle
+export PYRO_SERIALIZER=pickle
+export PYRO_NS_HOST="hostname -i"
+export ASSIGN_IP="%s"
+touch /var/log/lda_dispatcher
+touch /var/log/lda_server
+chmod 777 /var/log/lda_server
+chmod 777 /var/log/lda_dispatcher
+echo `date` `hostname -i ` "Starting Nameserver" >> /var/log/my_startup.log
+python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server  2>&1 &
+echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
+python -m gensim.models.lda_dispatcher > /var/log/lda_dispatcher 2>&1 &
+echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
+python -m %s > /var/log/lda_server 2>&1 &
+echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
+                                                                            args.model_prefix, args.s3_prefix,
+                                                                            args.node_count, args.ami, args.master_ip,
+                                                                            server_model_name))
+
+
+def run_server_from_args(args, server_model_name):
+    try:
+        log("Running LDA, which will auto-terminate upon completion")
+        connection = connect_to_region('us-west-2')
+
+        interface = networkinterface.NetworkInterfaceSpecification(subnet_id='subnet-e4d087a2',
+                                                                   groups=['sg-72190a10'],
+                                                                   associate_public_ip_address=True)
+        interfaces = networkinterface.NetworkInterfaceCollection(interface)
+
+        reservation = connection.run_instances(args.ami,
+                                               instance_type='m2.4xlarge',
+                                               user_data=server_user_data_from_args(args, server_model_name),
+                                               network_interfaces=interfaces)
+        reso = reservation.instances[0]
+        connection.create_tags([reso.id], {"Name": "LDA Master Node"})
+        while True:
+            reso.update()
+            print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
+            time.sleep(15)
+    except EC2ResponseError as e:
+        print e
+        if reso:
+            connection.terminate_instances([reso.id])
+            print "TERMINATED MASTER"
+    except KeyboardInterrupt:
+        if args.killable:
+            connection.terminate_instances([reso.id])
+
 
 
 def get_sat_h(tup):

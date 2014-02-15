@@ -3,12 +3,9 @@ import json
 import argparse
 import os
 import time
-from . import normalize, unis_bis_tris, video_json_key, log, check_lda_node, get_ec2_connection
+from . import normalize, unis_bis_tris, video_json_key, log, run_server_from_args
 from multiprocessing import Pool
 from boto import connect_s3
-from boto.ec2 import connect_to_region
-from boto.exception import EC2ResponseError
-from boto.ec2 import networkinterface
 
 
 def get_args():
@@ -53,7 +50,7 @@ def get_args():
     parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
                         help="Prevent terminating this instance")
-    parser.add_argument('--master-ip', dest='master_ip', default='54.200.131.148',
+    parser.add_argument('--master-ip', dest='master_ip', default='54.200.205.135',
                         help="The elastic IP address to associate with the master server")
     parser.add_argument('--killable', dest='killable', action='store_true', default=False,
                         help="Keyboard interrupt terminates master")
@@ -134,39 +131,6 @@ def data_to_s3(num_processes):
     k.set_contents_from_string(json.dumps(etl_concurrent(Pool(processes=num_processes)), ensure_ascii=False))
 
 
-def user_data_from_args(args):
-    return ("""#!/bin/sh
-echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
-mkdir -p /mnt/
-cd /home/ubuntu/data-science-toolkit
-echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
-git pull origin master && sudo python setup.py install
-echo `date` `hostname -i ` "Setting Environment Variables" >> /var/log/my_startup.log
-export NUM_TOPICS=%d
-export MAX_TOPIC_FREQUENCY=%d
-export MODEL_PREFIX="%s"
-export S3_PREFIX="%s"
-export NODE_INSTANCES=%d
-export NODE_AMI="%s"
-export PYRO_SERIALIZERS_ACCEPTED=pickle
-export PYRO_SERIALIZER=pickle
-export PYRO_NS_HOST="hostname -i"
-export ASSIGN_IP="%s"
-touch /var/log/lda_dispatcher
-touch /var/log/lda_server
-chmod 777 /var/log/lda_server
-chmod 777 /var/log/lda_dispatcher
-echo `date` `hostname -i ` "Starting Nameserver" >> /var/log/my_startup.log
-python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server  2>&1 &
-echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
-python -m gensim.models.lda_dispatcher > /var/log/lda_dispatcher 2>&1 &
-echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
-python -m wikia_dstk.lda.video_lda_server > /var/log/lda_server 2>&1 &
-echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
-                                                                            args.model_prefix, args.s3_prefix,
-                                                                            args.node_count, args.ami, args.master_ip))
-
-
 def main():
     args = get_args()
     if args.build:
@@ -174,33 +138,7 @@ def main():
         data_to_s3(args.num_processes)
         log("Finished upload to S3 in %d seconds" % (time.time() - start))
     if not args.build_only:
-        try:
-            log("Running LDA, which will auto-terminate upon completion")
-            connection = connect_to_region('us-west-2')
-
-            interface = networkinterface.NetworkInterfaceSpecification(subnet_id='subnet-e4d087a2',
-                                                                       groups=['sg-72190a10'],
-                                                                       associate_public_ip_address=True)
-            interfaces = networkinterface.NetworkInterfaceCollection(interface)
-
-            reservation = connection.run_instances(args.ami,
-                                                   instance_type='m2.4xlarge',
-                                                   user_data=user_data_from_args(args),
-                                                   network_interfaces=interfaces)
-            reso = reservation.instances[0]
-            connection.create_tags([reso.id], {"Name": "LDA Master Node"})
-            while True:
-                reso.update()
-                print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
-                time.sleep(15)
-        except EC2ResponseError as e:
-            print e
-            if reso:
-                connection.terminate_instances([reso.id])
-                print "TERMINATED MASTER"
-        except KeyboardInterrupt:
-            if args.killable:
-                connection.terminate_instances([reso.id])
+        run_server_from_args(args, 'wikia_dstk.lda.video_lda_server')
 
 
 if __name__ == '__main__':

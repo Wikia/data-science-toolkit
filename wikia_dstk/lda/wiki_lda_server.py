@@ -113,11 +113,11 @@ def get_feature_data(args):
 
     log("Turning data into features")
     wiki_ids, data_dicts = zip(*wiki_data.items())
+    log("Working on", len(wiki_ids))
     r = pool.map_async(data_to_features, data_dicts)
+    r.wait()
     wid_to_features = zip(wiki_ids, r.get())
-
-    log(len(wid_to_features), "wikis")
-    log(len(set([value for values in wid_to_features.values() for value in values])), "features")
+    log(len(set([value for _, values in wid_to_features for value in values])), "features")
     return wid_to_features
 
 

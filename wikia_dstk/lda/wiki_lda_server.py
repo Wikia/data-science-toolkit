@@ -69,7 +69,8 @@ def get_data(wiki_id):
 
 
 def get_wiki_data_from_api(wiki_ids):
-    return requests.get('http://www.wikia.com/api/v1/Wikis/Details', params={'ids': wiki_ids}).json().get('items', {})
+    return dict(requests.get('http://www.wikia.com/api/v1/Wikis/Details',
+                             params={'ids': wiki_ids}).json().get('items', {}))
 
 
 def data_to_features(data_dict):
@@ -102,14 +103,14 @@ def get_feature_data(args):
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()
-    d = r.get()
-    log(d)
-    wiki_data = defaultdict(dict, d)
+    wiki_data = defaultdict(dict, r.get())
 
     log("Getting data from API")
     widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
     r = pool.map_async(get_wiki_data_from_api, widstrings)
     for grouping in r.get():
+        if type(grouping) != dict:
+            continue
         for wiki_id, api_data in grouping.items():
             wiki_data[wiki_id]['api_data'] = api_data
 

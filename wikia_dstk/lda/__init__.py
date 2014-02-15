@@ -141,7 +141,7 @@ def log(*args):
 
 def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
-    documents = id_to_features.values()[:100]
+    documents = id_to_features.values()
     dct = WikiaDSTKDictionary(documents)
 
     log("Filtering stopwords")
@@ -149,7 +149,7 @@ def get_dct_and_bow_from_features(id_to_features):
 
     log("---Bag of Words Corpus---")
     bow_docs = {}
-    for name in id_to_features.keys()[:100]:
+    for name in id_to_features.keys():
         sparse = dct.doc2bow(id_to_features[name])
         bow_docs[name] = sparse
     return dct, bow_docs
@@ -188,7 +188,7 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     text_key.set_contents_from_file(args.path_prefix+text_filename)
 
 
-def server_user_data_from_args(args, server_model_name):
+def server_user_data_from_args(args, server_model_name, extras=""):
     return ("""#!/bin/sh
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 mkdir -p /mnt/
@@ -206,6 +206,7 @@ export PYRO_SERIALIZERS_ACCEPTED=pickle
 export PYRO_SERIALIZER=pickle
 export PYRO_NS_HOST="hostname -i"
 export ASSIGN_IP="%s"
+%s
 touch /var/log/lda_dispatcher
 touch /var/log/lda_server
 chmod 777 /var/log/lda_server
@@ -219,7 +220,7 @@ python -u -m %s > /var/log/lda_server 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
                                                                             args.model_prefix, args.s3_prefix,
                                                                             args.node_count, args.ami, args.master_ip,
-                                                                            server_model_name))
+                                                                            extras, server_model_name))
 
 
 def run_server_from_args(args, server_model_name):

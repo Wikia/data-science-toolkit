@@ -15,6 +15,9 @@ def get_args():
     parser.add_argument('--num-topics', dest='num_topics', type=int, action='store',
                         default=os.getenv('NUM_TOPICS', 999),
                         help="The number of topics for the model to use")
+    parser.add_argument('--num-topics', dest='num_wikis', type=int, action='store',
+                        default=os.getenv('NUM_WIKIS', 5000),
+                        help="The number of top N wikis to use")
     parser.add_argument('--path-prefix', dest='path_prefix', type=str, action='store',
                         default=os.getenv('PATH_PREFIX', '/mnt/'),
                         help="Where to save the model")
@@ -47,7 +50,8 @@ def get_args():
 
 
 def main():
-    run_server_from_args(get_args(), 'wikia_dstk.lda.wiki_lda_server')
+    args = get_args()
+    run_server_from_args(args, 'wikia_dstk.lda.wiki_lda_server', "export NUM_WIKIS=%s" % args.num_wikis)
 
 
 if __name__ == '__main__':

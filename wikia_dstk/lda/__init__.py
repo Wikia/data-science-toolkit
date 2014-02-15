@@ -61,6 +61,7 @@ def unis_bis_tris(string_or_list, prefix=u''):
     except AttributeError:
         totes_list = string_or_list  # can't split a list dawg
     unis = [normalize(word) for word in totes_list if word]
+    unis = [u for u in unis if u]  # filter empty string
     return ([u'%s%s' % (prefix, word) for word in unis]
             + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)]
             + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])

@@ -50,9 +50,9 @@ def get_args():
     ap.add_argument('--node-ami', dest='node_ami', type=str,
                     default=os.getenv('NODE_AMI', "ami-40701570"),
                     help="AMI of the node machines")
-    ap.add__argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
-                     default=os.getenv('TERMINATE_ON_COMPLETE', True),
-                     help="Prevent terminating this instance")
+    ap.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
+                    default=os.getenv('TERMINATE_ON_COMPLETE', True),
+                    help="Prevent terminating this instance")
     return ap.parse_args()
 
 

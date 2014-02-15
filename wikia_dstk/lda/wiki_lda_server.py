@@ -56,6 +56,8 @@ def get_args():
 def get_data(wiki_id):
     use_caching(per_service_cache={'TopEntitiesService.get': {'dont_compute': True},
                                    'HeadsCountService.get': {'dont_compute': True}})
+    log(HeadsCountService().get_value(wiki_id))
+    log(TopEntitiesService().get_value(wiki_id))
     return [(wiki_id, {'heads': sorted(HeadsCountService().get_value(wiki_id).items(),
                                        key=lambda y: y[1], reverse=True)[:50],
                        'entities': TopEntitiesService().get_value(wiki_id).items()})]
@@ -82,7 +84,7 @@ def data_to_features(data_dict):
 def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
     wiki_id_lines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
-    log(wiki_id_lines)
+
     wids = [str(int(ln)) for ln in wiki_id_lines if ln][args.num_wikis]
 
     log("Loading entities and heads...")

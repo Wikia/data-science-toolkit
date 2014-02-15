@@ -204,7 +204,7 @@ python -m Pyro4.naming -n 0.0.0.0 > /var/log/name_server  2>&1 &
 echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
 python -m gensim.models.lda_dispatcher > /var/log/lda_dispatcher 2>&1 &
 echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
-python -m %s > /var/log/lda_server 2>&1 &
+python -u -m %s > /var/log/lda_server 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.num_topics, args.max_topic_frequency,
                                                                             args.model_prefix, args.s3_prefix,
                                                                             args.node_count, args.ami, args.master_ip,

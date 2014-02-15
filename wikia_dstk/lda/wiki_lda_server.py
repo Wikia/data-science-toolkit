@@ -82,7 +82,8 @@ def data_to_features(data_dict):
 def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
     wiki_id_lines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
-    wids = [str(int(ln)) for ln in wiki_id_lines][args.num_wikis]
+    log(wiki_id_lines)
+    wids = [str(int(ln)) for ln in wiki_id_lines if ln][args.num_wikis]
 
     log("Loading entities and heads...")
     pool = Pool(processes=args.num_processes)

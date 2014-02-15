@@ -95,11 +95,10 @@ def data_to_features(data_dict):
 
 def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
-    wids = filter(lambda x: x, bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n"))
+    widlines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
+    wids = filter(lambda x: x, widlines)[:args.num_wikis]
 
-    log(len(wids), "wids")
-
-    log("Loading entities and heads...")
+    log("Loading entities and heads for ", len(wids), "wikis")
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()

@@ -15,7 +15,7 @@ def get_args():
     parser.add_argument('--num-topics', dest='num_topics', type=int, action='store',
                         default=os.getenv('NUM_TOPICS', 999),
                         help="The number of topics for the model to use")
-    parser.add_argument('--num-topics', dest='num_wikis', type=int, action='store',
+    parser.add_argument('--num-wikis', dest='num_wikis', type=int, action='store',
                         default=os.getenv('NUM_WIKIS', 5000),
                         help="The number of top N wikis to use")
     parser.add_argument('--path-prefix', dest='path_prefix', type=str, action='store',

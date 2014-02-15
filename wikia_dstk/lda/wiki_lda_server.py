@@ -26,9 +26,6 @@ def get_args():
     ap.add_argument('--max-topic-frequency', dest='max_topic_frequency', type=int,
                     default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
                     help="Threshold for number of wikis a given topic appears in")
-    ap.add_argument('--wamids-file', dest='wamids_file', type=argparse.FileType('r'),
-                    default=os.getenv('WAMIDS_FILE', 'topwams.txt'),
-                    help="File listing for top WAM wikis by WAM descending")  # I want an API for this, yo
     ap.add_argument('--num-processes', dest="num_processes", type=int,
                     default=os.getenv('NUM_PROCESSES', 8),
                     help="Number of processes for async data access from S3")
@@ -83,7 +80,9 @@ def data_to_features(data_dict):
 
 
 def get_feature_data(args):
-    wids = [str(int(ln)) for ln in args.wamids_file.readlines()][args.num_wikis]
+    bucket = connect_s3().get_bucket('nlp-data')
+    wiki_id_lines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
+    wids = [str(int(ln)) for ln in wiki_id_lines][args.num_wikis]
 
     log("Loading entities and heads...")
     pool = Pool(processes=args.num_processes)

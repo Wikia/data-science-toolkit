@@ -56,6 +56,8 @@ def normalize(phrase):
 
 
 def unis_bis_tris(string_or_list, prefix=u''):
+    if not string_or_list:
+        return []
     try:
         totes_list = re.split(splitter_pattern,  string_or_list)  # flags=re.UNICODE if we didn't have 2.6 on nlp-s1
     except AttributeError:

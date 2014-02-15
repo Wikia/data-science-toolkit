@@ -43,30 +43,4 @@ def process_wiki(wid):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         print "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
 
-def call_services(keyname):
-    print keyname
-    key = BUCKET.get_key(keyname)
-    if key is None:
-        print 'no key found'
-        return
-
-    eventfile = keyname.replace('wiki_data_events', 'wiki_data_processing')
-    try:
-        key.copy('nlp-data', eventfile)
-        key.delete()
-    except S3ResponseError as e:
-        print e
-        print 'WIKI EVENT FILE %s NOT FOUND!' % eventfile
-        return
-    except KeyboardInterrupt:
-        sys.exit()
-
-    print 'STARTING WIKI EVENT FILE %s' % eventfile
-    k = Key(BUCKET)
-    k.key = eventfile
-    wid = k.get_contents_as_string().strip()
-    process_wiki(wid)
-    print 'WIKI EVENT FILE %s COMPLETE' % eventfile
-    k.delete()
-
-call_services(sys.argv[1])
+process_wiki(sys.argv[1])

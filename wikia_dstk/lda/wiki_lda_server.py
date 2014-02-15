@@ -87,7 +87,7 @@ def data_to_features(data_dict):
     except Exception as e:
         log(data_dict)
         print e
-        print sys.exc_info()
+        print sys.exc_info()[1]
     return features
 
 

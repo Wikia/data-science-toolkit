@@ -96,6 +96,9 @@ def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
     wiki_id_lines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
 
+    log("lines:", len(wiki_id_lines))
+    log("num wikis:", args.num_wikis)
+
     wids = [str(int(ln)) for ln in wiki_id_lines if ln][args.num_wikis]
 
     log("Loading entities and heads...")
@@ -118,7 +121,7 @@ def get_feature_data(args):
     r.wait()
     wid_to_features = zip(wiki_ids, r.get())
     log(len(set([value for _, values in wid_to_features for value in values])), "features")
-    return wid_to_features
+    return dict(wid_to_features)
 
 
 def get_model_from_args(args):

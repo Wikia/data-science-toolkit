@@ -63,7 +63,7 @@ def get_data(wiki_id):
     if type(tes) == dict:
         tes = tes.items()
     return wiki_id, {'heads': sorted(hcs, key=lambda y: y[1], reverse=True)[:50],
-                     'entities': sorted(tes, key=lambda y: y[1], reverse=True)})
+                     'entities': sorted(tes, key=lambda y: y[1], reverse=True)}
 
 
 def get_wiki_data_from_api(wiki_ids):

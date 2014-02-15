@@ -212,21 +212,21 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args
 
 
 def run_server_from_args(args, server_model_name):
+    conn = get_ec2_connection()
     try:
         log("Running LDA, which will auto-terminate upon completion")
-        connection = connect_to_region('us-west-2')
 
         interface = networkinterface.NetworkInterfaceSpecification(subnet_id='subnet-e4d087a2',
                                                                    groups=['sg-72190a10'],
                                                                    associate_public_ip_address=True)
         interfaces = networkinterface.NetworkInterfaceCollection(interface)
 
-        reservation = connection.run_instances(args.ami,
-                                               instance_type='m2.4xlarge',
-                                               user_data=server_user_data_from_args(args, server_model_name),
-                                               network_interfaces=interfaces)
+        reservation = conn.run_instances(args.ami,
+                                         instance_type='m2.4xlarge',
+                                         user_data=server_user_data_from_args(args, server_model_name),
+                                         network_interfaces=interfaces)
         reso = reservation.instances[0]
-        connection.create_tags([reso.id], {"Name": "LDA Master Node"})
+        conn.create_tags([reso.id], {"Name": "LDA Master Node"})
         while True:
             reso.update()
             print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
@@ -234,12 +234,11 @@ def run_server_from_args(args, server_model_name):
     except EC2ResponseError as e:
         print e
         if reso:
-            connection.terminate_instances([reso.id])
+            conn.terminate_instances([reso.id])
             print "TERMINATED MASTER"
     except KeyboardInterrupt:
         if args.killable:
-            connection.terminate_instances([reso.id])
-
+            conn.terminate_instances([reso.id])
 
 
 def get_sat_h(tup):

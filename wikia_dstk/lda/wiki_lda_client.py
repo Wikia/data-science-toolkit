@@ -51,7 +51,8 @@ def get_args():
 
 def main():
     args = get_args()
-    run_server_from_args(args, 'wikia_dstk.lda.wiki_lda_server', "export NUM_WIKIS=%s" % args.num_wikis)
+    run_server_from_args(args, 'wikia_dstk.lda.wiki_lda_server',
+                         user_data_extras="export NUM_WIKIS=%d" % args.num_wikis)
 
 
 if __name__ == '__main__':

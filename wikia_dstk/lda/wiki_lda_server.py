@@ -148,7 +148,11 @@ def get_model_from_args(args):
                 wid_to_features = get_feature_data(args)
                 log("Turning Data into Vectors")
                 dct, bow_docs = get_dct_and_bow_from_features(wid_to_features)
+                log("Waiting for workers to get sorted out")
                 launching.wait()
+                log("Waiting an extra 30 seconds for workers to get their shit together")
+                time.sleep(30)
+                log("Finally building model from features")
                 lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                    num_topics=args.num_topics,
                                                    id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),

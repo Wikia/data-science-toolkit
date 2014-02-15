@@ -99,7 +99,7 @@ def get_feature_data(args):
     log("lines:", len(wiki_id_lines))
     log("num wikis:", args.num_wikis)
 
-    wids = [str(int(ln)) for ln in wiki_id_lines if ln][args.num_wikis]
+    wids = [str(int(ln)) for ln in wiki_id_lines if int(ln)][args.num_wikis]
 
     log(len(wids), "wids")
 

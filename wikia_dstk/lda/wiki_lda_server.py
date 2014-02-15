@@ -3,6 +3,7 @@ import warnings
 import os
 import requests
 import argparse
+import sys
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 import gensim
 from nlp_services.discourse.entities import TopEntitiesService
@@ -97,13 +98,11 @@ def get_feature_data(args):
     wiki_data = defaultdict(dict, r.get())
 
     log("Getting data from API")
-    wids_to_api_data = {}
     widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
-    r = pool.map_async(get_wiki_data_from_api, widstrings, callback=wids_to_api_data.update)
-    r.wait()
-
-    for wiki_id, api_data in wids_to_api_data.items():
-        wiki_data[wiki_id]['api_data'] = api_data
+    r = pool.map_async(get_wiki_data_from_api, widstrings)
+    for grouping in r.get():
+        for wiki_id, api_data in grouping.items():
+            wiki_data[wiki_id]['api_data'] = api_data
 
     log("Turning data into features")
     wiki_ids, data_dicts = zip(*wiki_data.items())
@@ -153,6 +152,7 @@ def get_model_from_args(args):
 
 
 def main():
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args = get_args()
     get_model_from_args(args)
     log("Done")

@@ -8,6 +8,7 @@ import time
 import re
 import random
 import hashlib
+import sys
 from multiprocessing import Pool
 from gensim.corpora import Dictionary
 from gensim.matutils import corpus2dense
@@ -135,6 +136,7 @@ def log(*args):
     TODO: use a real logger
     """
     print args
+    sys.stdout.flush()
 
 
 def get_dct_and_bow_from_features(id_to_features):

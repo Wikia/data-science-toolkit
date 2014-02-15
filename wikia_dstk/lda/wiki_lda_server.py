@@ -101,11 +101,15 @@ def get_feature_data(args):
 
     wids = [str(int(ln)) for ln in wiki_id_lines if ln][args.num_wikis]
 
+    log(len(wids), "wids")
+
     log("Loading entities and heads...")
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()
-    wiki_data = defaultdict(dict, r.get())
+    d = r.get()
+    log(d)
+    wiki_data = defaultdict(dict, d)
 
     log("Getting data from API")
     widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]

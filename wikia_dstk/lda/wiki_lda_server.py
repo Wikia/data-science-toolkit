@@ -94,12 +94,7 @@ def data_to_features(data_dict):
 
 def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
-    wiki_id_lines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
-
-    log("lines:", len(wiki_id_lines))
-    log("num wikis:", args.num_wikis)
-
-    wids = [str(int(ln)) for ln in wiki_id_lines if int(ln)][args.num_wikis]
+    wids = filter(lambda x: x, bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n"))
 
     log(len(wids), "wids")
 

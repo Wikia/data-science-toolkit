@@ -151,6 +151,12 @@ def get_model_from_args(args):
     return lda_model
 
 
+import pdb
+def handler(type, value, tb):
+    pdb.pm()
+sys.excepthook = handler
+
+
 def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args = get_args()

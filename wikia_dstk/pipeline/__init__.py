@@ -22,15 +22,17 @@ class EC2Connection(object):
         self.tag = options.get('tag')
         self.threshold = options.get('threshold')
         self.max_size = options.get('max_size')
-        self.user_data = options.get('user_data')
         self.conn = connect_to_region(self.region)
 
-    def _request_instances(self, count):
+    def _request_instances(self, count, user_data):
         """
         Request spot instances.
 
         :type count: int
         :param count: The number of spot instances to request
+
+        :type user_data: string
+        :param user_data: A script to pass to the launched instance
 
         :rtype: boto.ec2.instance.Reservation
         :return: The Reservation object representing the spot instance request
@@ -40,7 +42,7 @@ class EC2Connection(object):
                                                 count=count,
                                                 key_name=self.key,
                                                 security_groups=self.sec,
-                                                user_data=self.user_data,
+                                                user_data=user_data,
                                                 instance_type=self.type)
 
     def _get_instance_ids(self, reservation):
@@ -81,18 +83,21 @@ class EC2Connection(object):
         tags = {'Name': self.tag}
         self.conn.create_tags(instance_ids, tags)
 
-    def add_instances(self, count):
+    def add_instances(self, count, user_data=None):
         """
         Add a specified number of instances.
 
         :type count: int
         :param count: The number of instances to add
 
+        :type user_data: string
+        :param user_data: A script to pass to the launched instance
+
         :rtype: int
         :return: An integer indicating the number of active tagged instances
         """
         # Create spot instances
-        reservation = self._request_instances(count)
+        reservation = self._request_instances(count, user_data)
         # Tag created spot instances
         instance_ids = self._get_instance_ids(reservation)
         self._tag_instances(instance_ids)

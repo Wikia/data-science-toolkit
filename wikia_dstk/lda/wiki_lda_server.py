@@ -44,7 +44,7 @@ def get_args():
     ap.add_argument('--instance-count', dest='instance_count', type=int,
                     default=os.getenv('NODE_INSTANCES', 20),
                     help="Number of node instances to launch")
-    ap.add_argument('--node-ami', dest='node_ami', type=str,
+    ap.add_argument('--node-ami', dest='ami', type=str,
                     default=os.getenv('NODE_AMI', "ami-40701570"),
                     help="AMI of the node machines")
     ap.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',

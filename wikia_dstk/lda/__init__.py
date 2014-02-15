@@ -223,7 +223,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args
                                                                             extras, server_model_name))
 
 
-def run_server_from_args(args, server_model_name):
+def run_server_from_args(args, server_model_name, user_data_extras=""):
     conn = get_ec2_connection()
     try:
         log("Running LDA, which will auto-terminate upon completion")
@@ -233,9 +233,10 @@ def run_server_from_args(args, server_model_name):
                                                                    associate_public_ip_address=True)
         interfaces = networkinterface.NetworkInterfaceCollection(interface)
 
+        user_data = server_user_data_from_args(args, server_model_name, user_data_extras)
         reservation = conn.run_instances(args.ami,
                                          instance_type='m2.4xlarge',
-                                         user_data=server_user_data_from_args(args, server_model_name),
+                                         user_data=user_data,
                                          network_interfaces=interfaces)
         reso = reservation.instances[0]
         conn.create_tags([reso.id], {"Name": "LDA Master Node"})

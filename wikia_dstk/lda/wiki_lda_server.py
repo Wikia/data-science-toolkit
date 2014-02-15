@@ -80,9 +80,9 @@ def data_to_features(data_dict):
         entities_to_count = data_dict.get('entities', [])
         api_data = data_dict.get('api_data', {})
         features = []
-        features += [word for head, count in heads_to_count for word in [normalize(head)] * count]
+        features += [word for head, count in heads_to_count for word in [normalize(head)] * int(count)]
         features += [word for entity, count in entities_to_count
-                     for word in [normalize(entity)] * count]
+                     for word in [normalize(entity)] * int(count)]
         features += unis_bis_tris(api_data.get('title', ''))
         features += unis_bis_tris(api_data.get('headline', ''))
         features += unis_bis_tris(api_data.get('desc', ''))
@@ -143,11 +143,12 @@ def get_model_from_args(args):
             log("(building... this will take a while)")
             try:
                 if args.auto_launch:
-                    launch_lda_nodes(args.instance_count, args.ami)
+                    launching = launch_lda_nodes(args.instance_count, args.ami)
                 log("Getting Data...")
                 wid_to_features = get_feature_data(args)
                 log("Turning Data into Vectors")
                 dct, bow_docs = get_dct_and_bow_from_features(wid_to_features)
+                launching.wait()
                 lda_model = gensim.models.LdaModel(bow_docs.values(),
                                                    num_topics=args.num_topics,
                                                    id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),

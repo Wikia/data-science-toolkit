@@ -56,11 +56,14 @@ def get_args():
 def get_data(wiki_id):
     use_caching(per_service_cache={'TopEntitiesService.get': {'dont_compute': True},
                                    'HeadsCountService.get': {'dont_compute': True}})
-    log(HeadsCountService().get_value(wiki_id))
-    log(TopEntitiesService().get_value(wiki_id))
-    return [(wiki_id, {'heads': sorted(HeadsCountService().get_value(wiki_id).items(),
-                                       key=lambda y: y[1], reverse=True)[:50],
-                       'entities': TopEntitiesService().get_value(wiki_id).items()})]
+    hcs = HeadsCountService().get_value(wiki_id)
+    tes = TopEntitiesService().get_value(wiki_id)
+    if type(hcs) == dict:
+        hcs = hcs.items()
+    if type(tes) == dict:
+        tes = tes.items()
+    return [(wiki_id, {'heads': sorted(hcs, key=lambda y: y[1], reverse=True)[:50],
+                       'entities': sorted(tes, key=lambda y: y[1], reverse=True)})]
 
 
 def get_wiki_data_from_api(wiki_ids):

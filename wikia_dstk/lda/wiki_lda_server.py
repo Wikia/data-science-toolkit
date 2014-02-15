@@ -85,6 +85,7 @@ def data_to_features(data_dict):
         features += unis_bis_tris(api_data.get('headline', ''))
         features += unis_bis_tris(api_data.get('desc', ''))
     except Exception as e:
+        log(data_dict)
         print e
     return features
 

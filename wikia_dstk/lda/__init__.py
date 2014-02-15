@@ -26,6 +26,7 @@ dictlogger = logging.getLogger('gensim.corpora.dictionary')
 stemmer = PorterStemmer()
 english_stopwords = stopwords.words('english')
 instances_launched = []
+instances_requested = []
 connection = None
 video_json_key = 'feature-data/video.json'
 
@@ -93,7 +94,7 @@ def load_instance_ids(instance_ids):
 
 
 def launch_lda_nodes(instance_count=20, ami="ami-d6e785e6"):
-    global instances_launched
+    global instances_launched, instances_requested
     conn = get_ec2_connection()
     user_data = """#!/bin/sh
 
@@ -106,19 +107,24 @@ python -m gensim.models.lda_worker > /var/log/lda_worker 2>&1 &
 echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
 """ % get_my_hostname()
 
-    requests = conn.request_spot_instances('0.80', ami,
-                                           count=instance_count,
-                                           instance_type='m2.4xlarge',
-                                           subnet_id='subnet-e4d087a2',
-                                           security_group_ids=['sg-72190a10'],
-                                           user_data=user_data
-                                           )
-    return Pool(processes=instance_count).map_async(check_lda_node, requests, callback=load_instance_ids)
+    instances_requested = conn.request_spot_instances('0.80', ami,
+                                                      count=instance_count,
+                                                      instance_type='m2.4xlarge',
+                                                      subnet_id='subnet-e4d087a2',
+                                                      security_group_ids=['sg-72190a10'],
+                                                      user_data=user_data
+                                                      )
+
+    return Pool(processes=instance_count).map_async(check_lda_node, instances_requested, callback=load_instance_ids)
 
 
 def terminate_lda_nodes():
-    global instances_launched
-    get_ec2_connection().terminate_instances(instance_ids=[instance.instance_id for instance in instances_launched])
+    global instances_launched, instances_requested
+    conn = get_ec2_connection()
+    try:
+        conn.terminate_instances(instance_ids=[instance.instance_id for instance in instances_launched])
+    except EC2ResponseError:
+        conn.cancel_spot_instance_requests([r.id for r in instances_requested])
 
 
 def log(*args):

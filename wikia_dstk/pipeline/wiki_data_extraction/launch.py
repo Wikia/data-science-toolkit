@@ -67,10 +67,6 @@ for i in range(0, len(wids), parts):
     for n, wid in enumerate(wids[i:i+parts]):
         args[n].append(wid)
 
-for wid in wids: print wid, articles.get(wid, 0)
-print args
-import sys; sys.exit(0)
-
 # Write individual user_data shell scripts with wids passed as args and launch
 # EC2 instances to execute them one at a time
 for n in args:

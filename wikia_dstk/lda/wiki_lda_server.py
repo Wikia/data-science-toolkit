@@ -74,8 +74,8 @@ def get_wiki_data_from_api(wiki_ids):
 def data_to_features(data_dict):
     features = []
     try:
-        heads_to_count = data_dict.get('heads', {})
-        entities_to_count = data_dict.get('entities', {})
+        heads_to_count = data_dict.get('heads', [])
+        entities_to_count = data_dict.get('entities', [])
         api_data = data_dict.get('api_data', {})
         features = []
         features += [word for head, count in heads_to_count for word in [normalize(head)] * count]
@@ -87,6 +87,7 @@ def data_to_features(data_dict):
     except Exception as e:
         log(data_dict)
         print e
+        print sys.exc_info()
     return features
 
 

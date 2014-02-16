@@ -74,8 +74,16 @@ def get_my_hostname():
     return get_instance_metadata()['local-hostname'].split('.')[1]
 
 
+def get_my_ip():
+    return get_instance_metadata()['local-ipv4']
+
+
+def get_my_id():
+    return get_instance_metadata()['instance-id']
+
+
 def harakiri():
-    get_ec2_connection().terminate_instances(instance_ids=[get_my_hostname()])
+    get_ec2_connection().terminate_instances(instance_ids=[get_my_id()])
 
 
 def check_lda_node(instance_request):
@@ -109,7 +117,7 @@ export PYRO_NS_HOST=%s
 echo `date` `hostname -i ` "Starting Worker" >> /var/log/my_startup.log
 python -m gensim.models.lda_worker > /var/log/lda_worker 2>&1 &
 echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
-""" % get_my_hostname()
+""" % get_my_ip()
     log(user_data)
 
     instances_requested = conn.request_spot_instances('0.80', ami,

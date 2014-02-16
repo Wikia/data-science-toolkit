@@ -75,14 +75,14 @@ def unis(string_or_list, prefix=u''):
 def unis_bis(string_or_list, prefix=u''):
     unigrams = unis_base(string_or_list)
     return ([u'%s%s' % (prefix, word) for word in unigrams]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)])
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unigrams)])
 
 
 def unis_bis_tris(string_or_list, prefix=u''):
     unigrams = unis_base(string_or_list)
     return ([u'%s%s' % (prefix, word) for word in unigrams]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unis)]
-            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unis)])
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in bigrams(unigrams)]
+            + [u'%s%s' % (prefix, u'_'.join(gram)) for gram in trigrams(unigrams)])
 
 
 def get_my_hostname():

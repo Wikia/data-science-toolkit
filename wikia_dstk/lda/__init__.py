@@ -105,7 +105,7 @@ def load_instance_ids(instance_ids):
     c.create_tags(instance_ids, {"Name": "LDA Worker Node"})
 
 
-def launch_lda_nodes(instance_count=20, ami="ami-6c274a5c"):
+def launch_lda_nodes(instance_count=20, ami="ami-d6e785e6"):
     global instances_launched, instances_requested
     conn = get_ec2_connection()
     user_data = """#!/bin/sh

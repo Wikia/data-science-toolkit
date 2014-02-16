@@ -150,10 +150,11 @@ def log(*args):
 def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
     documents = id_to_features.values()
-    dct = WikiaDSTKDictionary(documents)
+    #dct = WikiaDSTKDictionary(documents)
+    dct = Dictionary(documents)
 
     log("Filtering stopwords")
-    dct.filter_stops()
+    #dct.filter_stops()
 
     log("---Bag of Words Corpus---")
     bow_docs = {}

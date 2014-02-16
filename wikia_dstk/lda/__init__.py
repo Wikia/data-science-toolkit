@@ -150,11 +150,10 @@ def log(*args):
 def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
     documents = id_to_features.values()
-    #dct = WikiaDSTKDictionary(documents)
-    dct = Dictionary(documents)
+    dct = WikiaDSTKDictionary(documents)
 
     log("Filtering stopwords")
-    #dct.filter_stops()
+    dct.filter_stops()
 
     log("---Bag of Words Corpus---")
     bow_docs = {}
@@ -174,9 +173,11 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
             tally[feature] += 1
 
     # Write to sparse_csv here, excluding anything exceding our max frequency
-    log("Writing topics to sparse CSV")
+    log("Writing output and uploading to s3")
     sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
     text_filename = modelname.replace('.model', '-topic-features.csv')
+    csv_key = bucket.new_key(args.s3_prefix+sparse_csv_filename)
+    text_key = bucket.new_key(args.s3_prefix+text_filename)
     with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
         for name in id_to_features:
             vec = bow_docs[name]
@@ -186,15 +187,11 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
                                          for n in range(args.num_topics)
                                          if tally[n] < args.max_topic_frequency])
                              + "\n")
+        csv_key.set_contents_from_file(sparse_csv)
 
     with open(args.path_prefix+text_filename, 'w') as text_output:
         text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
-
-    log("Uploading data to S3")
-    csv_key = bucket.new_key(args.s3_prefix+sparse_csv_filename)
-    csv_key.set_contents_from_file(args.path_prefix+sparse_csv_filename)
-    text_key = bucket.new_key(args.s3_prefix+text_filename)
-    text_key.set_contents_from_file(args.path_prefix+text_filename)
+        text_key.set_contents_from_file(text_output)
 
 
 def server_user_data_from_args(args, server_model_name, extras=""):
@@ -279,6 +276,12 @@ def get_doc_bow_probs(doc_bow):
     return [(token_id, count/sum_counts) for token_id, count in doc_bow]
 
 
+def parallel_filter(tup):
+    orig_tuple, filterset = tup
+    doc_id, tokens = orig_tuple
+    return doc_id, [token for token in tokens if token not in filterset]
+
+
 class WikiaDSTKDictionary(Dictionary):
 
     def __init__(self, documents=None):
@@ -339,6 +342,9 @@ class WikiaDSTKDictionary(Dictionary):
                         (len(borda_ranking) - num_stops, num_stops))
 
         # do the actual filtering, then rebuild dictionary to remove gaps in ids
-        self.filter_tokens(good_ids=[token_id for token_id, _ in borda_ranking[num_stops:]])
+        bad_ids = [token_id for token_id, _ in borda_ranking[:num_stops]]
+        self.filter_tokens(bad_ids=bad_ids)
+        # we also need to filter the memoized bag of words
+        self.d2bmemo = dict(pool.map(parallel_filter, [(item, bad_ids) for item in self.d2bmemo.items()]))
         self.compactify()
         dictlogger.info("resulting dictionary: %s" % self)

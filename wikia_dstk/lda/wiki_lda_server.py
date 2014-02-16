@@ -161,7 +161,7 @@ def get_model_from_args(args):
                 write_csv_and_text_data(args, bucket, modelname, wid_to_features, bow_docs, lda_model)
                 log("uploading model to s3")
                 key = bucket.new_key(args.s3_prefix+modelname)
-                key.set_contents_from_file(args.path_prefix+modelname)
+                key.set_contents_from_file(open(args.path_prefix+modelname, 'r'))
                 terminate_lda_nodes()
             except Exception as e:
                 print e

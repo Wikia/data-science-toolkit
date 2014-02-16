@@ -276,12 +276,6 @@ def get_doc_bow_probs(doc_bow):
     return [(token_id, count/sum_counts) for token_id, count in doc_bow]
 
 
-def parallel_filter(tup):
-    orig_tuple, filterset = tup
-    doc_id, tokens = orig_tuple
-    return doc_id, [token for token in tokens if token not in filterset]
-
-
 class WikiaDSTKDictionary(Dictionary):
 
     def __init__(self, documents=None):
@@ -345,6 +339,6 @@ class WikiaDSTKDictionary(Dictionary):
         bad_ids = [token_id for token_id, _ in borda_ranking[:num_stops]]
         self.filter_tokens(bad_ids=bad_ids)
         # we also need to filter the memoized bag of words
-        self.d2bmemo = dict(pool.map(parallel_filter, [(item, bad_ids) for item in self.d2bmemo.items()]))
+        self.d2bmemo = {}
         self.compactify()
         dictlogger.info("resulting dictionary: %s" % self)

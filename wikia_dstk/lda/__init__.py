@@ -187,10 +187,12 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
                                          for n in range(args.num_topics)
                                          if tally[n] < args.max_topic_frequency])
                              + "\n")
+        sparse_csv.seek(0)
         csv_key.set_contents_from_file(sparse_csv)
 
     with open(args.path_prefix+text_filename, 'w') as text_output:
         text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
+        text_output.seek(0)
         text_key.set_contents_from_file(text_output)
 
 

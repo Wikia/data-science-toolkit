@@ -118,7 +118,6 @@ echo `date` `hostname -i ` "Starting Worker" >> /var/log/my_startup.log
 python -m gensim.models.lda_worker > /var/log/lda_worker 2>&1 &
 echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
 """ % get_my_ip()
-    log(user_data)
 
     instances_requested = conn.request_spot_instances('0.80', ami,
                                                       count=instance_count,
@@ -243,7 +242,7 @@ def run_server_from_args(args, server_model_name, user_data_extras=""):
         interfaces = networkinterface.NetworkInterfaceCollection(interface)
 
         user_data = server_user_data_from_args(args, server_model_name, user_data_extras)
-        log(user_data)
+
         reservation = conn.run_instances(args.ami,
                                          instance_type='m2.4xlarge',
                                          user_data=user_data,

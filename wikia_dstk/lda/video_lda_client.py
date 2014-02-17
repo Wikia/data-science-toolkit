@@ -3,7 +3,7 @@ import json
 import argparse
 import os
 import time
-from . import normalize, unis_bis_tris, video_json_key, log, run_server_from_args
+from . import normalize, unis_bis, video_json_key, log, run_server_from_args
 from multiprocessing import Pool
 from boto import connect_s3
 
@@ -61,14 +61,14 @@ def doc_to_vectors(doc):
     try:
         data = [d.encode('utf-8') for d in
                 [doc[u'id']]
-                + unis_bis_tris(doc[u'title_en'].replace(u'File:', u''))
+                + unis_bis(doc[u'title_en'].replace(u'File:', u''))
                 + map(normalize, doc.get(u'video_actors_txt', []))
                 + map(normalize, doc.get(u'video_tags_txt', []))
                 + map(normalize, doc.get(u'categories_mv_en', []))
                 + map(normalize, doc.get(u'video_tags_txt', []))
                 + map(normalize, doc.get(u'video_genres_txt', []))
-                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis_tris(li)]
-                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis_tris(li)]
+                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis(li)]
+                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis(li)]
                 ]
         return dict([(data[0], data[1:])])
     except (IndexError, TypeError) as e:

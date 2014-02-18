@@ -1,7 +1,7 @@
 config = {
              "region": "us-west-2",
              "price": "0.300",
-             "ami": "ami-000f6d30", #TODO: change to correct AMI
+             "ami": "ami-384b2608", # base-wiki-dataex
              "key": "data-extraction",
              "sec": "sshable",
              "type": "m2.4xlarge",

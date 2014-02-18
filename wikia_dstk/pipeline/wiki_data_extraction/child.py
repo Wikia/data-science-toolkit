@@ -32,7 +32,7 @@ def process_wiki(wid):
                 print wid, service
                 getattr(sys.modules[__name__], service)().get(wid)
                 caching_dict[service+'.get'] = {'dont_compute': True}  # DRY fool!
-                use_caching(per_service_caching=caching_dict)
+                use_caching(per_service_cache=caching_dict)
             except KeyboardInterrupt:
                 sys.exit()
             except Exception as e:

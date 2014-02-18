@@ -80,6 +80,6 @@ for n in args:
     user_data = """#!/bin/sh
     /home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run %s > /home/ubuntu/wiki_data_extraction.log
     """ % ','.join(args[n])
-    print 'User data for instance #%d:\n%s' % (n, user_data)
-    print 'Launching instance %d of %d' % (n, len(args))
+    print 'User data for instance #%d:\n%s' % (n+1, user_data)
+    print 'Launching instance %d of %d' % (n+1, len(args))
     ec2_conn.add_instances(1, user_data)

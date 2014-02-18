@@ -200,7 +200,7 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
             sparse_csv.write(",".join([str(name)]
                                       + ['%d-%.8f' % (n, sparse.get(n, 0))
                                          for n in range(args.num_topics)
-                                         if tally[n] < args.max_topic_frequency] and sparse.get(n, 0))
+                                         if tally[n] < args.max_topic_frequency and sparse.get(n, 0)])
                              + "\n")
 
     csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, 'r'))

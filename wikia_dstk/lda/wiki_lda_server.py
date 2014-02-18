@@ -78,14 +78,14 @@ def data_to_features(data_dict):
     try:
         heads_to_count = data_dict.get('heads', [])
         entities_to_count = data_dict.get('entities', [])
-        api_data = data_dict.get('api_data', {})
+        #api_data = data_dict.get('api_data', {})
         features = []
         features += [word for head, count in heads_to_count for word in [normalize(head)] * int(count)]
         features += [word for entity, count in entities_to_count
                      for word in [normalize(entity)] * int(count)]
-        features += unis_bis(api_data.get('title', ''))
-        features += unis_bis(api_data.get('headline', ''))
-        features += unis_bis(api_data.get('desc', ''))
+        #features += unis_bis(api_data.get('title', ''))
+        #features += unis_bis(api_data.get('headline', ''))
+        #features += unis_bis(api_data.get('desc', ''))
     except Exception as e:
         log(data_dict)
         print e
@@ -104,14 +104,14 @@ def get_feature_data(args):
     r.wait()
     wiki_data = defaultdict(dict, r.get())
 
-    log("Getting data from API")
-    widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
-    r = pool.map_async(get_wiki_data_from_api, widstrings)
-    for grouping in r.get():
-        if type(grouping) != dict:
-            continue
-        for wiki_id, api_data in grouping.items():
-            wiki_data[wiki_id]['api_data'] = api_data
+    #log("Getting data from API")
+    #widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
+    #r = pool.map_async(get_wiki_data_from_api, widstrings)
+    #for grouping in r.get():
+    #    if type(grouping) != dict:
+    #        continue
+    #    for wiki_id, api_data in grouping.items():
+    #        wiki_data[wiki_id]['api_data'] = api_data
 
     log("Turning data into features")
     wiki_ids, data_dicts = zip(*wiki_data.items())

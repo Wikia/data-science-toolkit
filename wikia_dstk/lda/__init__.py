@@ -116,8 +116,7 @@ def check_lda_node(instance_request):
 def load_instance_ids(instance_ids):
     global instances_launched
     c = get_ec2_connection()
-    reservation = c.get_all_instances(instance_ids=instance_ids)
-    instances_launched = reservation.instances
+    instances_launched = c.get_all_reservations(instance_ids=instance_ids)
     c.create_tags(instance_ids, {"Name": "LDA Worker Node"})
 
 
@@ -150,7 +149,9 @@ def terminate_lda_nodes():
     global instances_launched, instances_requested
     conn = get_ec2_connection()
     try:
-        conn.terminate_instances(instance_ids=[instance.id for instance in instances_launched])
+        conn.terminate_instances(instance_ids=[instance.id
+                                               for reservation in instances_launched
+                                               for instance in reservation.instances])
     except EC2ResponseError as e:
         log(e)
         conn.cancel_spot_instance_requests([r.id for r in instances_requested])

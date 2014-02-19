@@ -181,13 +181,14 @@ def get_dct_and_bow_from_features(id_to_features):
 
 
 def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, lda_model):
+    # skipping filtration
     # counting number of features so that we can filter
-    tally = defaultdict(int)
-    for name in id_to_features:
-        vec = bow_docs[name]
-        sparse = lda_model[vec]
-        for (feature, frequency) in sparse:
-            tally[feature] += 1
+    #tally = defaultdict(int)
+    #for name in id_to_features:
+    #    vec = bow_docs[name]
+    #    sparse = lda_model[vec]
+    #    for (feature, frequency) in sparse:
+    #        tally[feature] += 1
 
     # Write to sparse_csv here, excluding anything exceding our max frequency
     log("Writing output and uploading to s3")
@@ -202,7 +203,7 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
             sparse_csv.write(",".join([str(name)]
                                       + ['%d-%.8f' % (n, sparse.get(n, 0))
                                          for n in range(args.num_topics)
-                                         if tally[n] < args.max_topic_frequency and sparse.get(n, 0)])
+                                         if sparse.get(n, 0)])
                              + "\n")
 
     csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, 'r'))

@@ -1,7 +1,7 @@
 config = {
              "region": "us-west-2",
              "price": "0.300",
-             "ami": "ami-ea5e33da", # base-wdx-140218i
+             "ami": "ami-24b9d414", # base-wdx-140219
              "key": "data-extraction",
              "sec": "sshable",
              "type": "m2.4xlarge",

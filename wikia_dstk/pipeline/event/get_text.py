@@ -38,7 +38,7 @@ def write_text(event_file):
     for line in open(event_file):
         query = line.strip()
         logger.info('Writing query from %s: "%s"' % (current_process(), query))
-        qi = QueryIterator('http://search-s11.prod.wikia.net:8983/solr/main/', {'query': query, 'fields': 'id,wid,html_en,indexed', 'sort': 'id asc'})
+        qi = QueryIterator('http://search-s10.prod.wikia.net:8983/solr/main/', {'query': query, 'fields': 'id,wid,html_en,indexed', 'sort': 'id asc'})
         for doc in qi:
             # Sanitize and write text
             text = '\n'.join(clean_list(doc.get('html_en', '')))

@@ -172,8 +172,8 @@ def get_dct_and_bow_from_features(id_to_features):
     documents = id_to_features.values()
     dct = WikiaDSTKDictionary(documents)
 
-    log("Filtering stopwords")
-    dct.filter_stops()
+    log("Filtering extremes")
+    dct.filter_extremes(no_below=2)
 
     log("---Bag of Words Corpus---")
     bow_docs = {}

@@ -199,8 +199,8 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     log("Writing output and uploading to s3")
     sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
     text_filename = modelname.replace('.model', '-topic-features.csv')
-    csv_key = bucket.new_key('%s%s/%s' % (args.s3_prefix, args.git_ref, sparse_csv_filename))
-    text_key = bucket.new_key('%s%s/%s' % (args.s3_prefix, args.git_ref, text_filename))
+    csv_key = bucket.new_key('%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, sparse_csv_filename))
+    text_key = bucket.new_key('%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, text_filename))
     with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
         for name in id_to_features:
             vec = bow_docs[name]

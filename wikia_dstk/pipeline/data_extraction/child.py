@@ -11,16 +11,14 @@ from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 
 from nlp_services.caching import use_caching
-from config import *
+from config import config
+
+from nlp_services.discourse.entities import CoreferenceCountsService, EntityCountsService
+from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentEntitySentimentService, WpDocumentEntitySentimentService
+from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService, HeadsService
 
 BUCKET = connect_s3().get_bucket('nlp-data')
-
-# Get absolute path
-BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-
-# Load serialized services into memory
-with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
-    SERVICES = json.loads(f.read())['services']
+SERVICES = config['services']
 
 use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
 

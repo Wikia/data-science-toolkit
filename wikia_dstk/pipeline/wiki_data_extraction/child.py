@@ -6,6 +6,8 @@ from boto import connect_s3
 from boto.exception import S3ResponseError
 
 from nlp_services.caching import use_caching
+from config import config
+
 from nlp_services.discourse import AllEntitiesSentimentAndCountsService
 from nlp_services.discourse.entities import TopEntitiesService, EntityDocumentCountsService, WpTopEntitiesService, WpEntityDocumentCountsService
 from nlp_services.discourse.sentiment import WikiEntitySentimentService, WpWikiEntitySentimentService
@@ -13,13 +15,7 @@ from nlp_services.syntax import TopHeadsService
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 BUCKET = connect_s3().get_bucket('nlp-data')
-
-# Get absolute path
-BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-
-# Load serialized services into memory
-with open(os.path.join(BASE_PATH, 'config/services-config.json')) as f:
-    SERVICES = json.loads(f.read())['wiki-services']
+SERVICES = config['services']
 
 caching_dict = dict([(service+'.get', {'write_only': True}) for service in SERVICES])
 use_caching(per_service_cache=caching_dict)

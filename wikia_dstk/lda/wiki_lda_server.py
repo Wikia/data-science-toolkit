@@ -13,6 +13,7 @@ from nlp_services.caching import use_caching
 from multiprocessing import Pool
 from boto import connect_s3
 from collections import defaultdict
+from datetime import datetime
 from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
@@ -32,7 +33,7 @@ def get_args():
                     default=os.getenv('NUM_PROCESSES', 8),
                     help="Number of processes for async data access from S3")
     ap.add_argument('--model-prefix', dest='model_prefix', type=str,
-                    default=os.getenv('MODEL_PREFIX', time.time()),
+                    default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%m')),
                     help="Prefix to uniqueify model")
     ap.add_argument('--path-prefix', dest='path_prefix', type=str,
                     default=os.getenv('PATH_PREFIX', "/mnt/"),

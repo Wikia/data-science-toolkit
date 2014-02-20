@@ -175,6 +175,9 @@ def get_dct_and_bow_from_features(id_to_features):
     log("Filtering stopwords")
     dct.filter_stops()
 
+    log("Filtering extremes")
+    dct.filter_extremes()
+
     log("---Bag of Words Corpus---")
     bow_docs = {}
     for name in id_to_features.keys():
@@ -184,21 +187,20 @@ def get_dct_and_bow_from_features(id_to_features):
 
 
 def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, lda_model):
-    # skipping filtration
     # counting number of features so that we can filter
-    #tally = defaultdict(int)
-    #for name in id_to_features:
-    #    vec = bow_docs[name]
-    #    sparse = lda_model[vec]
-    #    for (feature, frequency) in sparse:
-    #        tally[feature] += 1
+    tally = defaultdict(int)
+    for name in id_to_features:
+        vec = bow_docs[name]
+        sparse = lda_model[vec]
+        for (feature, frequency) in sparse:
+            tally[feature] += 1
 
     # Write to sparse_csv here, excluding anything exceding our max frequency
     log("Writing output and uploading to s3")
     sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
     text_filename = modelname.replace('.model', '-topic-features.csv')
-    csv_key = bucket.new_key('%s%s/%s' % args.s3_prefix, args.git_ref, sparse_csv_filename)
-    text_key = bucket.new_key('%s%s/%s' % args.s3_prefix, args.git_ref, text_filename)
+    csv_key = bucket.new_key('%s%s/%s' % (args.s3_prefix, args.git_ref, sparse_csv_filename))
+    text_key = bucket.new_key('%s%s/%s' % (args.s3_prefix, args.git_ref, text_filename))
     with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
         for name in id_to_features:
             vec = bow_docs[name]
@@ -206,7 +208,7 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
             sparse_csv.write(",".join([str(name)]
                                       + ['%d-%.8f' % (n, sparse.get(n, 0))
                                          for n in range(args.num_topics)
-                                         if sparse.get(n, 0)])
+                                         if sparse.get(n, 0) and tally[n] <= args.max_topic_frequency])
                              + "\n")
 
     csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, 'r'))
@@ -369,3 +371,9 @@ class WikiaDSTKDictionary(Dictionary):
         self.d2bmemo = {}
         self.compactify()
         dictlogger.info("resulting dictionary: %s" % self)
+
+    def filter_extremes(self, no_below=5, no_above=0.5, keep_n=100000):
+        parent = super(WikiaDSTKDictionary, self)
+        retval = parent.filter_extremes(no_below=no_below, no_above=no_above, keep_n=keep_n)
+        self.d2bmemo = {}
+        return retval

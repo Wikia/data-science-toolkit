@@ -227,6 +227,7 @@ git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
 echo `date` `hostname -i ` "Setting Environment Variables" >> /var/log/my_startup.log
+export GIT_REF=%s
 export NUM_TOPICS=%d
 export MAX_TOPIC_FREQUENCY=%d
 export MODEL_PREFIX="%s"
@@ -248,7 +249,7 @@ echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
 python -m gensim.models.lda_dispatcher > /var/log/lda_dispatcher 2>&1 &
 echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
 python -u -m %s > /var/log/lda_server 2>&1 &
-echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.git_ref, args.git_ref,
+echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.git_ref, args.git_ref, args.git_ref,
                                                                             args.num_topics, args.max_topic_frequency,
                                                                             args.model_prefix, args.s3_prefix,
                                                                             args.node_count, args.ami, args.master_ip,

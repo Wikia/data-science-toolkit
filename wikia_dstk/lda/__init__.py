@@ -223,6 +223,7 @@ echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 mkdir -p /mnt/
 cd /home/ubuntu/data-science-toolkit
 echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
+git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
 echo `date` `hostname -i ` "Setting Environment Variables" >> /var/log/my_startup.log

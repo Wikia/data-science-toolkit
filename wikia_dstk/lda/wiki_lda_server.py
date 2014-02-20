@@ -52,6 +52,9 @@ def get_args():
     ap.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                     default=os.getenv('TERMINATE_ON_COMPLETE', True),
                     help="Prevent terminating this instance")
+    ap.add_argument('--git-ref', dest='git_ref',
+                    default='master',
+                    help="A DSTK repo ref (tag, branch, commit hash) to check out")
     return ap.parse_args()
 
 

@@ -311,13 +311,6 @@ class WikiaDSTKDictionary(Dictionary):
     def document2hash(self, document):
         return hashlib.sha1(u' '.join(document).encode('utf-8')).hexdigest()
 
-    def doc2bow(self, document, allow_update=False, return_missing=False):
-        parent = super(WikiaDSTKDictionary, self)
-        hsh = self.document2hash(document)
-        if allow_update or hsh not in self.d2bmemo:
-            self.d2bmemo[hsh] = parent.doc2bow(document, allow_update=allow_update, return_missing=return_missing)
-        return self.d2bmemo[hsh]
-
     def filter_stops(self, num_stops=300):
         """
         Uses statistical methods  to filter out stopwords

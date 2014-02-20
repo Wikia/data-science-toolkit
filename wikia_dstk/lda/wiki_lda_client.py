@@ -46,6 +46,8 @@ def get_args():
                         help="The elastic IP address to associate with the master server")
     parser.add_argument('--killable', dest='killable', action='store_true', default=False,
                         help="Keyboard interrupt terminates master")
+    parser.add_argument('--git-ref', dest='git_ref', default='master',
+                        help="The git ref to use when deploying")
     return parser.parse_args()
 
 

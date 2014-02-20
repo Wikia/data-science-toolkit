@@ -10,8 +10,7 @@ import logging
 import os
 import shutil
 import traceback
-from . import QueryIterator, clean_list
-from ... import ensure_dir_exists
+from . import QueryIterator, clean_list, ensure_dir_exists
 from time import sleep
 from optparse import OptionParser
 from multiprocessing import Process, Queue

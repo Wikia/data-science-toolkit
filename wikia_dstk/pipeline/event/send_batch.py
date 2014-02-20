@@ -10,7 +10,7 @@ import shutil
 import sys
 import tarfile
 import traceback
-from ... import chrono_sort, ensure_dir_exists
+from . import chrono_sort, ensure_dir_exists
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 from optparse import OptionParser

@@ -170,7 +170,7 @@ def log(*args):
 def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
     documents = id_to_features.values()
-    dct = WikiaDSTKDictionary(documents)
+    dct = Dictionary(documents)
 
     log("Filtering extremes")
     dct.filter_extremes(no_below=2)

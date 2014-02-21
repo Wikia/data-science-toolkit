@@ -171,7 +171,7 @@ def get_model_from_args(args):
                 print e
                 print traceback.format_exc()
                 terminate_lda_nodes()
-                harakiri()
+                return harakiri()
     return lda_model
 
 

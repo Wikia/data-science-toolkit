@@ -123,8 +123,7 @@ def get_feature_data(args):
     r = pool.map_async(data_to_features, data_dicts)
     r.wait()
     wid_to_features = zip(wiki_ids, r.get())
-    log(wid_to_features)
-    log(len(set([value for _, values in wid_to_features for value in values])), "features")
+    #log(len(set([value for _, values in wid_to_features for value in values])), "features")
     return dict(wid_to_features)
 
 

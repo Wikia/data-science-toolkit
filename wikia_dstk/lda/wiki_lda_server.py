@@ -14,7 +14,7 @@ from multiprocessing import Pool
 from boto import connect_s3
 from collections import defaultdict
 from datetime import datetime
-from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
+from . import normalize, unis_bis_tris, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
 
@@ -86,10 +86,10 @@ def data_to_features(data_dict):
         features = []
         features += [word for head, count in heads_to_count for word in [normalize(head)] * int(count)]
         features += [word for entity, count in entities_to_count
-                     for word in ['_'.join(filter(lambda x: x, map(normalize, entity.split(' '))))] * int(count)]
-        features += unis_bis(api_data.get('title', ''))
-        features += unis_bis(api_data.get('headline', ''))
-        features += unis_bis(api_data.get('desc', ''))
+                     for word in [unis_bis_tris(entity)] * int(count)]
+        features += unis_bis_tris(api_data.get('title', ''))
+        features += unis_bis_tris(api_data.get('headline', ''))
+        features += unis_bis_tris(api_data.get('desc', ''))
     except Exception as e:
         log(data_dict)
         print e

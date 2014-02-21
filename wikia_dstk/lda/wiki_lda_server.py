@@ -86,7 +86,7 @@ def data_to_features(data_dict):
         features = []
         features += [word for head, count in heads_to_count for word in [normalize(head)] * int(count)]
         features += [word for entity, count in entities_to_count
-                     for word in [unis_bis_tris(entity)] * int(count)]
+                     for word in unis_bis_tris(entity) * int(count)]
         features += unis_bis_tris(api_data.get('title', ''))
         features += unis_bis_tris(api_data.get('headline', ''))
         features += unis_bis_tris(api_data.get('desc', ''))

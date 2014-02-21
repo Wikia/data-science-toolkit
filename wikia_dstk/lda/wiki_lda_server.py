@@ -90,7 +90,6 @@ def data_to_features(data_dict):
         features += unis_bis_tris(api_data.get('title', ''))
         features += unis_bis_tris(api_data.get('headline', ''))
         features += unis_bis_tris(api_data.get('desc', ''))
-        log(list(set([type(f) for f in features])))
     except Exception as e:
         log(data_dict)
         print e

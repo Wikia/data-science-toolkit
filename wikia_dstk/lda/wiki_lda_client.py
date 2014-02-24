@@ -25,7 +25,7 @@ def get_args():
                         default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
                         help="Threshold for number of videos a given topic appears in")
     parser.add_argument('--model-prefix', dest='model_prefix', type=str,
-                        default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%m')),
+                        default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M')),
                         help="Prefix to uniqueify model")
     parser.add_argument('--s3-prefix', dest='s3_prefix', type=str,
                         default=os.getenv('S3_PREFIX', "models/wiki/"),

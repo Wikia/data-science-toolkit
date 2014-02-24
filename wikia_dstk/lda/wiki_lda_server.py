@@ -33,7 +33,7 @@ def get_args():
                     default=os.getenv('NUM_PROCESSES', 8),
                     help="Number of processes for async data access from S3")
     ap.add_argument('--model-prefix', dest='model_prefix', type=str,
-                    default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%m')),
+                    default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M')),
                     help="Prefix to uniqueify model")
     ap.add_argument('--path-prefix', dest='path_prefix', type=str,
                     default=os.getenv('PATH_PREFIX', "/mnt/"),

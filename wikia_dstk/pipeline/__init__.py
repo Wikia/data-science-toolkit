@@ -11,17 +11,17 @@ class EC2Connection(object):
         :type options: dict
         :param options: A dictionary containing the autoscaling options
         """
-        self.region = options.get('region')
-        self.price = options.get('price')
-        self.ami = options.get('ami')
-        self.key = options.get('key')
-        self.sec = options.get('sec')
+        self.region = options.get('region', 'us-west-2')
+        self.price = options.get('price', '0.300')
+        self.ami = options.get('ami', 'ami-2eb7da1e')
+        self.key = options.get('key', 'data-extraction')
+        self.sec = options.get('sec', 'sshable')
         if not isinstance(self.sec, list):
             self.sec = self.sec.split(',')
-        self.type = options.get('type')
-        self.tag = options.get('tag')
-        self.threshold = options.get('threshold')
-        self.max_size = options.get('max_size')
+        self.type = options.get('type', 'm2.4xlarge')
+        self.tag = options.get('tag', self.ami)
+        self.threshold = options.get('threshold', 50)
+        self.max_size = options.get('max_size', 5)
         self.conn = connect_to_region(self.region)
 
     def _request_instances(self, count, user_data):

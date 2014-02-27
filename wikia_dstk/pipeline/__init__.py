@@ -9,7 +9,7 @@ class EC2Connection(object):
         perform actions.
 
         :type options: dict
-        :param region: A dictionary containing the autoscaling options
+        :param options: A dictionary containing the autoscaling options
         """
         self.region = options.get('region')
         self.price = options.get('price')

@@ -61,7 +61,7 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None, ami=
             parts[n].append(id_)
 
     # Format user_data script with comma-separated list of IDs, and launch instances
-    return conn.add_instances_async(num_instances, [script % ','.join(ids) for ids in parts.values()])
+    return conn.add_instances_async(num_instances, [user_data % ','.join([str(id_) for id_ in ids]) for ids in parts.values()])
 
 class EC2Connection(object):
     """A connection to a specified EC2 region."""

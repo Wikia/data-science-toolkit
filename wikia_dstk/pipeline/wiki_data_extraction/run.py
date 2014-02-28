@@ -13,8 +13,10 @@ from time import sleep
 from config import config
 
 ap = argparse.ArgumentParser()
-ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=os.getenv('WIKIS', ''), help='Wiki IDs to run wiki-level data extraction on')
-ap.add_argument('-r', '--region', dest='region', type=str, default=config['region'], help='EC2 region to connect to')
+ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=os.getenv('WIKIS', ''),
+                help='Wiki IDs to run wiki-level data extraction on')
+ap.add_argument('-r', '--region', dest='region', type=str, default=config['region'],
+                help='EC2 region to connect to')
 args = ap.parse_args()
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)

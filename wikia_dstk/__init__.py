@@ -53,12 +53,15 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None, ami=
         options = {'ami': ami}
     conn = EC2Connection(options)
 
+    # TODO: Explore different methods of combinatorial optimization to improve this
     # Split IDs into buckets of approx equal total 'callable' value
     ids = sorted(ids, key=lambda x: callable(x), reverse=True) # Sort descending
     parts = defaultdict(list) # {instance #: list of IDs to pass to instance}
     for i in range(0, len(ids), num_instances):
         for n, id_ in enumerate(ids[i:i+num_instances]):
             parts[n].append(id_)
+
+    #return str([sum([callable(i) for i in parts[n]]) for n in parts]) # Bin sizes
 
     # Format user_data script with comma-separated list of IDs, and launch instances
     return conn.add_instances_async(num_instances, [user_data % ','.join([str(id_) for id_ in ids]) for ids in parts.values()])
@@ -147,7 +150,11 @@ class EC2Connection(object):
         """
         mapped = Pool(processes=count).map_async(lambda x: self.add_instances(1, x),
                                                  user_data_scripts)
-        return list(chain.from_iterable(mapped))
+        print 'Waiting for all instances to launch...'
+        mapped.wait()
+
+        # Flatten list
+        return list(chain.from_iterable(mapped.get()))
 
     def terminate(self, instance_ids):
         """

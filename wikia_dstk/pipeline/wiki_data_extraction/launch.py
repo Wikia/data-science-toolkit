@@ -88,21 +88,6 @@ print 'QUOTA: %d' % quota
 wids = sorted(filter(lambda x: d[x] > 0, d.keys()), key=lambda y: articles.get(y, 0), reverse=True)
 print len(wids)
 args = defaultdict(list)
-
-bins = []
-for wid in wids:
-    count = articles.get(wid, 0)
-    for bin in bins:
-        if sum([articles.get(wid, 0) for wid in bin]) + count <= quota:
-            bin.append(wid)
-            break
-    else:
-        bin = []
-        bin.append(wid)
-        bins.append(bin)
-for n, bin in enumerate(bins):
-    print 'Part %d contains %d articles' % (n, sum([articles.get(wid, 0) for wid in bin]))
-
 ###part = 0
 ###count = 0
 #for wid in wids:
@@ -118,11 +103,6 @@ for n, bin in enumerate(bins):
 ####print 'Index: %d' % n
 ###print len(args.keys())
 ###import sys; sys.exit(0)
-
-#from bins import packAndShow
-#packAndShow(articles.values(), quota+1)
-import sys; sys.exit(0)
-
 
 for i in range(0, len(wids), parts):
     #print '%d/%d complete' % (i, len(wids))

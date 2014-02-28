@@ -34,19 +34,20 @@ if date is None:
     with open(LAST_INDEXED, 'r') as f:
         date = f.read().strip()
 
-date = '2014-02-20T23:59:59.999' # DEBUG
+date = '2014-02-21T23:59:59.999' # DEBUG
 
 params = {
              'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
              'fl': 'wid,wikipages',
-             'rows': '100', # 10000
+             'rows': '10000', # 10000
              'facet': 'true',
-             'facet.limit': '100', # -1
+             'facet.limit': '-1', # -1
              'facet.field': 'wid',
              'wt': 'json'
          }
 
 # Query Solr
+print 'Querying Solr...'
 while True:
     try:
         r = requests.get(SOLR, params=params).json()

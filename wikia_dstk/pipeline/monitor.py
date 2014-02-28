@@ -1,6 +1,6 @@
 from __future__ import division
 import json
-from . import EC2Connection
+from .. import EC2Connection
 from boto import connect_s3
 from datetime import datetime
 from math import ceil

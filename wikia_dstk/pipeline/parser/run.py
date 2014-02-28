@@ -5,8 +5,7 @@ import os
 import shutil
 import sys
 import tarfile
-from .. import EC2Connection
-from ... import chrono_sort, ensure_dir_exists
+from ... import EC2Connection, chrono_sort, ensure_dir_exists
 from boto import connect_s3, connect_ec2
 from boto.s3.key import Key
 from boto.exception import S3ResponseError

@@ -1,4 +1,5 @@
 from boto.ec2 import connect_to_region
+from itertools import chain
 from time import sleep
 
 class EC2Connection(object):
@@ -93,8 +94,8 @@ class EC2Connection(object):
         :type user_data: string
         :param user_data: A script to pass to the launched instance
 
-        :rtype: int
-        :return: An integer indicating the number of active tagged instances
+        :rtype: list
+        :return: A list of IDs corresponding to the instances launched
         """
         # Create spot instances
         reservation = self._request_instances(count, user_data)
@@ -102,7 +103,24 @@ class EC2Connection(object):
         instance_ids = self._get_instance_ids(reservation)
         self._tag_instances(instance_ids)
 
-        return len(self.get_tagged_instances())
+        return instance_ids
+
+    def add_instances_async(self, count, user_data_scripts):
+        """
+        Add a specified number of instances asynchronously, each with unique user_data.
+
+        :type count: int
+        :param count: The number of instances to add
+
+        :type user_data_scripts: list
+        :param user_data_scripts: A list of strings representing the scripts to
+                                  run on the individual instances
+
+        :rtype: list
+        :return: A list of IDs corresponding to the instances launched
+        """
+        mapped = Pool(processes=count).map_async(lambda x: self.add_instances(1, x), user_data_scripts)
+        return list(chain.from_iterable(mapped))
 
     def terminate(self, instance_ids):
         """

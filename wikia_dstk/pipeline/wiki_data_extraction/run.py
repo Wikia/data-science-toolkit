@@ -12,8 +12,15 @@ from time import sleep
 
 from config import config
 
+# Read list of wiki IDs to iterate over from file written by user_data script
+ID_FILE = '/home/ubuntu/ids.txt'
+WIKIS = ''
+if os.path.exists(ID_FILE):
+    with open(ID_FILE) as f:
+        WIKIS = f.read()
+
 ap = argparse.ArgumentParser()
-ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=os.getenv('WIKIS', ''),
+ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=WIKIS,
                 help='Wiki IDs to run wiki-level data extraction on')
 ap.add_argument('-r', '--region', dest='region', type=str, default=config['region'],
                 help='EC2 region to connect to')

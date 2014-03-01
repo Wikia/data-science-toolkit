@@ -74,7 +74,7 @@ wids = filter(lambda x: d[x] > 0, d.keys())
 callable = lambda x: articles.get(x, 0)
 num_instances = config['max_size']
 user_data = """#!/bin/sh
-export WIKIS="%s"
+echo "%s" > /home/ubuntu/ids.txt
 /home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run > /home/ubuntu/wiki_data_extraction.log
 """
 instances = run_instances_lb(wids, callable, num_instances, user_data, config)

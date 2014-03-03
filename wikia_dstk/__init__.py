@@ -148,8 +148,10 @@ class EC2Connection(object):
         :rtype: list
         :return: A list of IDs corresponding to the instances launched
         """
-        mapped = Pool(processes=count).map_async(lambda x: self.add_instances(1, x),
-                                                 user_data_scripts)
+        def worker(script):
+            return self.add_instances(1, script)
+
+        mapped = Pool(processes=count).map_async(worker, user_data_scripts)
         print 'Waiting for all instances to launch...'
         mapped.wait()
 

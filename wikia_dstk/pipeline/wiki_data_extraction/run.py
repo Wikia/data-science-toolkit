@@ -33,7 +33,8 @@ print "Working on %d wids" % len(wids)
 processes = []
 while len(wids) > 0:
     while len(processes) < 8:
-        processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.child %s' % wids.pop(), shell=True))
+        if wids:
+            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.child %s' % wids.pop(), shell=True))
 
     processes = filter(lambda x: x.poll() is None, processes)
     sleep(0.25)

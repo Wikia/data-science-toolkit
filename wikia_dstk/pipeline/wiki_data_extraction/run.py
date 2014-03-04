@@ -34,7 +34,11 @@ processes = []
 while len(wids) > 0:
     while len(processes) < 8:
         if wids:
-            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.child %s' % wids.pop(), shell=True))
+            wid = wids.pop()
+            print 'Launching child to process %s' % wid
+            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.child %s' % wid, shell=True))
+        else:
+            print 'No more wiki IDs to iterate over'
 
     processes = filter(lambda x: x.poll() is None, processes)
     sleep(0.25)

@@ -13,7 +13,7 @@ from boto.utils import get_instance_metadata
 from subprocess import Popen
 from time import sleep
 
-from .config import config
+from config import config
 
 workers = int(sys.argv[1])
 BUCKET = connect_s3().get_bucket('nlp-data')

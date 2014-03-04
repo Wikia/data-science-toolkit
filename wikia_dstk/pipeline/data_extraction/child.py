@@ -8,7 +8,7 @@ from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 
 from nlp_services.caching import use_caching
-from .config import config
+from config import config
 
 from nlp_services.discourse.entities import CoreferenceCountsService, EntityCountsService
 from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentEntitySentimentService, WpDocumentEntitySentimentService

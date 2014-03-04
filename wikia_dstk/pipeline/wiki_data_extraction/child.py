@@ -4,7 +4,7 @@ import traceback
 from boto import connect_s3
 
 from nlp_services.caching import use_caching
-from .config import config
+from config import config
 
 from nlp_services.discourse import AllEntitiesSentimentAndCountsService
 from nlp_services.discourse.entities import TopEntitiesService, EntityDocumentCountsService, WpTopEntitiesService, WpEntityDocumentCountsService

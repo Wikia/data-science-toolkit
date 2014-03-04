@@ -8,7 +8,7 @@ from boto.utils import get_instance_metadata
 from subprocess import Popen
 from time import sleep
 
-from .config import config
+from config import config
 
 # Read list of wiki IDs to iterate over from file written by user_data script
 ID_FILE = '/home/ubuntu/ids.txt'

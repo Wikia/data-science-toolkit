@@ -45,7 +45,8 @@ while len(wids) > 0:
     sleep(0.25)
 
 for i in range(10):
-    print 'Waiting for 5 minutes and shutting down. 30sec interval %d/10' % i+1
+    n = i + 1
+    print 'Waiting for 5 minutes and shutting down. 30sec interval %d/10' % n
     sleep(30)
 
 print "Scaling down, shutting down."

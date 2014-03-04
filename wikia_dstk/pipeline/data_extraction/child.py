@@ -1,17 +1,14 @@
-import json
-import os
 import random
 import re
 import sys
 import time
-import traceback
 from boto import connect_s3
 from boto.exception import S3ResponseError
 from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 
 from nlp_services.caching import use_caching
-from config import config
+from .config import config
 
 from nlp_services.discourse.entities import CoreferenceCountsService, EntityCountsService
 from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentEntitySentimentService, WpDocumentEntitySentimentService
@@ -20,7 +17,9 @@ from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService, He
 BUCKET = connect_s3().get_bucket('nlp-data')
 SERVICES = config['services']
 
-use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for service in SERVICES]))
+use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for
+                                    service in SERVICES]))
+
 
 def process_file(filename):
     if filename.strip() == '':
@@ -37,6 +36,7 @@ def process_file(filename):
     for service in SERVICES:
         print wiki_id, service
         getattr(sys.modules[__name__], service)().get(doc_id)
+
 
 def call_services(keyname):
     global BUCKET

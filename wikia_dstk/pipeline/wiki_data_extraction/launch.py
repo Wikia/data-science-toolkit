@@ -5,7 +5,7 @@ from collections import defaultdict
 from optparse import OptionParser, OptionError
 from time import sleep
 
-from config import config
+from .config import config
 
 LAST_INDEXED = '/data/last_indexed.txt'
 SOLR = 'http://search-s10:8983/solr/main/select'

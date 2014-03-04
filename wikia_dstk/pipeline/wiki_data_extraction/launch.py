@@ -77,5 +77,16 @@ user_data = """#!/bin/sh
 echo "%s" > /home/ubuntu/ids.txt
 /home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run > /home/ubuntu/wiki_data_extraction.log
 """
-instances = run_instances_lb(wids, callable, num_instances, user_data, config)
-print 'The following instances have been launched: %s' % str(instances)
+#instances = run_instances_lb(wids, callable, num_instances, user_data, config)
+#print 'The following instances have been launched: %s' % str(instances)
+
+script = user_data % '13346'
+from ... import EC2Connection
+conn = EC2Connection(config)
+instances = conn.add_instances(1, script)
+
+def dns(n):
+    print conn.conn.get_only_instances(instances)[n].public_dns_name
+
+def output(n):
+    print conn.conn.get_console_output(instances[n]).output

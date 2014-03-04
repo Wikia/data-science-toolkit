@@ -175,10 +175,8 @@ class EC2Connection(object):
         :rtype: list
         :return: A list of IDs corresponding to the instances launched
         """
-        def worker(script):
-            return self.add_instances(1, script)
-
-        mapped = Pool(processes=count).map_async(worker, user_data_scripts)
+        iterable = [(self, script) for script in user_data_scripts]
+        mapped = Pool(processes=count).map_async(_spawn_star, iterable)
         print 'Waiting for all instances to launch...'
         mapped.wait()
 
@@ -212,3 +210,15 @@ class EC2Connection(object):
         return [instance.id for reservation in
                 self.conn.get_all_instances(filters=filters) for instance in
                 reservation.instances if instance.state_code < 32]
+
+
+# The function passed to multiprocessing.Pool.map(_async) must be accessible
+# through an import of the module. The following 2 functions circumvent this
+# limitation as encountered in EC2Connection.add_instances_async. Solution
+# taken from http://stackoverflow.com/a/5443941
+def _spawn(conn, script):
+    return conn.add_instances(1, script)
+
+
+def _spawn_star(args):
+    return _spawn(*args)

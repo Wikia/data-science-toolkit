@@ -1,5 +1,7 @@
 """
-Responsible for handling the event stream - iterates over files in the data_events S3 bucket and calls a set of services on each pageid/XML file listed in order to warm the cache.
+Responsible for handling the event stream - iterates over files in the
+data_events S3 bucket and calls a set of services on each pageid/XML file
+listed in order to warm the cache.
 """
 
 import re
@@ -17,7 +19,8 @@ BUCKET = connect_s3().get_bucket('nlp-data')
 counter = 0
 while True:
     processes = []
-    keys = [key.name for key in BUCKET.list(prefix='data_events/') if re.sub(r'/?data_events/?', '', key.name) is not '']
+    keys = [key.name for key in BUCKET.list(prefix='data_events/') if
+            re.sub(r'/?data_events/?', '', key.name) is not '']
     while len(keys) > 0:
         counter = 0
         while len(processes) < workers:

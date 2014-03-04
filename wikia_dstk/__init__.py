@@ -91,7 +91,6 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None,
     # instances
     scripts = [user_data % ','.join([str(wid) for wid in wids]) for wids in
                parts.values()]
-    return scripts
     return conn.add_instances_async(num_instances, scripts)
 
 

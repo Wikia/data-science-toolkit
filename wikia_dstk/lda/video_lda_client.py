@@ -3,14 +3,14 @@ import json
 import argparse
 import os
 import time
-from . import normalize, unis_bis_tris, video_json_key, log
+from . import normalize, unis_bis, video_json_key, log, run_server_from_args
 from multiprocessing import Pool
 from boto import connect_s3
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--build', dest='build', action='store_true',
+    parser.add_argument('--build', dest='build', action='store_true', default=False,
                         help="Build new feature set for S3")
     parser.add_argument('--build-only', dest='build_only', action='store_true', default=False,
                         help="Build new feature set for S3")
@@ -50,22 +50,29 @@ def get_args():
     parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
                         help="Prevent terminating this instance")
+    parser.add_argument('--master-ip', dest='master_ip', default='54.200.205.135',
+                        help="The elastic IP address to associate with the master server")
+    parser.add_argument('--killable', dest='killable', action='store_true', default=False,
+                        help="Keyboard interrupt terminates master")
+    parser.add_argument('--git-ref', dest='git_ref', default='master',
+                        help="Git ref (tag, branch, commit hash) of DSTK to run off")
     return parser.parse_args()
 
 
 def doc_to_vectors(doc):
     try:
-        return [d.encode('utf-8') for d in
+        data = [d.encode('utf-8') for d in
                 [doc[u'id']]
-                + unis_bis_tris(doc[u'title_en'].replace(u'File:', u''))
+                + unis_bis(doc[u'title_en'].replace(u'File:', u''))
                 + map(normalize, doc.get(u'video_actors_txt', []))
                 + map(normalize, doc.get(u'video_tags_txt', []))
                 + map(normalize, doc.get(u'categories_mv_en', []))
                 + map(normalize, doc.get(u'video_tags_txt', []))
                 + map(normalize, doc.get(u'video_genres_txt', []))
-                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis_tris(li)]
-                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis_tris(li)]
+                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis(li)]
+                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis(li)]
                 ]
+        return dict([(data[0], data[1:])])
     except (IndexError, TypeError) as e:
         log(e)
         return []
@@ -82,13 +89,12 @@ def etl_concurrent(pool):
     r = pool.map_async(get_docs, range(0, response['response']['numFound'], 500))
     r.wait()
     docs = [doc for docset in r.get() for doc in docset]
-    log("Got all docs")
+    log("Got all docs, now building features")
     doclen = len(docs)
-    features = []
+    features = {}
     for i in range(0, doclen, 5000):
         log("%.2f%%" % (float(i)/float(doclen) * 100))
-        r = pool.map_async(doc_to_vectors, docs[i:i+5000])
-        features += r.get()
+        map(features.update, pool.map_async(doc_to_vectors, docs[i:i+5000]).get())
     return features
 
 
@@ -127,34 +133,15 @@ def data_to_s3(num_processes):
     k.set_contents_from_string(json.dumps(etl_concurrent(Pool(processes=num_processes)), ensure_ascii=False))
 
 
-def user_data_from_args(args):
-    return ("""#!/usr/bin/bash
-mkdir -p /mnt/
-export NUM_TOPICS=%d
-export MAX_TOPIC_FREQUENCY=%d
-export MODEL_PREFIX="%s"
-export S3_PREFIX="%s"
-export NODE_INSTANCES=%d
-export NODE_AMI="%s"
-python -m wikia_dstk.lda.video_lda_server.py
-    """ % (args.num_topics, args.max_topic_frequency, args.model_prefix,
-           args.s3_prefix, args.node_count, args.ami))
-
-
 def main():
     args = get_args()
     if args.build:
         start = time.time()
         data_to_s3(args.num_processes)
-        log("Finished upload to S3 in %d seconds" % time.time() - start)
+        log("Finished upload to S3 in %d seconds" % (time.time() - start))
     if not args.build_only:
-        log("Running LDA, which will auto-terminate upon completion")
-        connection = connect_to_region('us-west-2')
-        connection.run_instances(args.ami,
-                                 instance_type='m2.4xlarge',
-                                 user_data=user_data_from_args(args),
-                                 subnet_id='subnet-e4d087a2',
-                                 security_group_ids=['sg-72190a10'])
+        run_server_from_args(args, 'wikia_dstk.lda.video_lda_server')
+
 
 if __name__ == '__main__':
     main()

@@ -1,9 +1,7 @@
 from __future__ import division
 import requests
 from ... import run_instances_lb
-from collections import defaultdict
-from optparse import OptionParser, OptionError
-from time import sleep
+from optparse import OptionParser
 
 from config import config
 
@@ -12,7 +10,8 @@ SOLR = 'http://search-s10:8983/solr/main/select'
 
 op = OptionParser()
 op.add_option('-d', '--date', dest='date', help='The query start date')
-op.add_option('-r', '--region', dest='region', help='The EC2 region to connect to')
+op.add_option('-r', '--region', dest='region',
+              help='The EC2 region to connect to')
 op.add_option('-c', '--cost', dest='price', help='The maximum bid price')
 op.add_option('-a', '--ami', dest='ami', help='The AMI to use')
 op.add_option('-k', '--key', dest='key', help='The name of the key pair')
@@ -34,17 +33,17 @@ if date is None:
     with open(LAST_INDEXED, 'r') as f:
         date = f.read().strip()
 
-date = '2014-02-21T23:59:59.999' # DEBUG
+date = '2014-02-21T23:59:59.999'  # DEBUG
 
 params = {
-             'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
-             'fl': 'wid,wikipages',
-             'rows': '10000', # 10000
-             'facet': 'true',
-             'facet.limit': '-1', # -1
-             'facet.field': 'wid',
-             'wt': 'json'
-         }
+    'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
+    'fl': 'wid,wikipages',
+    'rows': '10000',  # 10000
+    'facet': 'true',
+    'facet.limit': '-1',  # -1
+    'facet.field': 'wid',
+    'wt': 'json'
+    }
 
 # Query Solr
 print 'Querying Solr...'
@@ -77,16 +76,16 @@ user_data = """#!/bin/sh
 echo "%s" > /home/ubuntu/ids.txt
 /home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run > /home/ubuntu/wiki_data_extraction.log
 """
-#instances = run_instances_lb(wids, callable, num_instances, user_data, config)
-#print 'The following instances have been launched: %s' % str(instances)
+instances = run_instances_lb(wids, callable, num_instances, user_data, config)
+print 'The following instances have been launched: %s' % str(instances)
 
-script = user_data % '13346'
 from ... import EC2Connection
 conn = EC2Connection(config)
-instances = conn.add_instances(1, script)
+
 
 def dns(n):
     print conn.conn.get_only_instances(instances)[n].public_dns_name
+
 
 def output(n):
     print conn.conn.get_console_output(instances[n]).output

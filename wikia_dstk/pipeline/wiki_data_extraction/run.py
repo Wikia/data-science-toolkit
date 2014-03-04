@@ -1,13 +1,11 @@
 import argparse
 import os
-import random
 import sys
 from ..config.wiki_data_extraction import config
 from boto import connect_s3
 from boto.ec2 import connect_to_region
-from boto.s3.prefix import Prefix
 from boto.utils import get_instance_metadata
-from subprocess import Popen, STDOUT
+from subprocess import Popen
 from time import sleep
 
 from config import config
@@ -22,8 +20,8 @@ if os.path.exists(ID_FILE):
 ap = argparse.ArgumentParser()
 ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=WIKIS,
                 help='Wiki IDs to run wiki-level data extraction on')
-ap.add_argument('-r', '--region', dest='region', type=str, default=config['region'],
-                help='EC2 region to connect to')
+ap.add_argument('-r', '--region', dest='region', type=str,
+                default=config['region'], help='EC2 region to connect to')
 args = ap.parse_args()
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -39,6 +37,10 @@ while len(wids) > 0:
 
     processes = filter(lambda x: x.poll() is None, processes)
     sleep(0.25)
+
+for i in range(10):
+    print 'Waiting for 5 minutes and shutting down. 30-second interval %d/10' % i+1
+    sleep(30)
 
 print "Scaling down, shutting down."
 current_id = get_instance_metadata()['instance-id']

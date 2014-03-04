@@ -33,8 +33,6 @@ if date is None:
     with open(LAST_INDEXED, 'r') as f:
         date = f.read().strip()
 
-date = '2014-02-21T23:59:59.999'  # DEBUG
-
 params = {
     'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
     'fl': 'wid,wikipages',
@@ -79,13 +77,15 @@ echo "%s" > /home/ubuntu/ids.txt
 instances = run_instances_lb(wids, callable, num_instances, user_data, config)
 print 'The following instances have been launched: %s' % str(instances)
 
-from ... import EC2Connection
-conn = EC2Connection(config)
-
-
-def dns(n):
-    print conn.conn.get_only_instances(instances)[n].public_dns_name
-
-
-def output(n):
-    print conn.conn.get_console_output(instances[n]).output
+## DEBUG
+#
+#from ... import EC2Connection
+#conn = EC2Connection(config)
+#
+#
+#def dns(n):
+#    print conn.conn.get_only_instances(instances)[n].public_dns_name
+#
+#
+#def output(n):
+#    print conn.conn.get_console_output(instances[n]).output

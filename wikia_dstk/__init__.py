@@ -27,7 +27,7 @@ def chrono_sort(directory):
 def ensure_dir_exists(directory):
     """
     Make sure the directory given as an argument exists, and returns the same
-    directory.
+    directory
 
     :type directory: string
     :param directory: A filepath to create if it doesn't already exist

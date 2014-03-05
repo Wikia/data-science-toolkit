@@ -10,9 +10,13 @@ from boto.utils import get_instance_metadata
 from nlp_services.caching import use_caching
 from config import config
 
-from nlp_services.discourse.entities import CoreferenceCountsService, EntityCountsService
-from nlp_services.discourse.sentiment import DocumentSentimentService, DocumentEntitySentimentService, WpDocumentEntitySentimentService
-from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService, HeadsService
+from nlp_services.discourse.entities import CoreferenceCountsService
+from nlp_services.discourse.entities import EntityCountsService
+from nlp_services.discourse.sentiment import DocumentSentimentService
+from nlp_services.discourse.sentiment import DocumentEntitySentimentService
+from nlp_services.discourse.sentiment import WpDocumentEntitySentimentService
+from nlp_services.syntax import AllNounPhrasesService, AllVerbPhrasesService
+from nlp_services.syntax import HeadsService
 
 BUCKET = connect_s3().get_bucket('nlp-data')
 SERVICES = config['services']
@@ -47,7 +51,9 @@ def call_services(keyname):
         print 'no key found'
         return
 
-    eventfile = "data_processing/%s_%s_%s" % (get_instance_metadata()['local-hostname'], str(time.time()), str(int(random.randint(0, 100))))
+    eventfile = "data_processing/%s_%s_%s" % (
+        get_instance_metadata()['local-hostname'], str(time.time()),
+        str(int(random.randint(0, 100))))
     try:
         key.copy('nlp-data', eventfile)
         key.delete()

@@ -6,7 +6,6 @@ listed in order to warm the cache.
 
 import re
 import sys
-from ..config.data_extraction import config
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
@@ -26,7 +25,11 @@ while True:
     while len(keys) > 0:
         counter = 0
         while len(processes) < workers:
-            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.data_extraction.child %s' % keys.pop(), shell=True))
+            processes.append(
+                Popen(
+                    '/home/ubuntu/venv/bin/python -m ' +
+                    'wikia_dstk.pipeline.data_extraction.child %s' % keys.pop(),
+                    shell=True))
         processes = filter(lambda x: x.poll() is None, processes)
         sleep(0.25)
     counter += 1

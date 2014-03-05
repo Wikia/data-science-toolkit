@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from ..config.wiki_data_extraction import config
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
@@ -36,7 +35,10 @@ while len(wids) > 0:
         if wids:
             wid = wids.pop()
             print 'Launching child to process %s' % wid
-            processes.append(Popen('/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.child %s' % wid, shell=True))
+            processes.append(
+                Popen('/home/ubuntu/venv/bin/python -m ' +
+                      'wikia_dstk.pipeline.wiki_data_extraction.child %s' % wid,
+                      shell=True))
         else:
             print 'No more wiki IDs to iterate over'
             break

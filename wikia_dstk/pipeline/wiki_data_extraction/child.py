@@ -7,8 +7,12 @@ from nlp_services.caching import use_caching
 from config import config
 
 from nlp_services.discourse import AllEntitiesSentimentAndCountsService
-from nlp_services.discourse.entities import TopEntitiesService, EntityDocumentCountsService, WpTopEntitiesService, WpEntityDocumentCountsService
-from nlp_services.discourse.sentiment import WikiEntitySentimentService, WpWikiEntitySentimentService
+from nlp_services.discourse.entities import TopEntitiesService
+from nlp_services.discourse.entities import EntityDocumentCountsService
+from nlp_services.discourse.entities import WpTopEntitiesService
+from nlp_services.discourse.entities import WpEntityDocumentCountsService
+from nlp_services.discourse.sentiment import WikiEntitySentimentService
+from nlp_services.discourse.sentiment import WpWikiEntitySentimentService
 from nlp_services.syntax import TopHeadsService
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)

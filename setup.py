@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="wikia_dstk",
-    version= "0.0.1",
+    version="0.0.1",
     author="Robert Elwell",
     author_email="robert.elwell@gmail.com",
     description="A library for automated data science scripts that rely on NLP libs, etc.",

@@ -3,30 +3,29 @@ import os
 import sys
 from boto import connect_s3
 from boto.ec2 import connect_to_region
+from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 from subprocess import Popen
 from time import sleep
 
 from config import config
 
-# Read list of wiki IDs to iterate over from file written by user_data script
-ID_FILE = '/home/ubuntu/ids.txt'
-WIKIS = ''
-if os.path.exists(ID_FILE):
-    with open(ID_FILE) as f:
-        WIKIS = f.read()
-
 ap = argparse.ArgumentParser()
-ap.add_argument('-w', '--wikis', dest='wikis', type=str, default=WIKIS,
-                help='Wiki IDs to run wiki-level data extraction on')
+# TODO: Need backoff for --wikis if file doesn't exist
+ap.add_argument('-w', '--wikis', dest='wikis', type=str,
+                help='File containing wiki IDs to run wiki data extraction on')
 ap.add_argument('-r', '--region', dest='region', type=str,
                 default=config['region'], help='EC2 region to connect to')
 args = ap.parse_args()
 
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-BUCKET = connect_s3().get_bucket('nlp-data')
 
-wids = [wid.strip() for wid in args.wikis.split(',')]
+# Pull wiki IDs from file on S3
+bucket = connect_s3().get_bucket('nlp-data')
+k = Key(bucket)
+k.key = args.wikis
+wids = [wid.strip() for wid in k.get_contents_as_string().split(',')]
+k.delete()
 print "Working on %d wids" % len(wids)
 
 processes = []

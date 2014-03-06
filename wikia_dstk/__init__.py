@@ -1,9 +1,12 @@
 import os
 from boto.ec2 import connect_to_region
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 from collections import defaultdict
 from itertools import chain
 from multiprocessing import Pool
 from time import sleep
+from uuid import uuid4
 
 
 def chrono_sort(directory):
@@ -84,13 +87,16 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None,
         for n, id_ in enumerate(ids[i:i+num_instances]):
             parts[n].append(id_)
 
-    # Bin size
-    #return str([sum([callable(i) for i in parts[n]]) for n in parts])
+    # Write event files containing IDs to S3 & populate a list w/ their paths
+    scripts = []
+    bucket = S3Connection().get_bucket('nlp-data')
+    k = Key(bucket)
+    for wids in parts.values():
+        k.key = 'lb_events/%s' % str(uuid4())
+        k.set_contents_from_string(','.join([str(wid) for wid in wids]))
+        scripts.append(user_data % k.key)
 
-    # Format user_data script with comma-separated list of IDs, and launch
-    # instances
-    scripts = [user_data % ','.join([str(wid) for wid in wids]) for wids in
-               parts.values()]
+    # Launch instances
     return conn.add_instances_async(num_instances, scripts)
 
 

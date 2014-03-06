@@ -73,24 +73,18 @@ num_instances = config['max_size']
 user_data = """#!/bin/sh
 /home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run -w %s > /home/ubuntu/wiki_data_extraction.log
 """
-wids = [147, 174, 831, 13346, 410]
 instances = run_instances_lb(wids, callable, num_instances, user_data, config)
 print 'The following instances have been launched: %s' % str(instances)
 
-# DEBUG
-
-from ... import EC2Connection
-conn = EC2Connection(config)
-
-
-def dns(n):
-    print conn.conn.get_only_instances(instances)[n].public_dns_name
-
-
-def output(n):
-    print conn.conn.get_console_output(instances[n]).output
-
-#num = int(len(wids) / 5)
-#script = user_data % ','.join([str(wid) for wid in wids[:num]])
-#instances = conn.add_instances(1, script)
-#print instances
+## DEBUG
+#
+#from ... import EC2Connection
+#conn = EC2Connection(config)
+#
+#
+#def dns(n):
+#    print conn.conn.get_only_instances(instances)[n].public_dns_name
+#
+#
+#def output(n):
+#    print conn.conn.get_console_output(instances[n]).output

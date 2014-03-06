@@ -1,5 +1,5 @@
 from __future__ import division
-from .. import EC2Connection
+from ..loadbalancing import EC2Connection
 from boto import connect_s3
 from datetime import datetime
 from math import ceil

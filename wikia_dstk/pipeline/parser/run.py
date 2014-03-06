@@ -3,7 +3,8 @@
 import os
 import sys
 import tarfile
-from ... import EC2Connection, chrono_sort, ensure_dir_exists
+from ... import chrono_sort, ensure_dir_exists
+from ...loadbalancing import EC2Connection
 from boto import connect_s3
 from boto.s3.key import Key
 from boto.exception import S3ResponseError

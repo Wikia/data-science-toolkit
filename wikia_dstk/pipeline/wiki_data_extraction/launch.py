@@ -1,6 +1,6 @@
 from __future__ import division
 import requests
-from ... import run_instances_lb
+from ...loadbalancing import run_instances_lb
 from optparse import OptionParser
 
 from config import config
@@ -78,7 +78,7 @@ print 'The following instances have been launched: %s' % str(instances)
 
 ## DEBUG
 #
-#from ... import EC2Connection
+#from ...loadbalancing import EC2Connection
 #conn = EC2Connection(config)
 #
 #

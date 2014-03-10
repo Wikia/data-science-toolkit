@@ -39,6 +39,9 @@ def get_args():
     parser.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                         default=os.getenv('TERMINATE_ON_COMPLETE', True),
                         help="Prevent terminating this instance")
+    parser.add_argument('--git-ref', dest='git_ref',
+                        default=os.getenv('GIT_REF', 'master'),
+                        help="A DSTK repo ref (tag, branch, commit hash) to check out")
     return parser.parse_args()
 
 

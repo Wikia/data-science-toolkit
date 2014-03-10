@@ -15,7 +15,7 @@ def get_args():
     parser.add_argument('--build-only', dest='build_only', action='store_true', default=False,
                         help="Build new feature set for S3")
     parser.add_argument('--ami', dest='ami', type=str,
-                        default="ami-d6e785e6",
+                        default="ami-f4d0bfc4",
                         help='The AMI to launch')
     parser.add_argument('--num-nodes', dest='node_count', type=int,
                         default=20,

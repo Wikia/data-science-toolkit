@@ -46,17 +46,7 @@ def get_model_from_args(args):
     log("\n---LDA Model---")
     modelname = '%s-video-%dtopics.model' % (args.model_prefix, args.num_topics)
     model_location = args.path_prefix+'/'+modelname
-    while True:
-        # maybe a lag?
-        try:
-            bucket = connect_s3().get_bucket('nlp-data')
-        except Exception as e:
-            log("Who stole mah bucket", e)
-            time.sleep(30)
-            pass
-        if bucket:
-            log("I haz a bucket")
-            break
+    bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(model_location):
         log("(loading from file)")
         lda_model = gensim.models.LdaModel.load(model_location)

@@ -52,6 +52,7 @@ def get_model_from_args(args):
             bucket = connect_s3().get_bucket('nlp-data')
         except Exception as e:
             log("Who stole mah bucket", e)
+            time.sleep(30)
             pass
         if bucket:
             log("I haz a bucket")

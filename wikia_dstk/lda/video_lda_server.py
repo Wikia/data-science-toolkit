@@ -81,7 +81,7 @@ def get_model_from_args(args):
             write_csv_and_text_data(args, bucket, modelname, doc_id_to_terms, bow_docs, lda_model)
             log("uploading model to s3")
             key = bucket.new_key(args.s3_prefix+modelname)
-            key.set_contents_from_file(args.path_prefix+modelname)
+            key.set_contents_from_filename(model_location)
             terminate_lda_nodes()
     return lda_model
 

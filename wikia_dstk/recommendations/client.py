@@ -36,7 +36,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
                               "--metric=%s" % args.metric,
                               "--slice-size=%d" % args.slice_size,
                               "--use-batches",
-                              "--instance-batch-size=%d" % args.batch_size,
+                              "--instance-batch-size=%d" % args.instance_batch_size,
                               "--instance-batch-offset=%d" % i,
                               "--recommendation-name=%s-%s" % (args.recommendation_name, datestamp),
                               "--num-topics=%d" % args.num_topics])

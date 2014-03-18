@@ -177,8 +177,8 @@ class EC2Connection(object):
 # through an import of the module. The following 2 functions circumvent this
 # limitation as encountered in EC2Connection.add_instances_async. Solution
 # taken from http://stackoverflow.com/a/5443941
-def _spawn(conn, script, num_instances):
-    return conn.add_instances(num_instances, script)
+def _spawn(conn, num_instances, script):
+    return conn.add_instances(num_instances, user_data=script)
 
 
 def _spawn_star(args):

@@ -53,11 +53,11 @@ def main():
     r = conn.add_instances_async(get_user_data(args, datestamp))
     start = time.time()
     while True:
+        time.sleep(30)
         if r.ready():
             print "Ready after", time.time() - start, "seconds"
             break
         print "Been waiting for", time.time() - start, "seconds"
-        time.sleep(30)
     result = r.get()
     print result
     instance_ids = [r for li in result for r in li]

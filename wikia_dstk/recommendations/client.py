@@ -37,7 +37,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 """
     for i in range(0, args.num_instances):
         yield data % (args.git_ref, args.git_ref, args.s3file, args.metric, args.slice_size,
-                      args.instance_batch_size, args.recommendations_name, datestamp, args.num_topics)
+                      args.instance_batch_size, args.recommendation_name, datestamp, args.num_topics)
 
 
 def main():

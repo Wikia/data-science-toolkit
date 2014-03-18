@@ -144,8 +144,16 @@ class EC2Connection(object):
         """
         reservation = self.get_reservation(count, user_data=user_data)
         instance_ids = self.get_instance_ids_from_reservation(self.conn, reservation)
-        self.conn.create_tags(instance_ids, {'Name': self.tag})
+        self.tag_instances(instance_ids)
         return instance_ids
+
+    def tag_instances(self, instance_ids):
+        """
+        Tag instances with tag provided
+        :type instance_ids: list
+        :param instance_ids: a list of instance ids
+        """
+        self.conn.create_tags(instance_ids, {'Name': self.tag})
 
     def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2):
         """

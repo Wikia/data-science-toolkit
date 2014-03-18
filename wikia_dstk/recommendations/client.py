@@ -50,7 +50,7 @@ def main():
     conn = EC2Connection(options)
     datestamp = str(datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M'))
 
-    r = conn.add_instances_async(4, get_user_data(args, datestamp))
+    r = conn.add_instances_async(get_user_data(args, datestamp))
     start = time.time()
     while True:
         if r.ready():

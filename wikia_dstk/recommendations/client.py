@@ -58,6 +58,10 @@ def main():
             break
         print "Been waiting for", time.time() - start, "seconds"
         time.sleep(30)
+    result = r.get()
+    print result
+    instance_ids = [r for li in result for r in li]
+    print instance_ids
 
 
 

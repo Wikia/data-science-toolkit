@@ -61,7 +61,7 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
         scripts.append(user_data % k.key)
 
     # Launch instances
-    return conn.add_instances_async(num_instances, scripts)
+    return conn.add_instances_async(scripts)
 
 
 class EC2Connection(object):

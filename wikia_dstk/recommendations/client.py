@@ -28,16 +28,19 @@ git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
 touch /var/log/recommender
-python -u -m wikia_dstk.recommendations.server \
---s3file=%s --metric=%s --slice-size=%d \
---use-batches --instance-batch-size=%d --instance-batch-offset=%d
---recommendation-name=%s-%s --num-topics=%d
-> /var/log/recommender 2>&1 &
+python -u -m wikia_dstk.recommendations.server %s > /var/log/recommender 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 """
     for i in range(0, args.num_instances):
-        yield data % (args.git_ref, args.git_ref, args.s3file, args.metric, args.slice_size,
-                      args.instance_batch_size, i, args.recommendation_name, datestamp, args.num_topics)
+        argstring = " ".join(["--s3file=%s" % args.s3file,
+                              "--metric=%s" % args.metric,
+                              "--slice-size=%d" % args.splice_size,
+                              "--use-batches",
+                              "--instance-batch-size=%d" % args.batch_size,
+                              "--instance-batch-offset=%d" % i,
+                              "--recommendation-name=%s-%s" % (args.recommendation_name, datestamp),
+                              "--num-topics=%d" % args.num_topics])
+        yield data % (args.git_ref, args.git_ref, argstring)
 
 
 def main():
@@ -46,7 +49,8 @@ def main():
                    tag='recommender-%s' % args.recommendation_name)
     conn = EC2Connection(options)
     datestamp = str(datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M'))
-    r = conn.add_instances_async(8, get_user_data(args, datestamp))
+
+    r = conn.add_instances_async(4, get_user_data(args, datestamp))
     start = time.time()
     while True:
         if r.ready():

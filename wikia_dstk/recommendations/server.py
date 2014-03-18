@@ -76,7 +76,7 @@ def get_recommendations(args, docid_to_topics, callback=None):
                 paramlist.append((args.metric, docid, np.array([topics[global_cnt]]), these_rowids))
 
         resultiterator = p.imap_unordered(tup_dist, paramlist)
-        for j in len(paramlist):
+        for j in range(0, len(paramlist)):
             docid, result = resultiterator.next()
             print docid, time.time() - start, "secs"
             collated = sorted([(docids[rowid], result[0][k])

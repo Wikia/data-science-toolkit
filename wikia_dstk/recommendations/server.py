@@ -6,6 +6,7 @@ from multiprocessing import Pool
 from datetime import datetime
 from argparse import ArgumentParser, FileType
 from boto import connect_s3
+from ..lda import harakiri
 
 
 def get_args():
@@ -125,6 +126,7 @@ def main():
             docid_to_topics[docid][int(topic)] = float(val)
 
     to_csv(args, docid_to_topics)
+    harakiri()
 
 
 if __name__ == '__main__':

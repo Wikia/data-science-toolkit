@@ -34,7 +34,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
     for i in range(0, args.num_instances):
         argstring = " ".join(["--s3file=%s" % args.s3file,
                               "--metric=%s" % args.metric,
-                              "--slice-size=%d" % args.splice_size,
+                              "--slice-size=%d" % args.slice_size,
                               "--use-batches",
                               "--instance-batch-size=%d" % args.batch_size,
                               "--instance-batch-offset=%d" % i,

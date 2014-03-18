@@ -30,6 +30,7 @@ def tup_dist(tup):
 
 
 def get_recommendations(args, docid_to_topics, callback=None):
+    print "Indexing data..."
     docids, topics = zip(*docid_to_topics.items())
     values = np.array(topics)
     nonzeroes = np.nonzero(values)
@@ -80,7 +81,7 @@ def get_recommendations(args, docid_to_topics, callback=None):
             docid, result = resultiterator.next()
             print docid, time.time() - start, "secs"
             collated = sorted([(docids[rowid], result[0][k])
-                               for k, rowid in enumerate(docid_to_shared_rowids[j])], key=lambda y: y[1])[:25]
+                               for k, rowid in enumerate(docid_to_shared_rowids[docid])], key=lambda y: y[1])[:25]
             recommended_ids = map(lambda z: z[0], collated)
             if callback:
                 apply(callback, (docid, recommended_ids))

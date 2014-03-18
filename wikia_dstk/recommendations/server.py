@@ -2,7 +2,7 @@ import numpy as np
 import time
 from collections import defaultdict
 from scipy.spatial.distance import cdist
-from multiprocessing import Pool
+from multiprocessing import Pool, TimeoutError
 from datetime import datetime
 from argparse import ArgumentParser, FileType
 from boto import connect_s3
@@ -54,6 +54,8 @@ def get_recommendations(args, docid_to_topics, callback=None):
         docids_enumerated = docids_enumerated[start:start+args.instance_batch_size]
 
     docids_to_recommendations = {}
+    orphaned_docid_to_rowids = {}
+    orphaned_resultiterators = []
 
     for i in range(0, len(docids_enumerated), slice_size):
         print i,
@@ -78,10 +80,22 @@ def get_recommendations(args, docid_to_topics, callback=None):
 
         resultiterator = p.imap_unordered(tup_dist, paramlist)
         for j in range(0, len(paramlist)):
-            docid, result = resultiterator.next()
-            print docid, time.time() - start, "secs"
+            if j % args.slice_size/10 == 0:
+                print j
+            if j % 8 == 0:
+                every_8 = time.time()
+                if j >= 8:
+                    print time.time() - every_8, "seconds for 8"
+            try:
+                docid, result = resultiterator.next(60)
+            except TimeoutError:
+                print "Giving up on", len(docid_to_shared_rowids), "docs"
+                orphaned_resultiterators.append(resultiterator)
+                orphaned_docid_to_rowids.update(docid_to_shared_rowids)
+                break  # waited an entire minute, screw it
             collated = sorted([(docids[rowid], result[0][k])
                                for k, rowid in enumerate(docid_to_shared_rowids[docid])], key=lambda y: y[1])[:25]
+            del docid_to_shared_rowids[docid]  # we can reuse it to find out what's left
             recommended_ids = map(lambda z: z[0], collated)
             if callback:
                 apply(callback, (docid, recommended_ids))
@@ -90,6 +104,8 @@ def get_recommendations(args, docid_to_topics, callback=None):
 
         mins = (time.time() - start)/60.0
         print "took", mins, "mins for", slice_size
+
+    print len(orphaned_docid_to_rowids), "results LEFT BEHIND"
 
     return docids_to_recommendations
 

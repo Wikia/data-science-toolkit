@@ -7,6 +7,30 @@ from time import sleep
 from uuid import uuid4
 
 
+def get_instance_ids_from_reservation(conn, reservation):
+    """
+
+    Get instance IDs from a reservation
+
+    :type conn: class:`boto.ec2.ec2connection`
+    :paramm conn: an EC2 connection
+
+    :type reservation: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
+    :param reservation: a spot instance request reservation
+
+    :return: a list of EC2 instance IDs
+    """
+
+    # Get instance IDs for the reservation
+    r_ids = [request.id for request in reservation]
+    while True:  # Because the requests are fulfilled independently
+        sleep(15)
+        requests = conn.get_all_spot_instance_requests(request_ids=r_ids)
+        instance_ids = [request.instance_id for request in requests if request.instance_id]
+        if len(instance_ids) == len(r_ids):
+            return instance_ids
+
+
 def run_instances_lb(ids, callback, num_instances, user_data, options=None,
                      ami="ami-dc0c63ec"):
     """
@@ -88,6 +112,23 @@ class EC2Connection(object):
         self.max_size = options.get('max_size', 5)
         self.conn = connect_to_region(self.region)
 
+    def get_reservation(self, count, user_data=None):
+        """
+        Request a reservation from
+
+        :type count: int
+        :param count: The number of instances to add
+
+        :type user_data: string
+        :param user_data: A script to pass to the launched instance
+
+        :rtype: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
+        :return: A spot instance request
+        """
+        return self.conn.request_spot_instances(price=self.price, image_id=self.ami, count=count,
+                                                key_name=self.key, security_groups=self.sec, user_data=user_data,
+                                                instance_type=self.type)
+
     def add_instances(self, count, user_data=None):
         """
         Add a specified number of instances with the same launch specification.
@@ -101,27 +142,12 @@ class EC2Connection(object):
         :rtype: list
         :return: A list of IDs corresponding to the instances launched
         """
-        # Request spot instances
-        reservation = self.conn.request_spot_instances(price=self.price, image_id=self.ami, count=count,
-                                                       key_name=self.key, security_groups=self.sec, user_data=user_data,
-                                                       instance_type=self.type)
-
-        # Get instance IDs for the reservation
-        r_ids = [request.id for request in reservation]
-        instance_ids = []
-        while True:  # Because the requests are fulfilled independently
-            sleep(15)
-            requests = self.conn.get_all_spot_instance_requests(request_ids=r_ids)
-            instance_ids = [request.instance_id for request in requests if request.instance_id]
-            if len(instance_ids) == len(r_ids):
-                break
-
-        # Tag instances after they have launched
+        reservation = self.get_reservation(count, user_data=user_data)
+        instance_ids = self.get_instance_ids_from_reservation(self.conn, reservation)
         self.conn.create_tags(instance_ids, {'Name': self.tag})
-
         return instance_ids
 
-    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=1):
+    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2):
         """
         Add a specified number of instances asynchronously, each with unique
         user_data.
@@ -140,9 +166,10 @@ class EC2Connection(object):
         :rtype:
         :return:`multiprocessing.pool.AsyncResult`
         """
-        iterable = [(self, num_instances, script) for script in user_data_scripts]
-        mapped = Pool(processes=processes).map_async(_spawn_star, iterable)
-        return mapped
+        reservations = [self.get_reservation(num_instances, script) for script in user_data_scripts]
+        paramsets = [(self.conn, reservation) for reservation in reservations]
+        async_result = Pool(processes=processes).map_async(get_ids_from_reso_tuple, paramsets)
+        return async_result
 
     def terminate(self, instance_ids):
         """
@@ -173,13 +200,10 @@ class EC2Connection(object):
                 reservation.instances if instance.state_code < 32]
 
 
-# The function passed to multiprocessing.Pool.map(_async) must be accessible
-# through an import of the module. The following 2 functions circumvent this
-# limitation as encountered in EC2Connection.add_instances_async. Solution
-# taken from http://stackoverflow.com/a/5443941
-def _spawn(conn, num_instances, script):
-    return conn.add_instances(num_instances, user_data=script)
+def get_ids_from_reso_tuple(args):
+    """
+    Here's a simpler approach than the S.O. one that decouples unnecessary state
+    It's an example of why FP > OOP for concurrent programming in Python
+    """
+    return get_instance_ids_from_reservation(*args)
 
-
-def _spawn_star(args):
-    return _spawn(*args)

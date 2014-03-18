@@ -60,10 +60,12 @@ def get_recommendations(args, docid_to_topics, callback=None):
 
         curr_docids = docids_enumerated[i:i+slice_size]
         shared_topic_rowids = []
+        docid_to_shared_rowids = {}
         for _, did in curr_docids:
             curr_tops = ids_to_topics[did].keys()
-            shared_topic_rowids.append(list(set([row_id for topic in curr_tops
-                                                 for row_id in topics_to_positions[topic].keys()])))
+            unique_ids = list(set([row_id for topic in curr_tops for row_id in topics_to_positions[topic].keys()]))
+            docid_to_shared_rowids[did] = unique_ids
+            shared_topic_rowids.append(unique_ids)
 
         print "Computing for", slice_size
         paramlist = []
@@ -73,12 +75,13 @@ def get_recommendations(args, docid_to_topics, callback=None):
                 these_rowids = [values[x] for x in shared_topic_rowids[local_cnt]]
                 paramlist.append((args.metric, docid, np.array([topics[global_cnt]]), these_rowids))
 
-        results = p.map(tup_dist, paramlist)
-        for j, r in enumerate(results):
-            docid, result = r
+        resultiterator = p.imap_unordered(tup_dist, paramlist)
+        for j in len(paramlist):
+            docid, result = resultiterator.next()
+            print docid, time.time() - start, "secs"
             collated = sorted([(docids[rowid], result[0][k])
-                               for k, rowid in enumerate(shared_topic_rowids[j])], key=lambda x: x[1])[:25]
-            recommended_ids = map(lambda x: x[0], collated)
+                               for k, rowid in enumerate(docid_to_shared_rowids[j])], key=lambda y: y[1])[:25]
+            recommended_ids = map(lambda z: z[0], collated)
             if callback:
                 apply(callback, (docid, recommended_ids))
             else:

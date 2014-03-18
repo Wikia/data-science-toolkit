@@ -66,7 +66,7 @@ def get_recommendations(args, docid_to_topics, callback=None):
 
         print "Computing for", slice_size
         paramlist = []
-        for local_cnt, tup in enumerate(docids_enumeratred[i:i+slice_size]):
+        for local_cnt, tup in enumerate(docids_enumerated[i:i+slice_size]):
             if shared_topic_rowids[local_cnt]:
                 global_cnt, docid = tup
                 these_rowids = [values[x] for x in shared_topic_rowids[local_cnt]]

@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, FileType
 from datetime import datetime
 from ..loadbalancing import EC2Connection
+import time
 
 
 def get_args():
@@ -45,8 +46,15 @@ def main():
                    tag='recommender-%s' % args.recommendation_name)
     conn = EC2Connection(options)
     datestamp = str(datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M'))
-    conn.add_instances_async(8, get_user_data(args, datestamp))
-    pass
+    r = conn.add_instances_async(8, get_user_data(args, datestamp))
+    start = time.time()
+    while True:
+        if r.ready():
+            print "Ready after", time.time() - start, "seconds"
+            break
+        print "Been waiting for", time.time() - start, "seconds"
+        time.sleep(30)
+
 
 
 if __name__ == '__main__':

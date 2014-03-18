@@ -1,6 +1,7 @@
 from boto.ec2 import connect_to_region
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
+from boto.exception import EC2ResponseError
 from collections import defaultdict
 from multiprocessing import Pool
 from time import sleep
@@ -155,7 +156,7 @@ class EC2Connection(object):
         """
         self.conn.create_tags(instance_ids, {'Name': self.tag})
 
-    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2):
+    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2, wait=True):
         """
         Add a specified number of instances asynchronously, each with unique
         user_data.
@@ -164,17 +165,31 @@ class EC2Connection(object):
         :param user_data_scripts: strings representing the scripts to
                                   run on the individual instances
 
-
         :type num_instances: int
         :param num_instances: The number of instances to spawn PER USER DATA SCRIPT
 
         :type processes: int
         :param processes: The number of processes to use
 
+        :type wait: bool
+        :param wait: whether to wait to complete in the event of an error
+
         :rtype:
         :return:`multiprocessing.pool.AsyncResult`
         """
-        reservations = [self.get_reservation(num_instances, script) for script in user_data_scripts]
+        reservations = []
+        for script in user_data_scripts:
+            while True:
+                try:
+                    reservations.append(self.get_reservation(num_instances, script))
+                    break
+                except EC2ResponseError as e:
+                    if wait:
+                        print "Sleeping for a minute:", e
+                        sleep(60)
+                    else:
+                        raise e
+
         paramsets = [(self.conn, reservation) for reservation in reservations]
         async_result = Pool(processes=processes).map_async(get_ids_from_reso_tuple, paramsets)
         return async_result

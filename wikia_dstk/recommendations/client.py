@@ -9,7 +9,7 @@ def get_args():
     ap.add_argument('--infile', dest="infile", type=FileType('r'))
     ap.add_argument('--s3file', dest='s3file')
     ap.add_argument('--metric', dest="metric", default="cosine")
-    ap.add_argument('--slice-size', dest='slice_size', default=500, type=int)
+    ap.add_argument('--slice-size', dest='slice_size', default=100, type=int)
     ap.add_argument('--num-instances', dest='num_instances', type=int, default=10)
     ap.add_argument('--instance-batch-size', dest='instance_batch_size', type=int, default=20000)
     ap.add_argument('--recommendation-name', dest='recommendation_name', default='video')

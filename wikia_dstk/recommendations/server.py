@@ -14,7 +14,7 @@ def get_args():
     ap.add_argument('--infile', dest="infile", type=FileType('r'))
     ap.add_argument('--s3file', dest='s3file')
     ap.add_argument('--metric', dest="metric", default="cosine")
-    ap.add_argument('--slice-size', dest='slice_size', default=500, type=int)
+    ap.add_argument('--slice-size', dest='slice_size', default=100, type=int)
     ap.add_argument('--use-batches', dest='use_batches', action='store_true', default=False)
     ap.add_argument('--instance-batch-size', dest='instance_batch_size', type=int, default=50000)
     ap.add_argument('--instance-batch-offset', dest='instance_batch_offset', type=int, default=0)
@@ -80,12 +80,12 @@ def get_recommendations(args, docid_to_topics, callback=None):
 
         resultiterator = p.imap_unordered(tup_dist, paramlist)
         for j in range(0, len(paramlist)):
-            if j % args.slice_size/10 == 0:
-                print j
+            if j % (args.slice_size/10) == 0:
+                print j, '/ 10'
             if j % 8 == 0:
-                every_8 = time.time()
                 if j >= 8:
-                    print time.time() - every_8, "seconds for 8"
+                    print (time.time() - every_8)/8, "recommendations / sec"
+                every_8 = time.time()
             try:
                 docid, result = resultiterator.next(60)
             except TimeoutError:

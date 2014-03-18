@@ -2,13 +2,12 @@ from boto.ec2 import connect_to_region
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 from collections import defaultdict
-from itertools import chain
 from multiprocessing import Pool
 from time import sleep
 from uuid import uuid4
 
 
-def run_instances_lb(ids, callable, num_instances, user_data, options=None,
+def run_instances_lb(ids, callback, num_instances, user_data, options=None,
                      ami="ami-dc0c63ec"):
     """
     Run a set of instances that evenly distributes the workload between target
@@ -17,8 +16,8 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None,
     :type ids: list
     :param ids: A list of IDs against which to run this process
 
-    :type callable: function
-    :param callable: A function that, given an ID, returns a value that should
+    :type callback: function
+    :param callback: A function that, given an ID, returns a value that should
                      be load-balanced
 
     :type num_instances: int
@@ -46,7 +45,7 @@ def run_instances_lb(ids, callable, num_instances, user_data, options=None,
 
     # TODO: Explore diff methods of combinatorial optimization to improve this
     # Split IDs into buckets of approx equal total 'callable' value
-    ids = sorted(ids, key=lambda x: callable(x), reverse=True)  # Sort desc
+    ids = sorted(ids, key=callback, reverse=True)  # Sort desc
     parts = defaultdict(list)  # {instance #: list of IDs to pass to instance}
     for i in range(0, len(ids), num_instances):
         for n, id_ in enumerate(ids[i:i+num_instances]):
@@ -110,6 +109,7 @@ class EC2Connection(object):
 
         # Get instance IDs for the reservation
         r_ids = [request.id for request in reservation]
+        instance_ids = []
         while True:  # Because the requests are fulfilled independently
             sleep(5)
             requests = self.conn.get_all_spot_instance_requests(
@@ -120,7 +120,7 @@ class EC2Connection(object):
                 if instance_id is None:
                     break
                 instance_ids.append(instance_id)
-            if len(instance_ids) < len(reservation):
+            if len(instance_ids) < len(r_ids):
                 print 'Waiting for %d instances to launch' % len(reservation)
                 continue
             break
@@ -139,20 +139,16 @@ class EC2Connection(object):
         :type count: int
         :param count: The number of instances to add
 
-        :type user_data_scripts: list
-        :param user_data_scripts: A list of strings representing the scripts to
+        :type user_data_scripts: iterable
+        :param user_data_scripts: strings representing the scripts to
                                   run on the individual instances
 
-        :rtype: list
-        :return: A list of IDs corresponding to the instances launched
+        :rtype:
+        :return:`multiprocessing.pool.AsyncResult`
         """
         iterable = [(self, script) for script in user_data_scripts]
         mapped = Pool(processes=count).map_async(_spawn_star, iterable)
-        print 'Waiting for all instances to launch...'
-        mapped.wait()
-
-        # Flatten list
-        return list(chain.from_iterable(mapped.get()))
+        return mapped
 
     def terminate(self, instance_ids):
         """

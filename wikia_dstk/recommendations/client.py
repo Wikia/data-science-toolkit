@@ -60,7 +60,7 @@ def main():
         print "Been waiting for", time.time() - start, "seconds"
     result = r.get()
     print result
-    instance_ids = [r for li in result for q in li for r in q]
+    instance_ids = [r for li in result for r in li]
     conn.tag_instances(instance_ids)
     print instance_ids
 

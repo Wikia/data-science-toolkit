@@ -49,7 +49,7 @@ def main():
         print fl.name
         batch = []
         for line in fl:
-            split = line.split(',')
+            split = line.strip().split(',')
             batch.append({'id': split[0], args.recommendations_field: {'set': split[1:]}})
             if len(batch) == args.batch_size:
                 send_solr_update(args, batch)

@@ -1,11 +1,15 @@
 import random
 import time
-import logging
 from ..lda import harakiri
 from . import get_argparser
 from boto import connect_s3
 from math import floor
 from ..loadbalancing import EC2Connection
+
+
+def log(string):
+    # todo: real logging
+    print string
 
 
 def get_args():
@@ -46,8 +50,6 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 
 def main():
     args, _ = get_args()
-    logging.basicConfig(format='%(asctime)s:%(message)s', level=logging.INFO)
-    logger = logging.getLogger('wikia_dstk.authority')
 
     bucket = connect_s3().get_bucket('nlp-data')
     key = bucket.get_key(args.s3path)
@@ -59,13 +61,13 @@ def main():
         key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
         authority_keys.append(key.name)
 
-    logger.info("Spinning up", len(authority_keys), "authority instances")
+    log("Spinning up", len(authority_keys), "authority instances")
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
     authority_connection = EC2Connection(authority_params)
     user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
     r = authority_connection.add_instances_async(user_data_scripts, wait=False)
     authority_instance_ids = [i for j in r.get() for i in j]
-    logger.info("Instance IDs are %s" % ','.join(authority_instance_ids))
+    log("Instance IDs are %s" % ','.join(authority_instance_ids))
 
     dstk_params = dict(price='0.8', ami=args.dstk_ami, tag="Authority Data Extraction")
     dstk_connection = EC2Connection(dstk_params)
@@ -73,16 +75,16 @@ def main():
 
     while True:
         num_authority_instances = len(authority_connection.get_tagged_instances())
-        logger.info("%d authority instances running..." % num_authority_instances)
+        log("%d authority instances running..." % num_authority_instances)
         event_keys = bucket.get_all_keys(prefix='authority_extraction_events/')
         if len(event_keys) > 0:
             dstk_tagged = dstk_connection.get_tagged_instances()
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)
             if dstk_nodes_needed > 0:
-                logger.info("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)
+                log("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)
                 dstk_connection.add_instances(dstk_nodes_needed, dstk_user_data(args))
         elif num_authority_instances == 0:
-            logger.info("Empty queue and no authority instances, shutting down.")
+            log("Empty queue and no authority instances, shutting down.")
             harakiri()
 
         time.sleep(120)

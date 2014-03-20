@@ -62,7 +62,8 @@ def main():
     logger.info("Spinning up", len(authority_keys), "authority instances")
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
     authority_connection = EC2Connection(authority_params)
-    r = authority_connection.add_instances_async(map(lambda x: authority_user_data(args, x), authority_keys), wait=False)
+    user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
+    r = authority_connection.add_instances_async(user_data_scripts, wait=False)
     authority_instance_ids = [i for j in r.get() for i in j]
     logger.info("Instance IDs are %s" % ','.join(authority_instance_ids))
 

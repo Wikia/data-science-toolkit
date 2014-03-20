@@ -60,13 +60,13 @@ def main():
 
     logger.info("Spinning up", len(authority_keys), "authority instances")
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
-    authority_connection = EC2Connection(params=authority_params)
+    authority_connection = EC2Connection(authority_params)
     r = authority_connection.add_instance_async(map(lambda x: authority_user_data(args, x), authority_keys), wait=False)
     authority_instance_ids = [i for j in r.get() for i in j]
     logger.info("Instance IDs are %d" % ','.join(authority_instance_ids))
 
     dstk_params = dict(price='0.8', ami=args.dstk_ami, tag="Authority Data Extraction")
-    dstk_connection = EC2Connection(params=dstk_params)
+    dstk_connection = EC2Connection(dstk_params)
     bucket = connect_s3().get_bucket('nlp-data')
 
     while True:

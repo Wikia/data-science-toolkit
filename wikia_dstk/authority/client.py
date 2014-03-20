@@ -52,24 +52,26 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 def main():
     args, _ = get_args()
 
-    bucket = connect_s3().get_bucket('nlp-data')
-    key = bucket.get_key(args.s3path)
-    lines = key.get_contents_as_string().split("\n")
-    authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
-    authority_keys = []
-    for i in range(0, len(lines), authority_slice_size):
-        key = bucket.new_key('authority_events/%d' % random.randint(0, 100000000))
-        key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
-        authority_keys.append(key.name)
-
-    log("Spinning up %d authority instances" % len(authority_keys))
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
     authority_connection = EC2Connection(authority_params)
-    user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
-    r = authority_connection.add_instances_async(user_data_scripts, wait=True)
-    authority_instance_ids = [i for j in r.get() for i in j]
-    authority_connection.tag_instances(authority_instance_ids)
-    log("Instance IDs are %s" % ','.join(authority_instance_ids))
+
+    bucket = connect_s3().get_bucket('nlp-data')
+    if args.num_authority_nodes > 0:
+        key = bucket.get_key(args.s3path)
+        lines = key.get_contents_as_string().split("\n")
+        authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
+        authority_keys = []
+        for i in range(0, len(lines), authority_slice_size):
+            key = bucket.new_key('authority_events/%d' % random.randint(0, 100000000))
+            key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
+            authority_keys.append(key.name)
+
+        log("Spinning up %d authority instances" % len(authority_keys))
+        user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
+        r = authority_connection.add_instances_async(user_data_scripts, wait=True)
+        authority_instance_ids = [i for j in r.get() for i in j]
+        authority_connection.tag_instances(authority_instance_ids)
+        log("Instance IDs are %s" % ','.join(authority_instance_ids))
 
     dstk_params = dict(price='0.8', ami=args.dstk_ami, tag="Authority Data Extraction")
     dstk_connection = EC2Connection(dstk_params)
@@ -84,7 +86,7 @@ def main():
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)
             if dstk_nodes_needed > 0:
                 log("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)
-                dstk_connection.add_instances(dstk_nodes_needed, dstk_user_data(args))
+                dstk_connection.add_instances_async(dstk_nodes_needed, dstk_user_data(args), wait=True).get()
         elif num_authority_instances == 0:
             log("Empty queue and no authority instances, shutting down.")
             break

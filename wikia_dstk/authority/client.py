@@ -64,7 +64,7 @@ def main():
     authority_connection = EC2Connection(authority_params)
     r = authority_connection.add_instances_async(map(lambda x: authority_user_data(args, x), authority_keys), wait=False)
     authority_instance_ids = [i for j in r.get() for i in j]
-    logger.info("Instance IDs are %d" % ','.join(authority_instance_ids))
+    logger.info("Instance IDs are %s" % ','.join(authority_instance_ids))
 
     dstk_params = dict(price='0.8', ami=args.dstk_ami, tag="Authority Data Extraction")
     dstk_connection = EC2Connection(dstk_params)

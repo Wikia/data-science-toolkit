@@ -30,6 +30,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 def dstk_user_data(args):
     services = ['WikiAuthorsToIdsService', 'WikiAuthorsToPagesService', 'WikiTopicAuthorityService',
                 'WikiAuthorTopicAuthorityService', 'WikiTopicsToAuthorityService']
+    argstring = "--queue=authority_extraction_events --services=%s" % ",".join(services)
     return """#!/bin/bash
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 cd /home/ubuntu/data-science-toolkit
@@ -38,9 +39,9 @@ git fetch origin
 git checkout %s
 git pull origin %s && python setup.py install
 touch /var/log/extraction
-python -u -m wikia_dstk.pipeline.data_extraction.run --queue=authority_events --services=%s > /var/log/authority 2>&1 &
+python -u -m wikia_dstk.pipeline.data_extraction.run %s > /var/log/extraction 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
-""" % (args.dstk_git_ref, args.dstk_git_ref, ",".join(services))
+""" % (args.dstk_git_ref, args.dstk_git_ref, argstring)
 
 
 def main():
@@ -71,7 +72,7 @@ def main():
     while True:
         num_authority_instances = len(authority_connection.get_tagged_instances())
         logger.info("%d authority instances running..." % num_authority_instances)
-        event_keys = bucket.get_all_keys(prefix='authority_events/')
+        event_keys = bucket.get_all_keys(prefix='authority_extraction_events/')
         if len(event_keys) > 0:
             dstk_tagged = dstk_connection.get_tagged_instances()
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)

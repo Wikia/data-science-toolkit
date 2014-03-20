@@ -10,8 +10,8 @@ def get_argparser():
                     help="Number of authority nodes to spin off")
     ap.add_argument('--num-data-extraction-nodes', dest='num_data_extraction_nodes', type=int, default=2,
                     help="Number of data extraction nodes to spin off")
-    ap.add_argument('--authority-ami', dest='ami', default="ami-24731a14", help='AMI for authority node')
-    ap.add_argument('--dstk-ami', dest='ami', default="ami-000f6d30", help='AMI for dstk node')
+    ap.add_argument('--authority-ami', dest='authority_ami', default="ami-24731a14", help='AMI for authority node')
+    ap.add_argument('--dstk-ami', dest='dstk_ami', default="ami-000f6d30", help='AMI for dstk node')
     ap.add_argument('--dstk-git-ref', dest='dstk_git_ref', default='master',
                     help="Git ref to have checked out for dstk")
     ap.add_argument('--authority-git-ref', dest='authority_git_ref', default='master',

@@ -52,7 +52,6 @@ def main():
     key = bucket.get_key(args.s3path)
     lines = key.get_contents_as_string().split("\n")
     authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
-    print authority_slice_size
     authority_keys = []
     for i in range(0, len(lines), authority_slice_size):
         key = bucket.new_key('authority_events/%d' % random.randint(0, 100000000))

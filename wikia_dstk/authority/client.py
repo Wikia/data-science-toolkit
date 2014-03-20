@@ -18,6 +18,7 @@ def get_args():
 
 
 def authority_user_data(args, s3_batch):
+    ow = '--overwrite' if args.overwrite else ''
     return """#!/bin/bash
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 cd /home/ubuntu/WikiaAuthority
@@ -26,9 +27,9 @@ git fetch origin
 git checkout %s
 git pull origin %s
 touch /var/log/authority
-python -u etl_scaled.py --s3file=%s --overwrite=%s --die-on-complete > /var/log/authority 2>&1 &
+python -u etl_scaled.py --emit-events --s3file=%s %s --die-on-complete > /var/log/authority 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
-""" % (args.authority_git_ref, args.authority_git_ref, s3_batch, args.overwrite)
+""" % (args.authority_git_ref, args.authority_git_ref, s3_batch, ow)
 
 
 def dstk_user_data(args):

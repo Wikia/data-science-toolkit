@@ -54,7 +54,7 @@ def main():
     authority_slice_size = floor(len(lines)/args.num_authority_nodes)
     authority_keys = []
     for i in range(0, len(lines), int(floor(authority_slice_size))):
-        key = bucket.new_key('authority_events/'+random.randint(0, 100000000))
+        key = bucket.new_key('authority_events/%d' % random.randint(0, 100000000))
         key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
         authority_keys.append(key.name)
 

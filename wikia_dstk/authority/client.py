@@ -66,8 +66,7 @@ def main():
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
     authority_connection = EC2Connection(authority_params)
     user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
-    print user_data_scripts
-    r = authority_connection.add_instances_async(user_data_scripts, wait=False)
+    r = authority_connection.add_instances_async(user_data_scripts, wait=True)
     authority_instance_ids = [i for j in r.get() for i in j]
     authority_connection.tag_instances(authority_instance_ids)
     log("Instance IDs are %s" % ','.join(authority_instance_ids))

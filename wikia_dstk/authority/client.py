@@ -86,7 +86,8 @@ def main():
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)
             if dstk_nodes_needed > 0:
                 log("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)
-                dstk_connection.add_instances_async(dstk_nodes_needed, dstk_user_data(args), wait=True).get()
+                dstk_connection.add_instances_async(dstk_nodes_needed,
+                                                    [dstk_user_data(args)] * dstk_nodes_needed, wait=True).get()
         elif num_authority_instances == 0:
             log("Empty queue and no authority instances, shutting down.")
             break

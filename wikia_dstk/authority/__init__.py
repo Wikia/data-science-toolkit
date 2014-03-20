@@ -4,7 +4,8 @@ from argparse import ArgumentParser, FileType
 def get_argparser():
     ap = ArgumentParser()
     ap.add_argument('--infile', dest='infile', type=FileType('r'), help="A newline-separated file of wiki IDs")
-    ap.add_argument('--s3path', dest='s3path', help="The path of an existing list of wiki IDs on s3")
+    ap.add_argument('--s3path', dest='s3path', default='datafiles/topwams.txt',
+                    help="The path of an existing list of wiki IDs on s3")
     ap.add_argument('--num-authority-nodes', dest='num_authority_nodes', type=int, default=8,
                     help="Number of authority nodes to spin off")
     ap.add_argument('--num-data-extraction-nodes', dest='num_data_extraction_nodes', type=int, default=2,

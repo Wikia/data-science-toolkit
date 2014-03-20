@@ -1,7 +1,7 @@
 import random
 import time
+import logging
 from ..lda import harakiri
-from logging import getLogger
 from . import get_argparser
 from boto import connect_s3
 from math import floor
@@ -46,7 +46,8 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 
 def main():
     args, _ = get_args()
-    logger = getLogger('wikia_dstk.authority')
+    logging.basicConfig(format='%(asctime)s:%(message)s', level=logging.INFO)
+    logger = logging.getLogger('wikia_dstk.authority')
 
     bucket = connect_s3().get_bucket('nlp-data')
     key = bucket.get_key(args.s3path)

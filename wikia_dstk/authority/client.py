@@ -67,6 +67,7 @@ def main():
     user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
     r = authority_connection.add_instances_async(user_data_scripts, wait=False)
     authority_instance_ids = [i for j in r.get() for i in j]
+    authority_connection.tag_instances(authority_instance_ids)
     log("Instance IDs are %s" % ','.join(authority_instance_ids))
 
     dstk_params = dict(price='0.8', ami=args.dstk_ami, tag="Authority Data Extraction")
@@ -85,7 +86,7 @@ def main():
                 dstk_connection.add_instances(dstk_nodes_needed, dstk_user_data(args))
         elif num_authority_instances == 0:
             log("Empty queue and no authority instances, shutting down.")
-            harakiri()
+            break
 
         time.sleep(120)
 

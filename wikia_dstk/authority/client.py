@@ -61,7 +61,7 @@ def main():
         key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
         authority_keys.append(key.name)
 
-    log("Spinning up", len(authority_keys), "authority instances")
+    log("Spinning up %d authority instances" % len(authority_keys))
     authority_params = dict(price='0.8', ami=args.authority_ami, tag="Authority Worker")
     authority_connection = EC2Connection(authority_params)
     user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)

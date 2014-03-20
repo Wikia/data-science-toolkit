@@ -51,9 +51,10 @@ def main():
     bucket = connect_s3().get_bucket('nlp-data')
     key = bucket.get_key(args.s3path)
     lines = key.get_contents_as_string().split("\n")
-    authority_slice_size = floor(len(lines)/args.num_authority_nodes)
+    authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
+    print authority_slice_size
     authority_keys = []
-    for i in range(0, len(lines), int(floor(authority_slice_size))):
+    for i in range(0, len(lines), authority_slice_size):
         key = bucket.new_key('authority_events/%d' % random.randint(0, 100000000))
         key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
         authority_keys.append(key.name)

@@ -26,8 +26,8 @@ echo `date` `hostname -i ` "Updating WikiaAuthority" >> /var/log/my_startup.log
 git fetch origin
 git checkout %s
 git pull origin %s
-touch /var/log/authority
-python -u etl_scaled.py --emit-events --s3file=%s %s --die-on-complete > /var/log/authority 2>&1 &
+touch /var/log/authority.log
+python -u etl_scaled.py --emit-events --s3file=%s %s --die-on-complete > /var/log/authority.log 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 """ % (args.authority_git_ref, args.authority_git_ref, s3_batch, ow)
 

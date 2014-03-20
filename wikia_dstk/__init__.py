@@ -1,4 +1,5 @@
 import os
+from argparse import ArgumentParser
 
 
 def chrono_sort(directory):
@@ -33,3 +34,26 @@ def ensure_dir_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
     return directory
+
+
+def get_argparser_from_config(default_config):
+    """
+    Allows us to manipulate these values from the command line.
+    AP instance returned so we can manipulate it in the client scripts.
+    """
+    ap = ArgumentParser()
+    for key in default_config:
+        ap.add_argument('--%s' % key, type=type(default_config[key]), dest=key.replace('-', '_'))
+    ap.set_defaults(default_config)
+    return ap
+
+
+def argstring_from_namespace(namespace, unknowns=[]):
+    """
+    Let's us pass args to child processes from already-parsed args.
+    """
+    argdict = vars(namespace)
+    arglist = []
+    for key in argdict:
+        arglist.append("--%s=%s" % (key.replace('_', '-'), str(argdict[key])))
+    return " ".join(arglist + unknowns)

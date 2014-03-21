@@ -41,7 +41,7 @@ def handle_doc(tup):
     for line in doc[u'infoboxes_txt']:
         splt = line.split(u'|')
         if len(splt) > 2:
-            key = splt[1].lower().strip(u':')
+            key = splt[1].lower().replace(u':', '').strip()
             value = u'|'.join(splt[2:]).lower()
             props = [node for node in name_index['name'][value]]
             if not props:

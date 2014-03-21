@@ -32,7 +32,7 @@ def iterate_wids_from_args(args):
             try:
                 new_key = tmp_folder+key.name
                 key.copy('nlp-data', new_key)
-                key.delete()
+                #key.delete()
                 new_key_contents = [wid.strip() for wid in bucket.get_key(new_key).get_contents_as_string().split(',')]
                 bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
                 yield new_key_contents
@@ -54,10 +54,13 @@ def main():
                 if wids:
                     wid = wids.pop()
                     print 'Launching child to process %s' % wid
+                    cmdstring = ('/usr/bin/python -m ' +
+                                 'wikia_dstk.pipeline.wiki_data_extraction.child ' +
+                                 '--wiki-id=%s %s' % (str(wid), argstring_from_namespace(args, extras)))
+                    print cmdstring
+                    sys.exit()
                     processes.append(
-                        Popen('/usr/bin/python -m ' +
-                              'wikia_dstk.pipeline.wiki_data_extraction.child ' +
-                              '--wiki-id=%s %s' % (str(wid), argstring_from_namespace(args, extras)),
+                        Popen(cmdstring,
                               shell=True))
                 else:
                     print 'No more wiki IDs to iterate over'

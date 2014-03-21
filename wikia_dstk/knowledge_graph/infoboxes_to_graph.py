@@ -20,7 +20,8 @@ def escape_key(string):
     return escape_value(string.replace(u" ", u"_"))
 
 
-def handle_doc(args, doc):
+def handle_doc(tup):
+    args, doc = tup
     db = GraphDatabase(args.graph_db)
     name = doc[u'title_en'].replace(u'"', u'')
     print name.encode(u'utf8')

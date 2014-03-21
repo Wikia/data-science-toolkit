@@ -35,7 +35,7 @@ def main():
             while len(processes) < args.workers:
                 processes.append(
                     Popen(
-                        '/home/ubuntu/venv/bin/python -m ' +
+                        '/usr/bin/python -m ' +
                         'wikia_dstk.pipeline.data_extraction.child ' +
                         '%s --key=%s' % (argstring_from_namespace(args, extras), keys.pop()),
                         shell=True))

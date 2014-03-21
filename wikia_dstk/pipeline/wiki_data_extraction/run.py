@@ -38,8 +38,7 @@ def iterate_wids_from_args(args):
                                         bucket.get_key(new_key).get_contents_as_string().split("\n") if wid]
                     bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
                     yield new_key_contents
-                except Exception as e:
-                    print e
+                except:
                     continue
             raise StopIteration()
         else:
@@ -54,16 +53,12 @@ def main():
         print "Working on %d wids" % len(wids)
         while len(wids) > 0:
             while len(processes) < 8:
-                print wids
                 if wids:
                     wid = wids.pop()
-                    print wid
                     print 'Launching child to process %s' % wid
                     cmdstring = (('/usr/bin/python -m ' +
                                  'wikia_dstk.pipeline.wiki_data_extraction.child ' +
                                  '--wiki-id=%s %s') % (str(wid), argstring_from_namespace(args, extras)))
-                    print cmdstring
-                    sys.exit()
                     processes.append(
                         Popen(cmdstring,
                               shell=True))

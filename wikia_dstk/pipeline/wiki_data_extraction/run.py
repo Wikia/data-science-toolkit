@@ -12,7 +12,7 @@ from config import config
 
 def get_args():
     ap = get_argparser_from_config(config)
-    ap.add_argument('-s', '--s3path', dest='s3_path', help="The location of the wikis file on S3")
+    ap.add_argument('-s', '--s3path', dest='s3path', help="The location of the wikis file on S3")
     ap.add_argument('-q', '--queue', dest='event_queue', help="The an event queue to poll for files")
     return ap.parse_known_args()
 

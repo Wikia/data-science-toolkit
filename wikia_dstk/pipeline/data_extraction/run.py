@@ -17,7 +17,7 @@ from ... import get_argparser_from_config, argstring_from_namespace
 def get_args():
     ap = get_argparser_from_config(default_config)
     ap.add_argument('--workers', dest='workers', type=int, default=8)
-    ap.add_argument('--no-shutdown', dest='do_shutdown', type='store_false', default=True)
+    ap.add_argument('--no-shutdown', dest='do_shutdown', action='store_false', default=True)
     return ap.parse_known_args()
 
 

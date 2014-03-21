@@ -30,9 +30,12 @@ def main():
         processes = []
         keys = [key.name for key in bucket.list(prefix='%s/' % args.queue) if
                 re.sub(r'/?%s/?' % args.queue, '', key.name) is not '']
+        print len(keys), "keys"
         while len(keys) > 0:
             counter = 0
             while len(processes) < args.workers:
+                if len(keys) == 0:
+                    break
                 processes.append(
                     Popen(
                         '/usr/bin/python -m ' +

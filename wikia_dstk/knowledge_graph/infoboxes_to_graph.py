@@ -26,13 +26,13 @@ def handle_doc(tup):
     name = doc[u'title_en'].replace(u'"', u'')
     print name.encode(u'utf8')
     name_index = db.nodes.indexes.get('name')
-    name_nodes = name_index.get(name)
+    name_nodes = name_index[name]
     page_ids = [doc[u'id']]
     if not name_nodes:
         page_node = db.nodes.create(ids=page_ids, name=name)
         page_node.labels.add(u'Page')
     else:
-        page_node = name_nodes[0]
+        page_node = name_nodes[:][0]
         page_node[u'ids'] = page_node[u'ids'] + page_ids
 
     box_nodes = []
@@ -49,12 +49,12 @@ def handle_doc(tup):
             page_node.labels.add(u'Subject')
             box_nodes.append(box_node)
 
-    wiki_nodes = db.nodes.indexes.get('wiki_ids')
+    wiki_nodes = db.nodes.indexes.get('wiki_ids')[doc[u'wid']]
     if not wiki_nodes:
         wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
         wiki_node.labels.add(u'Wiki')
     else:
-        wiki_node = wiki_nodes[0]
+        wiki_node = wiki_nodes[:][0]
     db.relationships.create(wiki_node, u'involves', page_node)
     for infobox_node in box_nodes:
         db.relationships.create(wiki_node, u'involves', infobox_node)
@@ -64,6 +64,7 @@ def run_queries(args, pool, start=0):
     query_params = dict(q=u'iscontent:true AND lang:en AND infoboxes_txt:*', fl=u'id,title_en,infoboxes_txt,wid',
                         wt=u'json', start=start, rows=500)
     response = requests.get(u'%s/select' % args.solr, params=query_params).json()
+
     pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
     if response['response']['numFound'] > query_params['start']:
         return run_queries(args, pool, start+query_params['rows'])

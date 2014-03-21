@@ -52,7 +52,7 @@ def handle_doc(tup):
             else:
                 box_node = props[0]
             try:
-                db.relationships.create(box_node, u'is_%s_of' % key, page_node)
+                db.relationships.create(box_node, u'is_%s_of' % escape_key(key), page_node)
             except Exception as e:
                 print e
             if u"Subject" not in page_node.labels:

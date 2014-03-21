@@ -41,8 +41,19 @@ if (options.parser and options.data_ex) or (not options.parser and
                       'parser or data-extraction')
 elif options.parser:
     from parser.config import config
+    user_data = None
 elif options.data_ex:
     from data_extraction.config import default_config as config
+    user_data = """#!/bin/sh
+echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
+mkdir -p /mnt/
+cd /home/ubuntu/data-science-toolkit
+echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
+git fetch origin
+git checkout %s
+git pull origin %s && sudo python setup.py install
+python -m wikia_dstk.pipeline.data_extraction.run
+""" % ('dataex', 'dataex')
 
 config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 
@@ -78,7 +89,7 @@ while True:
             instances_to_add = optimal
         else:
             instances_to_add = config['max_size']
-        ec2_conn.add_instances(instances_to_add)
+        ec2_conn.add_instances(instances_to_add, user_data=user_data)
         instances = ec2_conn.get_tagged_instances(config['tag'])
         numinstances = len(instances)
         print "[%s %s] Scaled up to %d (%d in queue)" % (
@@ -107,7 +118,7 @@ while True:
             optimal = int(ceil(inqueue / config['threshold'])) - numinstances
             allowed = config['max_size'] - numinstances
             instances_to_add = optimal if optimal <= allowed else allowed
-            ec2_conn.add_instances(instances_to_add)
+            ec2_conn.add_instances(instances_to_add, user_data=user_data)
             instances = ec2_conn.get_tagged_instances(config['tag'])
             numinstances = len(instances)
             ratio = inqueue / numinstances

@@ -47,6 +47,7 @@ def handle_doc(tup):
                 box_node.labels.add(u'Object')
             else:
                 box_node = prop[0]
+            print box_node
             db.relationships.create(box_node, 'is_%s_of' % key, page_node)
             page_node.labels.add(u'Subject')
             box_nodes.append(box_node)

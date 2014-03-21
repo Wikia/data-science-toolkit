@@ -19,28 +19,29 @@ def get_args():
 
 def iterate_wids_from_args(args):
     bucket = connect_s3().get_bucket('nlp-data')
-    if args.s3path:
-        k = bucket.get_key(args.s3path)
-        if k is None:
+    while True:
+        if args.s3path:
+            k = bucket.get_key(args.s3path)
+            if k is None:
+                raise StopIteration
+            wids = [wid.strip() for wid in k.get_contents_as_string().split(',')]
+            k.delete()
+            yield wids
+        elif args.event_queue:
+            tmp_folder = args.event_queue.strip('/').split('/')[0]+'/processing/'
+            for key in bucket.list(prefix=args.event_queue.strip('/')+'/'):
+                try:
+                    new_key = tmp_folder+key.name
+                    key.copy('nlp-data', new_key)
+                    #key.delete()
+                    new_key_contents = [wid.strip() for wid in bucket.get_key(new_key).get_contents_as_string().split("\n")]
+                    bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
+                    yield new_key_contents
+                except:
+                    continue
             raise StopIteration
-        wids = [wid.strip() for wid in k.get_contents_as_string().split(',')]
-        k.delete()
-        yield wids
-    elif args.event_queue:
-        tmp_folder = args.event_queue.strip('/').split('/')[0]+'/processing/'
-        for key in bucket.list(prefix=args.event_queue.strip('/')+'/'):
-            try:
-                new_key = tmp_folder+key.name
-                key.copy('nlp-data', new_key)
-                #key.delete()
-                new_key_contents = [wid.strip() for wid in bucket.get_key(new_key).get_contents_as_string().split("\n")]
-                bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
-                yield new_key_contents
-            except:
-                continue
-        raise StopIteration
-    else:
-        raise Exception("Please specify either s3path or queue")
+        else:
+            raise Exception("Please specify either s3path or queue")
 
 
 def main():

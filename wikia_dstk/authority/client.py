@@ -101,6 +101,7 @@ def main():
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)
             if dstk_nodes_needed > 0:
                 log("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)
+                print dstk_user_data(args)
                 r = dstk_connection.add_instances_async([dstk_user_data(args)],
                                                         num_instances=dstk_nodes_needed, wait=True)
                 dstk_instance_ids = [i for j in r.get() for i in j]

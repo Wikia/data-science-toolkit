@@ -9,6 +9,7 @@ from boto.utils import get_instance_metadata
 
 from nlp_services.caching import use_caching
 from ... import get_argparser_from_config
+from config import default_config
 
 from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
@@ -66,7 +67,7 @@ def call_services(args):
 
 
 def get_args():
-    ap = get_argparser_from_config()
+    ap = get_argparser_from_config(default_config)
     ap.add_argument('--key', dest='key', required=True)
     return ap.parse_known_args()
 

@@ -39,7 +39,7 @@ def call_services(args):
     if key is None:
         return
 
-    folder = args.s3key.name.split('/')[0]
+    folder = args.s3key.split('/')[0]
 
     eventfile = "%s_processing/%s_%s_%s" % (folder, get_instance_metadata()['local-hostname'],
                                             str(time.time()), str(int(random.randint(0, 100))))

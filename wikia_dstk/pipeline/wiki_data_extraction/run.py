@@ -38,9 +38,10 @@ def iterate_wids_from_args(args):
                                         bucket.get_key(new_key).get_contents_as_string().split("\n") if wid]
                     bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
                     yield new_key_contents
-                except:
+                except Exception as e:
+                    print e
                     continue
-            raise StopIteration
+            raise StopIteration()
         else:
             raise Exception("Please specify either s3path or queue")
 

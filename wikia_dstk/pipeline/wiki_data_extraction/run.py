@@ -33,7 +33,7 @@ def iterate_wids_from_args(args):
                 new_key = tmp_folder+key.name
                 key.copy('nlp-data', new_key)
                 #key.delete()
-                new_key_contents = [wid.strip() for wid in bucket.get_key(new_key).get_contents_as_string().split(',')]
+                new_key_contents = [wid.strip() for wid in bucket.get_key(new_key).get_contents_as_string().split("\n")]
                 bucket.delete_key(new_key)  # probably want to do this after completion, but whatever
                 yield new_key_contents
             except:

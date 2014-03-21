@@ -56,7 +56,7 @@ def main():
                     print 'Launching child to process %s' % wid
                     processes.append(
                         Popen('/usr/bin/python -m ' +
-                              'wikia_dstk.pipeline.wiki_data_extraction.child ',
+                              'wikia_dstk.pipeline.wiki_data_extraction.child ' +
                               '--wiki-id=%s %s' % (str(wid), argstring_from_namespace(args, extras)),
                               shell=True))
                 else:

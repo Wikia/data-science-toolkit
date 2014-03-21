@@ -26,7 +26,7 @@ def handle_doc(tup):
     name = doc[u'title_en'].replace(u'"', u'')
     print name.encode(u'utf8')
     name_index = db.nodes.indexes.get('name')
-    name_nodes = name_index[name]
+    name_nodes = [node for node in name_index[name]]
     page_ids = [doc[u'id']]
     if not name_nodes:
         page_node = db.nodes.create(ids=page_ids, name=name)
@@ -41,7 +41,7 @@ def handle_doc(tup):
         if len(splt) > 2:
             key = splt[1].lower().strip(u':')
             value = u'|'.join(splt[2:]).lower()
-            prop = name_index.get(value)
+            prop = [node for node in name_index.get(value)]
             if not prop:
                 box_node = db.nodes.create(name=value)
                 box_node.labels.add(u'Object')
@@ -52,7 +52,7 @@ def handle_doc(tup):
             page_node.labels.add(u'Subject')
             box_nodes.append(box_node)
 
-    wiki_nodes = db.nodes.indexes.get('wiki_ids')[doc[u'wid']]
+    wiki_nodes = [node for node in db.nodes.indexes.get('wiki_ids')[doc[u'wid']]]
     if not wiki_nodes:
         wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
         wiki_node.labels.add(u'Wiki')

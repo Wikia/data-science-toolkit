@@ -43,7 +43,8 @@ def get_argparser_from_config(default_config):
     """
     ap = ArgumentParser()
     for key in default_config:
-        ap.add_argument('--%s' % key, type=type(default_config[key]), dest=key.replace('-', '_'))
+        ap.add_argument('--%s' % key, type=type(default_config[key]), dest=key.replace('-', '_'),
+                        default=default_config[key])
     ap.set_defaults(**default_config)
     return ap
 

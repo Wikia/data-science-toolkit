@@ -5,7 +5,7 @@ from boto import connect_s3
 
 from nlp_services.caching import use_caching
 from config import config
-from wikia_dstk import get_argparser_from_config
+from ... import get_argparser_from_config
 
 # we dump everything in here to be dynamic
 from nlp_services.discourse.entities import *

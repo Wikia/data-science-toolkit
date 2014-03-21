@@ -42,3 +42,7 @@ def main():
                 print args.wiki_id, service, e
     except Exception as e:
         print args.wiki_id, e
+
+
+if __name__ == '__main__':
+    main()

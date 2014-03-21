@@ -44,15 +44,19 @@ def main():
                         '%s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, keys.pop()),
                         shell=True))
             processes = filter(lambda x: x.poll() is None, processes)
-            sleep(0.25)
-        if len(processes) == 0:
-            counter += 1
-            print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
-            if args.do_shutdown and counter >= 20:
-                print 'Scaling down, shutting down.'
-                current_id = get_instance_metadata()['instance-id']
-                ec2_conn = connect_to_region(args.region)
-                ec2_conn.terminate_instances([current_id])
+            sleep(5)
+
+        while len(processes) > 0:
+            processes = filter(lambda x: x.poll() is None, processes)
+            sleep(30)
+
+        counter += 1
+        print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
+        if args.do_shutdown and counter >= 20:
+            print 'Scaling down, shutting down.'
+            current_id = get_instance_metadata()['instance-id']
+            ec2_conn = connect_to_region(args.region)
+            ec2_conn.terminate_instances([current_id])
         sleep(15)
 
 

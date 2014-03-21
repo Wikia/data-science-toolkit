@@ -59,7 +59,7 @@ git fetch origin
 git checkout %s
 git pull origin %s && python setup.py install
 touch /var/log/extraction
-python -u -m wikia_dstk.pipeline.data_extraction.run %s > /var/log/extraction 2>&1 &
+python -u -m wikia_dstk.pipeline.wiki_data_extraction.run %s > /var/log/extraction 2>&1 &
 echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log
 """ % (args.dstk_git_ref, args.dstk_git_ref, argstring)
 

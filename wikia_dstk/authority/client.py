@@ -96,8 +96,9 @@ def main():
         num_authority_instances = len(authority_connection.get_tagged_instances())
         log("%d authority instances running..." % num_authority_instances)
         event_keys = bucket.get_all_keys(prefix='authority_extraction_events/')
+        dstk_tagged = dstk_connection.get_tagged_instances()
+        log("%d extraction instances running..." % len(dstk_tagged))
         if len(event_keys) > 0:
-            dstk_tagged = dstk_connection.get_tagged_instances()
             dstk_nodes_needed = args.num_data_extraction_nodes - len(dstk_tagged)
             if dstk_nodes_needed > 0:
                 log("Spinning up %d DSTK nodes for data extraction" % dstk_nodes_needed)

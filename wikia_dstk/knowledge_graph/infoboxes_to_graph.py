@@ -68,7 +68,7 @@ def run_queries(args, pool, start=0):
                         wt=u'json', start=start, rows=500)
     response = requests.get(u'%s/select' % args.solr, params=query_params).json()
 
-    map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+    pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
     if response['response']['numFound'] > query_params['start']:
         return run_queries(args, pool, start+query_params['rows'])
     return True

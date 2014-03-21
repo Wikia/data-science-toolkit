@@ -33,6 +33,7 @@ def main():
         print len(keys), "keys"
         while len(keys) > 0:
             counter = 0
+            print len(processes), "processes"
             while len(processes) < args.workers:
                 if len(keys) == 0:
                     break
@@ -44,13 +45,14 @@ def main():
                         shell=True))
             processes = filter(lambda x: x.poll() is None, processes)
             sleep(0.25)
-        counter += 1
-        print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
-        if args.do_shutdown and counter >= 20:
-            print 'Scaling down, shutting down.'
-            current_id = get_instance_metadata()['instance-id']
-            ec2_conn = connect_to_region(args.region)
-            ec2_conn.terminate_instances([current_id])
+        if len(processes) == 0:
+            counter += 1
+            print 'No more keys, waiting 15 seconds. Counter: %d/20' % counter
+            if args.do_shutdown and counter >= 20:
+                print 'Scaling down, shutting down.'
+                current_id = get_instance_metadata()['instance-id']
+                ec2_conn = connect_to_region(args.region)
+                ec2_conn.terminate_instances([current_id])
         sleep(15)
 
 

@@ -232,8 +232,9 @@ class EC2Connection(object):
         """
         tagged = self.get_tagged_instances(tag)
         statuses = self.conn.get_all_instance_status(tagged)
-        impaired = filter(lambda x: ('impaired' in x.system_status or
-                                     'impaired' in x.instance_status), statuses)
+        impaired = filter(lambda x: (x.system_status.status == 'impaired' or
+                                     x.instance_status.status == 'ok'),
+                          statuses)
         if impaired:
             self.conn.reboot_instances([i.id for i in impaired])
 

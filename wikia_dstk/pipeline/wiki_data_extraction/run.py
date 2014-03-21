@@ -46,12 +46,9 @@ def iterate_wids_from_args(args):
 def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args, extras = get_args()
-    # Pull wiki IDs from file on S3
-    wids = get_wids_from_args(args)
-    print "Working on %d wids" % len(wids)
-
     processes = []
     for wids in iterate_wids_from_args(args):
+        print "Working on %d wids" % len(wids)
         while len(wids) > 0:
             while len(processes) < 8:
                 if wids:

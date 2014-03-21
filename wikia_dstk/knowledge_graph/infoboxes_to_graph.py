@@ -54,7 +54,7 @@ def handle_doc(tup):
         wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
         wiki_node.labels.add(u'Wiki')
     else:
-        wiki_node = wiki_nodes[:][0]
+        wiki_node = wiki_nodes[:]
     db.relationships.create(wiki_node, u'involves', page_node)
     for infobox_node in box_nodes:
         db.relationships.create(wiki_node, u'involves', infobox_node)
@@ -65,7 +65,7 @@ def run_queries(args, pool, start=0):
                         wt=u'json', start=start, rows=500)
     response = requests.get(u'%s/select' % args.solr, params=query_params).json()
 
-    pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+    map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
     if response['response']['numFound'] > query_params['start']:
         return run_queries(args, pool, start+query_params['rows'])
     return True

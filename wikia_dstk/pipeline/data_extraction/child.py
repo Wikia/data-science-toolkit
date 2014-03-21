@@ -3,7 +3,6 @@ import re
 import sys
 import time
 from boto import connect_s3
-from boto.exception import S3ResponseError
 from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 
@@ -36,39 +35,32 @@ def process_file(filename, services):
 
 def call_services(args):
     bucket = connect_s3().get_bucket('nlp-data')
-    print args.s3key
     key = bucket.get_key(args.s3key)
     if key is None:
-        print 'no key found'
         return
 
-    eventfile = "data_processing/%s_%s_%s" % (
-        get_instance_metadata()['local-hostname'], str(time.time()),
-        str(int(random.randint(0, 100))))
-    try:
-        key.copy('nlp-data', eventfile)
-        key.delete()
-    except S3ResponseError as e:
-        print e
-        print 'EVENT FILE %s NOT FOUND!' % eventfile
-        return
-    except KeyboardInterrupt:
-        sys.exit()
+    folder = args.s3key.name.split('/')[0]
 
-    print 'STARTING EVENT FILE %s' % eventfile
+    eventfile = "%s_processing/%s_%s_%s" % (folder, get_instance_metadata()['local-hostname'],
+                                            str(time.time()), str(int(random.randint(0, 100))))
+
+    key.copy('nlp-data', eventfile)
+    key.delete()
+
     k = Key(bucket)
     k.key = eventfile
 
-    print k.key
-    map(lambda x: process_file(x, args.services.split(',')), k.get_contents_as_string().split('\n'))
+    lines = k.get_contents_as_string().split('\n')
+    map(lambda x: process_file(x, args.services.split(',')), lines)
+    print args.s3key, len(lines), "ids completed"
 
-    print 'EVENT FILE %s COMPLETE' % eventfile
     k.delete()
 
 
 def get_args():
     ap = get_argparser_from_config(default_config)
     ap.add_argument('--s3key', dest='s3key', required=True)
+    ap.add_argument('--source-folder', dest='source_folder', required=True, default='nlp-data')
     return ap.parse_known_args()
 
 

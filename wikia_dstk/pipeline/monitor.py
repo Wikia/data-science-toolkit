@@ -62,6 +62,9 @@ while True:
     instances = ec2_conn.get_tagged_instances(config['tag'])
     numinstances = len(instances)
 
+    # Make sure tagged instances are still running, reboot if not
+    ec2_conn.ensure_instance_health(config['tag'])
+
     if not inqueue:
         print "[%s %s] Just chillin' (%d in queue, %d instances)" % (
             config['tag'], datetime.today().isoformat(' '), inqueue,

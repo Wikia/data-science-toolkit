@@ -1,5 +1,6 @@
 import random
 import time
+import sys
 from boto import connect_s3
 from math import floor
 from ..loadbalancing import EC2Connection
@@ -16,7 +17,7 @@ def get_args():
     ap.add_argument('--num-data-extraction-nodes', dest='num_data_extraction_nodes', type=int, default=2,
                     help="Number of data extraction nodes to spin off")
     ap.add_argument('--authority-ami', dest='authority_ami', default="ami-24731a14", help='AMI for authority node')
-    ap.add_argument('--dstk-ami', dest='dstk_ami', default="ami-000f6d30", help='AMI for dstk node')
+    ap.add_argument('--dstk-ami', dest='dstk_ami', default="ami-f4d0bfc4", help='AMI for dstk node')
     ap.add_argument('--dstk-git-ref', dest='dstk_git_ref', default='master',
                     help="Git ref to have checked out for dstk")
     ap.add_argument('--authority-git-ref', dest='authority_git_ref', default='master',
@@ -103,8 +104,8 @@ def main():
                 dstk_connection.add_instances_async([dstk_user_data(args)],
                                                     num_instances=dstk_nodes_needed, wait=True).get()
         elif num_authority_instances == 0:
-            log("Empty queue and no authority instances, shutting down.")
-            break
+            log("Empty queue and no authority instances, exiting.")
+            sys.exit()
 
         time.sleep(120)
 

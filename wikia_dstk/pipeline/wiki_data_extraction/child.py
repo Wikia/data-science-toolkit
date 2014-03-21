@@ -23,7 +23,7 @@ def get_args():
 
 def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-    args, _ = get_args
+    args, _ = get_args()
     services = args.services.split(',')
 
     caching_dict = dict([(service+'.get', {'write_only': True}) for service in

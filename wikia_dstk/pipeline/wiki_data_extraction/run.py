@@ -55,9 +55,9 @@ def main():
                 if wids:
                     wid = wids.pop()
                     print 'Launching child to process %s' % wid
-                    cmdstring = ('/usr/bin/python -m ' +
+                    cmdstring = (('/usr/bin/python -m ' +
                                  'wikia_dstk.pipeline.wiki_data_extraction.child ' +
-                                 '--wiki-id=%s %s' % (str(wid), argstring_from_namespace(args, extras)))
+                                 '--wiki-id=%s %s') % (str(wid), argstring_from_namespace(args, extras)))
                     print cmdstring
                     sys.exit()
                     processes.append(

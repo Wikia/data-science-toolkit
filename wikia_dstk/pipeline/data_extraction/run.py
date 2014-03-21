@@ -37,7 +37,7 @@ def main():
                     Popen(
                         '/usr/bin/python -m ' +
                         'wikia_dstk.pipeline.data_extraction.child ' +
-                        '%s --key=%s' % (argstring_from_namespace(args, extras), keys.pop()),
+                        '%s --s3key=%s' % (argstring_from_namespace(args, extras), keys.pop()),
                         shell=True))
             processes = filter(lambda x: x.poll() is None, processes)
             sleep(0.25)

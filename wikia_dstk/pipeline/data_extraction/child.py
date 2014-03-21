@@ -68,7 +68,7 @@ def call_services(args):
 
 def get_args():
     ap = get_argparser_from_config(default_config)
-    ap.add_argument('--key', dest='key', required=True)
+    ap.add_argument('--s3key', dest='s3key', required=True)
     return ap.parse_known_args()
 
 

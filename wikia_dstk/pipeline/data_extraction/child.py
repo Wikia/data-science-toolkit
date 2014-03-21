@@ -12,7 +12,6 @@ from config import default_config
 
 from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
-from nlp_services.authority import *
 from nlp_services.syntax import *
 
 

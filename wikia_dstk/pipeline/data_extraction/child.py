@@ -7,7 +7,7 @@ from boto.s3.key import Key
 from boto.utils import get_instance_metadata
 
 from nlp_services.caching import use_caching
-from ... import get_argparser_from_config
+from wikia_dstk import get_argparser_from_config
 from config import default_config
 
 from nlp_services.discourse.entities import *

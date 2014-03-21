@@ -36,8 +36,8 @@ def process_file(filename, services):
 
 def call_services(args):
     bucket = connect_s3().get_bucket('nlp-data')
-    print args.key
-    key = bucket.get_key(args.key)
+    print args.s3key
+    key = bucket.get_key(args.s3key)
     if key is None:
         print 'no key found'
         return

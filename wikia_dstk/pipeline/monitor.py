@@ -42,7 +42,7 @@ if (options.parser and options.data_ex) or (not options.parser and
 elif options.parser:
     from parser.config import config
 elif options.data_ex:
-    from data_extraction.config import config
+    from data_extraction.config import default_config as config
 
 config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 

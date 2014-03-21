@@ -45,6 +45,8 @@ def handle_doc(tup):
             if not prop:
                 box_node = db.nodes.create(name=value)
                 box_node.labels.add(u'Object')
+            else:
+                box_node = prop[0]
             db.relationships.create(box_node, 'is_%s_of' % key, page_node)
             page_node.labels.add(u'Subject')
             box_nodes.append(box_node)

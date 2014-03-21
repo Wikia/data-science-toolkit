@@ -40,6 +40,7 @@ def handle_doc(tup):
         splt = line.split(u'|')
         if len(splt) > 2:
             key = splt[1].lower().strip(u':')
+            print "\t", key
             value = u'|'.join(splt[2:]).lower()
             prop = [node for node in name_index.get(value)]
             if not prop:

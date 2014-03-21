@@ -33,7 +33,7 @@ def handle_doc(tup):
         page_node.labels.add(u'Page')
     else:
         page_node = name_nodes[0]
-        page_node[u'ids'] = page_node[u'ids'] + page_ids
+        #page_node[u'ids'] = page_node[u'ids'] + page_ids
 
     box_nodes = []
     for line in doc[u'infoboxes_txt']:

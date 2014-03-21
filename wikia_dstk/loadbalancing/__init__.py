@@ -144,7 +144,7 @@ class EC2Connection(object):
         :return: A list of IDs corresponding to the instances launched
         """
         reservation = self.get_reservation(count, user_data=user_data)
-        instance_ids = self.get_instance_ids_from_reservation(self.conn, reservation)
+        instance_ids = get_instance_ids_from_reservation(self.conn, reservation)
         self.tag_instances(instance_ids)
         return instance_ids
 
@@ -221,6 +221,21 @@ class EC2Connection(object):
         return [instance.id for reservation in
                 self.conn.get_all_instances(filters=filters) for instance in
                 reservation.instances if instance.state_code < 32]
+
+    def ensure_instance_health(self, tag=None):
+        """
+        Ensure that all tagged instances are passing status checks, and reboot
+        any that aren't.
+
+        :type tag: string
+        :param tag: A string representing the tag name to operate over
+        """
+        tagged = self.get_tagged_instances(tag)
+        statuses = self.conn.get_all_instance_status(tagged)
+        impaired = filter(lambda x: ('impaired' in x.system_status or
+                                     'impaired' in x.instance_status), statuses)
+        if impaired:
+            self.conn.reboot_instances([i.id for i in impaired])
 
 
 def get_ids_from_reso_tuple(args):

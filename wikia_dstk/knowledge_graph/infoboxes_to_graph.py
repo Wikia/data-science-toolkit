@@ -32,7 +32,7 @@ def handle_doc(tup):
         page_node = db.nodes.create(ids=page_ids, name=name)
         page_node.labels.add(u'Page')
     else:
-        page_node = name_nodes[:][0]
+        page_node = name_nodes[0]
         page_node[u'ids'] = page_node[u'ids'] + page_ids
 
     box_nodes = []
@@ -54,7 +54,7 @@ def handle_doc(tup):
         wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
         wiki_node.labels.add(u'Wiki')
     else:
-        wiki_node = wiki_nodes[:]
+        wiki_node = wiki_nodes[0]
     db.relationships.create(wiki_node, u'involves', page_node)
     for infobox_node in box_nodes:
         db.relationships.create(wiki_node, u'involves', infobox_node)

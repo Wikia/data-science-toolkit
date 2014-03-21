@@ -51,6 +51,7 @@ def main():
         print "Working on %d wids" % len(wids)
         while len(wids) > 0:
             while len(processes) < 8:
+                print wids
                 if wids:
                     wid = wids.pop()
                     print 'Launching child to process %s' % wid

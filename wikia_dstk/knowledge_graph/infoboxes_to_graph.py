@@ -35,10 +35,13 @@ def handle_doc(tup):
         name_index[u'name'][name.encode('utf8')] = page_node
     else:
         page_node = name_nodes[0]
-        if u'ids' in page_node:
-            page_node[u'ids'] = list(set(page_node[u'ids'] + page_ids))
-        else:
-            page_node[u'ids'] = [page_ids]
+        try:
+            if u'ids' in page_node:
+                page_node[u'ids'] = list(set(page_node[u'ids'] + page_ids))
+            else:
+                page_node[u'ids'] = [page_ids]
+        except Exception as e:
+            print e, page_node
 
     box_nodes = []
     for line in doc[u'infoboxes_txt']:

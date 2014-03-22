@@ -42,7 +42,7 @@ def handle_doc(tup):
         splt = line.split(u'|')
         if len(splt) > 2:
             key = splt[1].lower().replace(u':', '').strip()
-            value = u'|'.join(splt[2:]).lower()
+            value = u'|'.join(splt[2:]).strip().lower()
             props = [node for node in name_index[u'name'][value.encode('utf8')]]
             if not props:
                 box_node = db.nodes.create(name=value)

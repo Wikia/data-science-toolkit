@@ -9,6 +9,7 @@ default_config = {
     "tag": "data_extraction",
     "threshold": 50,
     "max_size": 5,
+    "branch": "master",
     "services": ",".join([
         "AllNounPhrasesService",
         "AllVerbPhrasesService",

@@ -27,15 +27,15 @@ def handle_doc(tup):
     print name.encode(u'utf8')
     name_index = db.nodes.indexes.get(u'name')
     wiki_index = db.nodes.indexes.get(u'wiki_ids')
-    name_nodes = [node for node in name_index[u'name'][name]]
+    name_nodes = [node for node in name_index[u'name'][name.encode('utf8')]]
     page_ids = [doc[u'id']]
     if not name_nodes:
-        page_node = db.nodes.create(ids=page_ids, name=name)
+        page_node = db.nodes.create(ids=page_ids, name=name.encode('utf8'))
         page_node.labels.add(u'Page')
-        name_index[u'name'][name] = page_node
+        name_index[u'name'][name.encode('utf8')] = page_node
     else:
         page_node = name_nodes[0]
-        page_node[u'ids'] = page_node[u'ids'] + page_ids
+        page_node[u'ids'] = list(set(page_node[u'ids'] + page_ids))
 
     box_nodes = []
     for line in doc[u'infoboxes_txt']:
@@ -43,16 +43,16 @@ def handle_doc(tup):
         if len(splt) > 2:
             key = splt[1].lower().replace(u':', '').strip()
             value = u'|'.join(splt[2:]).lower()
-            props = [node for node in name_index['name'][value]]
+            props = [node for node in name_index[u'name'][value.encode('utf8')]]
             if not props:
                 box_node = db.nodes.create(name=value)
                 if u"Object" not in box_node.labels:
                     box_node.labels.add(u'Object')
-                name_index['name'][value] = box_node
+                name_index[u'name'][value] = box_node
             else:
                 box_node = props[0]
             try:
-                db.relationships.create(box_node, u'is_%s_of' % escape_key(key), page_node)
+                db.relationships.create(box_node, (u'is_%s_of' % escape_key(key)).encode('utf8'), page_node)
             except Exception as e:
                 print e
             if u"Subject" not in page_node.labels:
@@ -82,7 +82,7 @@ def run_queries(args, pool, start=0):
                         wt=u'json', start=start, rows=500)
     response = requests.get(u'%s/select' % args.solr, params=query_params).json()
 
-    pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+    map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
     if response[u'response'][u'numFound'] > query_params[u'start']:
         return run_queries(args, pool, start+query_params[u'rows'])
     return True

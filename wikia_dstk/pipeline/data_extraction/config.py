@@ -8,7 +8,7 @@ default_config = {
     "type": "m2.4xlarge",
     "tag": "data_extraction",
     "threshold": 50,
-    "max-size": 5,
+    "max_size": 5,
     "services": ",".join([
         "AllNounPhrasesService",
         "AllVerbPhrasesService",

@@ -33,6 +33,8 @@ op.add_option('-e', '--threshold', dest='threshold', type='int',
                    'tolerate as backlog')
 op.add_option('-m', '--max-size', dest='max_size', type='int',
               help='The maximum allowable number of simultaneous instances')
+op.add_option('-b', '--branch', dest='branch',
+              help='The data-science-toolkit branch to checkout')
 (options, args) = op.parse_args()
 
 if (options.parser and options.data_ex) or (not options.parser and
@@ -53,7 +55,7 @@ git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
 python -m wikia_dstk.pipeline.data_extraction.run
-""" % ('dataex', 'dataex')
+""" % (options.branch, options.branch)
 
 config.update([(k, v) for (k, v) in vars(options).items() if v is not None])
 

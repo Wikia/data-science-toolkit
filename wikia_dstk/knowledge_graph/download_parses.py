@@ -13,8 +13,9 @@ def main():
     args = get_args()
     bucket = connect_s3().get_bucket("nlp-data")
     for key in bucket.list(prefix='xml/%s' % args.wiki_id):
-        print key
-        key.get_contents_to_filename("%s/%s/" % (args.dest, args.wiki_id, key.name))
+        fname = "%s/%s/%s" % (args.dest, args.wiki_id, key.name)
+        print key, '->', fname
+        key.get_contents_to_filename(fname)
 
 
 if __name__ == '__main__':

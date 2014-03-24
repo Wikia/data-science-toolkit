@@ -49,40 +49,41 @@ def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args, extras = get_args()
     processes = []
-    for wids in iterate_wids_from_args(args):
-        print "Working on %d wids" % len(wids)
-        while len(wids) > 0:
-            while len(processes) < 8:
-                if wids:
-                    wid = wids.pop()
-                    print 'Launching child to process %s' % wid
-                    cmdstring = (('/usr/bin/python -m ' +
-                                 'wikia_dstk.pipeline.wiki_data_extraction.child ' +
-                                 '--wiki-id=%s %s') % (str(wid), argstring_from_namespace(args, extras)))
-                    processes.append(
-                        Popen(cmdstring,
-                              shell=True))
-                else:
-                    print 'No more wiki IDs to iterate over'
-                    break
+    shutdown_counter = 0
+    while True:
+        for wids in iterate_wids_from_args(args):
+            shutdown_counter = 0
+            print "Working on %d wids" % len(wids)
+            while len(wids) > 0:
+                while len(processes) < 8:
+                    if wids:
+                        wid = wids.pop()
+                        print 'Launching child to process %s' % wid
+                        cmdstring = (('/usr/bin/python -m ' +
+                                     'wikia_dstk.pipeline.wiki_data_extraction.child ' +
+                                     '--wiki-id=%s %s') % (str(wid), argstring_from_namespace(args, extras)))
+                        processes.append(
+                            Popen(cmdstring,
+                                  shell=True))
+                    else:
+                        print 'No more wiki IDs to iterate over'
+                        break
 
+                processes = filter(lambda x: x.poll() is None, processes)
+                sleep(5)
+
+        if len(processes) > 0:
+            print len(processes), "processes still running"
             processes = filter(lambda x: x.poll() is None, processes)
-            sleep(5)
-
-    while len(processes) > 0:
-        print len(processes), "processes still running"
-        processes = filter(lambda x: x.poll() is None, processes)
-        sleep(30)
-
-    for i in range(10):
-        n = i + 1
-        print 'Waiting for 5 minutes and shutting down. 30sec interval %d/10' % n
-        sleep(30)
-
-    print "Scaling down, shutting down."
-    current_id = get_instance_metadata()['instance-id']
-    ec2_conn = connect_to_region(args.region)
-    ec2_conn.terminate_instances([current_id])
+            sleep(30)
+        else:
+            shutdown_counter += 1
+            if shutdown_counter == 10:
+                print "Waited five minutes with nothing in the queue, shutting down"
+                current_id = get_instance_metadata()['instance-id']
+                ec2_conn = connect_to_region(args.region)
+                ec2_conn.terminate_instances([current_id])
+            sleep(30)
 
 
 if __name__ == '__main__':

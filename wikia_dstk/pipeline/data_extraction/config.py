@@ -9,7 +9,7 @@ default_config = {
     "tag": "data_extraction",
     "threshold": 50,
     "max_size": 5,
-    "branch": "master",
+    "git_ref": "master",
     "services": ",".join([
         "AllNounPhrasesService",
         "AllVerbPhrasesService",

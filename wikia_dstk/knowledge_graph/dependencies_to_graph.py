@@ -17,7 +17,6 @@ def get_query(offset=1, limit=500):
 
 let $copular-phrases :=
     for $sent in collection("/db/nlp/")//sentences/sentence
-    where count($sent/dependencies[@type='collapsed-ccprocessed-dependencies']/dep[@type="cop"]) > 0
     return $sent/dependencies[@type='collapsed-ccprocessed-dependencies']
 
 return $copular-phrases</text></query>""" % (offset, limit)

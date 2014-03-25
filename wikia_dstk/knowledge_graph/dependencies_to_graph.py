@@ -13,19 +13,26 @@ def get_args():
 
 
 def get_query(offset=1, limit=500):
-    return u"""<query xmlns="http://exist.sourceforge.net/NS/exist" start="%d" max="%d"><text>xquery version "3.0";
+    return u"""<query xmlns="http://exist.sourceforge.net/NS/exist" start="%d" max="%d"><text>
+xquery version "3.0";
+let $documents := collection("/db/nlp/")
+for $document in $documents
+    for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
+        for $dependency in $dependencies
+            return <dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}">
+                        {$dependency}
+                   </dependencywrapper>
+</text></query>""" % (offset, limit)
 
-let $copular-phrases :=
-    for $sent in collection("/db/nlp/")//sentences/sentence
-    return $sent/dependencies[@type='collapsed-ccprocessed-dependencies']
 
-return $copular-phrases</text></query>""" % (offset, limit)
-
-
-def node_from_index(db, index, word):
-    word_nodes = [node for node in index[u'word'][word.encode(u'utf8')]]
+def node_from_index(db, index, word_xml):
+    doc = word_xml.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
+    sentence = word_xml.get(u'sentence')
+    doc_sent_id = doc + '_' + sentence
+    word = word_xml.text.encode(u'utf8')
+    word_nodes = [node for node in index[doc_sent_id][word]]
     if not word_nodes:
-        word_node = db.nodes.create(word=word)
+        word_node = db.nodes.create(word=word, doc=doc, sentence=sentence)
         word_node.labels.add(u'Word')
         index[u'word'][word.encode(u'utf8')] = word_node
     else:
@@ -38,15 +45,17 @@ def main():
     offset = 1
     limit = 500
     db = GraphDatabase(args.neo4j)
-    try:
-        word_index = db.nodes.indexes.get(u'word')
-    except NotFoundError:
-        word_index = db.nodes.indexes.create(u'word')
 
     try:
         db.labels.create('Word')
     except:
         pass
+
+    try:
+        sentence_index = db.nodes.indexes.get(u'sentence')
+    except NotFoundError:
+        sentence_index = db.nodes.indexes.create(u'sentence')
+
     while True:
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(offset, limit),
@@ -55,9 +64,10 @@ def main():
         for dependencies in dom:
             for dependency in dependencies:
                 try:
-                    governor = node_from_index(db, word_index, dependency[0].text)
-                    dependent = node_from_index(db, word_index, dependency[1].text)
-                    db.relationships.create(governor, dependency.get('type'), dependent)
+                    governor = node_from_index(db, sentence_index, dependency[0])
+                    dependent = node_from_index(db, sentence_index, dependency[1])
+                    db.labels.get(u'Word').add([governor, dependent])
+                    db.relationships.create(governor, dependency.get(u'type'), dependent)
                 except IndexError:
                     continue
 
@@ -66,7 +76,7 @@ def main():
             print r.content
             break
 
-        if int(hits) < offset:
+        if int(hits) <= offset:
             break
         offset += limit
 

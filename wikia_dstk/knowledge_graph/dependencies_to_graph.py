@@ -54,9 +54,12 @@ def main():
         dom = etree.fromstring(r.content)
         for dependencies in dom:
             for dependency in dependencies:
-                governor = node_from_index(db, word_index, dependency[0].text)
-                dependent = node_from_index(db, word_index, dependency[1].text)
-                db.relationships.create(governor, dependency.get('type'), dependent)
+                try:
+                    governor = node_from_index(db, word_index, dependency[0].text)
+                    dependent = node_from_index(db, word_index, dependency[1].text)
+                    db.relationships.create(governor, dependency.get('type'), dependent)
+                except IndexError:
+                    continue
 
         hits = dom.get('{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:

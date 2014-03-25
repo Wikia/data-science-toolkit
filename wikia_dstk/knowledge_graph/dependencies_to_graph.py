@@ -19,22 +19,21 @@ let $documents := collection("/db/nlp/")
 for $document in $documents
     for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
         for $dependency in $dependencies
-            return <dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}">
-                        {$dependency}
-                   </dependencywrapper>
+            return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
+                    {$dependency}
+                   &lt;/dependencywrapper&gt;
 </text></query>""" % (offset, limit)
 
 
-def node_from_index(db, index, word_xml):
-    doc = word_xml.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
-    sentence = word_xml.get(u'sentence')
-    doc_sent_id = doc + '_' + sentence
+def node_from_index(db, index, doc, sentence, word_xml):
+    doc_sent_id = doc + u'_' + sentence
+    word_id = word_xml.get('idx')
     word = word_xml.text.encode(u'utf8')
-    word_nodes = [node for node in index[doc_sent_id][word]]
+    word_nodes = [node for node in index[doc_sent_id][word_id]]
     if not word_nodes:
-        word_node = db.nodes.create(word=word, doc=doc, sentence=sentence)
+        word_node = db.nodes.create(word=word, doc=doc, sentence=sentence, word_id=word_id)
         word_node.labels.add(u'Word')
-        index[u'word'][word.encode(u'utf8')] = word_node
+        index[doc_sent_id][word_id] = word_node
     else:
         word_node = word_nodes[0]
     return word_node
@@ -61,12 +60,13 @@ def main():
                           data=get_query(offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
-        for dependencies in dom:
-            for dependency in dependencies:
+        for dependencieswrapper in dom:
+            doc = dependencieswrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
+            sentence = dependencieswrapper.get(u'sentence')
+            for dependency in dependencieswrapper[0]:
                 try:
-                    governor = node_from_index(db, sentence_index, dependency[0])
-                    dependent = node_from_index(db, sentence_index, dependency[1])
-                    db.labels.get(u'Word').add([governor, dependent])
+                    governor = node_from_index(db, sentence_index, doc, sentence, dependency[0])
+                    dependent = node_from_index(db, sentence_index, doc, sentence, dependency[1])
                     db.relationships.create(governor, dependency.get(u'type'), dependent)
                 except IndexError:
                     continue

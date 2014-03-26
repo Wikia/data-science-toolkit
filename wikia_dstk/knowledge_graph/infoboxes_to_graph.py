@@ -40,7 +40,7 @@ def handle_doc(tup):
             if u'ids' in page_node:
                 page_node[u'ids'] = ','.join(list(set(page_node[u'ids'] + page_ids)))
             else:
-                page_node[u'ids'] = [page_ids]
+                page_node[u'ids'] = ','.join([page_ids])
         except Exception as e:
             print e, page_node
 

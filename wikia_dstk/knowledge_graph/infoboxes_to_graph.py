@@ -65,7 +65,12 @@ def handle_doc(tup):
             if u"Subject" not in page_node.labels:
                 page_node.labels.add(u'Subject')
             box_nodes.append(box_node)
-            print u"\t(%s)-[:%s]->(%s)" % (name.encode(u'utf8'), escape_key(key).encode(u'utf8'), value.encode(u'utf8'))
+            try:
+                print u"\t(%s)-[:%s]->(%s)".encode(u'utf8') % (
+                    name.encode(u'utf8'), escape_key(key).encode(u'utf8'), value.encode(u'utf8')
+                )
+            except UnicodeDecodeError:
+                pass
 
     wiki_nodes = [node for node in wiki_index[u'wiki_id'][doc[u'wid']]]
     if not wiki_nodes:

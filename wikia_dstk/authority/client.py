@@ -49,7 +49,7 @@ def filter_wids(wids, refresh=False):
     p = Pool(processes=8)
     wids = [x[0] for x in p.map_async(exists, wids).get() if x[1]]
     if not refresh:
-        wids = [x[0] for x in p.map_async(not_processed, wids) if x[1]]
+        wids = [x[0] for x in p.map_async(not_processed, wids).get() if x[1]]
 
     return wids
 

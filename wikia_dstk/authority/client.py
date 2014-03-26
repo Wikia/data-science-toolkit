@@ -2,6 +2,7 @@ import random
 import time
 import sys
 import requests
+from multiprocessing import Pool
 from boto import connect_s3
 from math import floor
 from ..loadbalancing import EC2Connection
@@ -34,13 +35,21 @@ def log(string):
     print string
 
 
-def filter_wids(bucket, wids, refresh=False):
-    exists = lambda x: requests.get('http://www.wikia.com/api/v1/Wikis/Details',
-                                    params=dict(ids=[x.strip()])).json().get('items')
-    wids = filter(exists, wids)
+def exists(wid):
+    return wid, requests.get('http://www.wikia.com/api/v1/Wikis/Details',
+                             params=dict(ids=[wid.strip()])).json().get('items')
+
+
+def not_processed(wid):
+    bucket = connect_s3().get_bucket('nlp-services')
+    return wid, not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % wid.strip())
+
+
+def filter_wids(wids, refresh=False):
+    p = Pool(processes=8)
+    wids = [x[0] for x in p.map_async(exists, wids).get() if x[1]]
     if not refresh:
-        not_processed = lambda x: not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % x.strip())
-        wids = filter(not_processed, wids)
+        wids = [x[0] for x in p.map_async(not_processed, wids) if x[1]]
 
     return wids
 
@@ -86,7 +95,7 @@ def main():
     bucket = connect_s3().get_bucket('nlp-data')
     if args.num_authority_nodes > 0:
         key = bucket.get_key(args.s3path)
-        lines = filter_wids(bucket, key.get_contents_as_string().split("\n"), args.refresh)
+        lines = filter_wids(key.get_contents_as_string().split("\n"), args.refresh)
         authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
         authority_keys = []
         for i in range(0, len(lines), authority_slice_size):

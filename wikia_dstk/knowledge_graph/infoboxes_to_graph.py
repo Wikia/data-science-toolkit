@@ -97,6 +97,14 @@ def run_queries(args, pool, start=0):
 def main():
     args = get_args()
     db = GraphDatabase(args.graph_db)
+    try:
+        name_index = db.nodes.indexes.create(u'name')
+    except:
+        pass
+    try:
+        wiki_index = db.nodes.indexes.create(u'wiki_ids')
+    except:
+        pass
     for label in [u'Page', u'Object', u'Subject', u'Wiki']:
         try:
             db.labels.create(label)

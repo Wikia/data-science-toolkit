@@ -27,7 +27,8 @@ def handle_doc(tup):
     print name.encode(u'utf8')
     name_index = db.nodes.indexes.get(u'name')
     wiki_index = db.nodes.indexes.get(u'wiki_ids')
-    name_nodes = [node for node in name_index[u'name'][name.encode('utf8')]]
+    wid = doc[u'wid']
+    name_nodes = [node for node in name_index[wid][name.encode(u'utf8')]]
     page_ids = [doc[u'id']]
     if not name_nodes:
         page_node = db.nodes.create(ids=page_ids, name=name.encode('utf8'))
@@ -37,7 +38,7 @@ def handle_doc(tup):
         page_node = name_nodes[0]
         try:
             if u'ids' in page_node:
-                page_node[u'ids'] = list(set(page_node[u'ids'] + page_ids))
+                page_node[u'ids'] = ','.join(list(set(page_node[u'ids'] + page_ids)))
             else:
                 page_node[u'ids'] = [page_ids]
         except Exception as e:
@@ -48,13 +49,13 @@ def handle_doc(tup):
         splt = line.split(u'|')
         if len(splt) > 2:
             key = splt[1].lower().replace(u':', '').strip()
-            value = u'|'.join(splt[2:]).strip().lower()
-            props = [node for node in name_index[u'name'][value.encode('utf8')]]
+            value = u'|'.join(splt[2:]).strip().lower().encode(u'utf8')
+            props = [node for node in name_index[doc[u'wid']][value]]
             if not props:
                 box_node = db.nodes.create(name=value)
                 if u"Object" not in box_node.labels:
                     box_node.labels.add(u'Object')
-                name_index[u'name'][value] = box_node
+                name_index[doc[u'wid']][value] = box_node
             else:
                 box_node = props[0]
             try:

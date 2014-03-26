@@ -1,6 +1,7 @@
 import random
 import time
 import sys
+import requests
 from boto import connect_s3
 from math import floor
 from ..loadbalancing import EC2Connection
@@ -31,6 +32,17 @@ def get_args():
 def log(string):
     # todo: real logging
     print string
+
+
+def filter_wids(bucket, wids, refresh=False):
+    exists = lambda x: requests.get('http://www.wikia.com/api/v1/Wikis/Details',
+                                    params=dict(ids=[x.strip()])).json().get('items')
+    wids = filter(exists, wids)
+    if not refresh:
+        not_processed = lambda x: not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % x.strip())
+        wids = filter(not_processed, wids)
+
+    return wids
 
 
 def authority_user_data(args, s3_batch):
@@ -74,10 +86,7 @@ def main():
     bucket = connect_s3().get_bucket('nlp-data')
     if args.num_authority_nodes > 0:
         key = bucket.get_key(args.s3path)
-        lines = key.get_contents_as_string().split("\n")
-        if not args.refresh:
-            lines = filter(lambda x: not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % x.strip()),
-                           lines)
+        lines = filter_wids(bucket, key.get_contents_as_string().split("\n"), args.refresh)
         authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
         authority_keys = []
         for i in range(0, len(lines), authority_slice_size):

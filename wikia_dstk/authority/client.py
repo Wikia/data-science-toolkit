@@ -24,6 +24,7 @@ def get_args():
                     help="Git ref to have checked out for Wikia Authority")
     ap.add_argument('--overwrite', dest='overwrite', default=False, action='store_true',
                     help="Whether to overwrite existing cached responses")
+    ap.add_argument('--refresh', dest='refresh', action='store_true', default=False)
     return ap.parse_known_args()
 
 
@@ -74,6 +75,9 @@ def main():
     if args.num_authority_nodes > 0:
         key = bucket.get_key(args.s3path)
         lines = key.get_contents_as_string().split("\n")
+        if not args.refresh:
+            lines = filter(lambda x: not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % x.strip()),
+                           lines)
         authority_slice_size = int(floor(float(len(lines))/args.num_authority_nodes))
         authority_keys = []
         for i in range(0, len(lines), authority_slice_size):

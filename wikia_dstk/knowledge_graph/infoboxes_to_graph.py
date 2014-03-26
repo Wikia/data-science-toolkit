@@ -17,7 +17,7 @@ def escape_value(string):
 
 
 def escape_key(string):
-    return escape_value(string.replace(u" ", u"_"))
+    return escape_value(string.replace(u" ", u"_")).upper()
 
 
 def handle_doc(tup):
@@ -33,7 +33,7 @@ def handle_doc(tup):
     if not name_nodes:
         page_node = db.nodes.create(ids=page_ids, name=name.encode('utf8'))
         page_node.labels.add(u'Page')
-        name_index[u'name'][name.encode('utf8')] = page_node
+        name_index[wid][name.encode('utf8')] = page_node
     else:
         page_node = name_nodes[0]
         try:
@@ -50,7 +50,7 @@ def handle_doc(tup):
         if len(splt) > 2:
             key = splt[1].lower().replace(u':', '').strip()
             value = u'|'.join(splt[2:]).strip().lower().encode(u'utf8')
-            props = [node for node in name_index[doc[u'wid']][value]]
+            props = [node for node in name_index[wid][value]]
             if not props:
                 box_node = db.nodes.create(name=value)
                 if u"Object" not in box_node.labels:
@@ -59,12 +59,13 @@ def handle_doc(tup):
             else:
                 box_node = props[0]
             try:
-                db.relationships.create(box_node, (u'is_%s_of' % escape_key(key)).encode('utf8'), page_node)
+                db.relationships.create(box_node, escape_key(key).encode(u'utf8'), page_node)
             except Exception as e:
                 print e
             if u"Subject" not in page_node.labels:
                 page_node.labels.add(u'Subject')
             box_nodes.append(box_node)
+            print u"\t(%s)-[:%s]->(%s)" % (name.encode(u'utf8'), escape_key(key).encode(u'utf8'), value.encode(u'utf8'))
 
     wiki_nodes = [node for node in wiki_index[u'wiki_id'][doc[u'wid']]]
     if not wiki_nodes:
@@ -87,12 +88,12 @@ def handle_doc(tup):
 def run_queries(args, pool, start=0):
     query_params = dict(q=u'iscontent:true AND lang:en AND infoboxes_txt:*', fl=u'id,title_en,infoboxes_txt,wid',
                         wt=u'json', start=start, rows=500)
-    response = requests.get(u'%s/select' % args.solr, params=query_params).json()
-
-    map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
-    if response[u'response'][u'numFound'] > query_params[u'start']:
-        return run_queries(args, pool, start+query_params[u'rows'])
-    return True
+    while True:
+        response = requests.get(u'%s/select' % args.solr, params=query_params).json()
+        pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+        if response[u'response'][u'numFound'] <= query_params[u'start']:
+            return True
+        query_params['start'] += query_params['rows']
 
 
 def main():

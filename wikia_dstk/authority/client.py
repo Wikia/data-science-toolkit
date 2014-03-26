@@ -94,7 +94,7 @@ def main():
             key.set_contents_from_string("\n".join(lines[i:i+authority_slice_size]))
             authority_keys.append(key.name)
 
-        log("Spinning up %d authority instances" % len(authority_keys))
+        log("Spinning up %d authority instances for %d wids" % (len(authority_keys), len(lines)))
         user_data_scripts = map(lambda x: authority_user_data(args, x), authority_keys)
         r = authority_connection.add_instances_async(user_data_scripts, wait=True)
         authority_instance_ids = [i for j in r.get() for i in j]

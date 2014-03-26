@@ -17,7 +17,7 @@ def escape_value(string):
 
 
 def escape_key(string):
-    return escape_value(string.replace(u" ", u"_")).upper()
+    return escape_value(string.replace(u" ", u"_"))
 
 
 def handle_doc(tup):
@@ -31,7 +31,7 @@ def handle_doc(tup):
     name_nodes = [node for node in name_index[wid][name.encode(u'utf8')]]
     page_ids = [doc[u'id']]
     if not name_nodes:
-        page_node = db.nodes.create(ids=page_ids, name=name.encode('utf8'))
+        page_node = db.nodes.create(ids=page_ids, name=name.encode(u'utf8'))
         page_node.labels.add(u'Page')
         name_index[wid][name.encode('utf8')] = page_node
     else:

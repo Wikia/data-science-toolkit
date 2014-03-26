@@ -41,7 +41,7 @@ def exists(wid):
 
 
 def not_processed(wid):
-    bucket = connect_s3().get_bucket('nlp-services')
+    bucket = connect_s3().get_bucket('nlp-data')
     return wid, not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % wid.strip())
 
 

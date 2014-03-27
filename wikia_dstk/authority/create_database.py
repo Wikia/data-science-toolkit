@@ -16,7 +16,7 @@ def get_args():
 def create_tables(args, db):
     cursor = db.cursor()
 
-    if args.wipe():
+    if args.wipe:
         cursor.execute("DROP DATABASE IF EXISTS authority")
 
     cursor.execute("CREATE DATABASE IF NOT EXISTS authority")

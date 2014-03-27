@@ -21,7 +21,7 @@ def get_args():
     ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
     ap.add_argument(u'-s', u'--s3path', dest=u's3path', default=u'datafiles/topwams.txt')
     ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True, action=u'store_false')
-    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', default=6)
+    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int, default=6)
     return ap.parse_known_args()
 
 

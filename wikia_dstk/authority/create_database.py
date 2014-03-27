@@ -9,11 +9,15 @@ def get_args():
     ap.add_argument('-p', '--password', dest='password', default='root')
     ap.add_argument('-d', '--database', dest='database', default='authority')
     ap.add_argument('-s', '--s3file', dest='s3file', default='datafiles/topwams.txt')
+    ap.add_argument('-w', '--no-wipe', dest='wipe', default=True, action='store_false')
     return ap.parse_known_args()
 
 
-def create_tables(db):
+def create_tables(args, db):
     cursor = db.cursor()
+
+    if args.wipe():
+        cursor.execute("DROP DATABASE IF EXISTS authority")
 
     cursor.execute("CREATE DATABASE IF NOT EXISTS authority")
     cursor.execute("USE authority")
@@ -96,7 +100,7 @@ def create_tables(db):
 def main():
     args, _ = get_args()
     db_connection = mdb.connect(args.host, args.user, args.password)
-    create_tables(db_connection)
+    create_tables(args, db_connection)
 
 
 if __name__ == '__main__':

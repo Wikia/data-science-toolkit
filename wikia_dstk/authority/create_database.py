@@ -195,15 +195,14 @@ def insert_data(args):
             cursor = db.cursor()
 
             for contribs in PageAuthorityService().get_value(doc_id, []):
-                print contribs
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
-                """ % (contribs[u'id'].decode(u'utf8'), contribs[u'user'].decode(u'utf8')))
+                """ % (contribs[u'userid'].decode(u'utf8'), contribs[u'user'].decode(u'utf8')))
                 db.commit()
 
                 cursor.execute(u"""
                 INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
-                """ % (article_id, wiki_id, contribs[u'id'].decode(u'utf8'), contribs[u'contribs']))
+                """ % (article_id, wiki_id, contribs[u'userid'].decode(u'utf8'), contribs[u'contribs']))
                 db.commit()
 
                 local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
@@ -211,7 +210,7 @@ def insert_data(args):
                     cursor.execute(u"""
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
-                    """ % (contribs[u'id'].decode(u'utf8'), topic_id, local_authority, local_authority))
+                    """ % (contribs[u'userid'].decode(u'utf8'), topic_id, local_authority, local_authority))
                 db.commit()
         db.commit()
 

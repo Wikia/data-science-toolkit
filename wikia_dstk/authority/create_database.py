@@ -129,8 +129,8 @@ def insert_data(args):
         return False
 
     cursor.execute("""
-    INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %f, "%s", "%s")
-    """ % (args.wid, float(items[args.wid]['wam_score']), items[args.wid]['title'], items[args.wid]['url']))
+    INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
+    """ % (args.wid, str(items[args.wid]['wam_score']), items[args.wid]['title'], items[args.wid]['url']))
 
     authority_dict = WikiAuthorityService().get_value(args.wid)
     if not authority_dict:
@@ -140,8 +140,8 @@ def insert_data(args):
     for key in authority_dict:
         wiki_id, article_id = key.split('_')
         cursor.execute("""
-        INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %d, %f)
-        """ % (key, article_id, wiki_id, float(authority_dict[key])))
+        INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
+        """ % (key, article_id, wiki_id, str(authority_dict[key])))
 
 
 def get_db_connection(args):

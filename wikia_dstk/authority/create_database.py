@@ -127,8 +127,9 @@ def create_tables(args):
 def insert_data(args):
     try:
         use_caching(is_read_only=True, shouldnt_compute=True)
-        db = get_db_connection(args, database=u'authority')
+        db = get_db_connection(args)
         cursor = db.cursor()
+        cursor.execute(U'USE authority')
 
         print u"Inserting wiki data for", args.wid
 
@@ -214,9 +215,9 @@ def insert_data(args):
         raise e
 
 
-def get_db_connection(args, database=None):
+def get_db_connection(args):
     return mdb.connect(host=args.host, user=args.user, passwd=args.password,
-                       use_unicode=True, charset=u'utf8', db=database)
+                       use_unicode=True, charset=u'utf8')
 
 
 def main():

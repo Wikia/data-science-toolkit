@@ -184,6 +184,7 @@ def insert_data(args):
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
         for page, contribs in pas.items():
+            print page, contribs
             page = u"_".join(page.split(u"_")[-2:])
             wiki_id, article_id = page.split(u"_")
             entity_data = wpe[page]

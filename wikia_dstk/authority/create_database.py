@@ -15,7 +15,7 @@ def get_args():
     ap.add_argument('-u', '--user', dest='user', default='root')
     ap.add_argument('-p', '--password', dest='password', default='root')
     ap.add_argument('-d', '--database', dest='database', default='authority')
-    ap.add_argument('-s', '--s3file', dest='s3file', default='datafiles/topwams.txt')
+    ap.add_argument('-s', '--s3path', dest='s3path', default='datafiles/topwams.txt')
     ap.add_argument('-w', '--no-wipe', dest='wipe', default=True, action='store_false')
     ap.add_argument('-n', '--num-processes', dest='num_processes', default=6)
     return ap.parse_known_args()

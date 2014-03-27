@@ -183,6 +183,7 @@ def insert_data(args):
         db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
+        print pas
         for page, contribs in pas.items():
             print page, contribs
             page = u"_".join(page.split(u"_")[-2:])

@@ -91,7 +91,7 @@ def create_tables(args):
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
-      UNIQUE KEY (doc_id, user_id, wiki_id)
+      UNIQUE KEY (article_id, user_id, wiki_id)
     ) ENGINE=InnoDB
     """)
 

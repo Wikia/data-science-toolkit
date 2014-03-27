@@ -133,8 +133,12 @@ def insert_data(args):
 
         print u"Inserting wiki data for", args.wid
 
-        items = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
-                             params={u'ids': args.wid}).json().get(u'items')
+        response = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
+                                params={u'ids': args.wid})
+
+        print response.encoding
+
+        items = response.json().get(u'items')
         if not items:
             return False
 

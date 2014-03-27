@@ -4,6 +4,7 @@ from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
 from nlp_services.authority import WikiAuthorityService
+import os
 import time
 import requests
 import MySQLdb as mdb
@@ -155,9 +156,13 @@ def main():
     create_tables(args)
     bucket = connect_s3().get_bucket('nlp-data')
     print "Getting and filtering wiki IDs"
-    wids = filter_wids([line.strip()
-                        for line in bucket.get_key(args.s3path).get_contents_as_string().split("\n")
-                        if line.strip()], True)
+    if os.path.exists('cached_wids'):
+        wids = [line.strip() for line in open('cached_wids', 'r').readlines() if line.strip()]
+    else:
+        wids = filter_wids([line.strip()
+                            for line in bucket.get_key(args.s3path).get_contents_as_string().split("\n")
+                            if line.strip()], True)
+        open('cached_wids', 'w').write("\n".join(wids))
     p = Pool(processes=args.num_processes)
     p.map_async(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids]).get()
     print "Finished in", (time.time() - start), "seconds"

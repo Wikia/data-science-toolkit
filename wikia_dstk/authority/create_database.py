@@ -168,7 +168,6 @@ def main():
         open('cached_wids', 'w').write("\n".join(wids))
     p = Pool(processes=args.num_processes)
     print "Inserting data"
-    map(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids])
     p.map_async(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids]).get()
     print "Finished in", (time.time() - start), "seconds"
 

@@ -169,7 +169,7 @@ def insert_data(args):
             for i in range(0, len(entity_list), 20):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
-                """ % u'", "'.join(entity_list[i:i+20]))
+                """ % u'"), ("'.join(entity_list[i:i+20]))
                 db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id

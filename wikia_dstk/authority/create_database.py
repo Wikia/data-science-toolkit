@@ -1,4 +1,11 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from . import filter_wids
+from boto import connect_s3
+from multiprocessing import Pool
+from nlp_services.caching import use_caching
+from nlp_services.authority import WikiAuthorityService
+import time
+import requests
 import MySQLdb as mdb
 
 
@@ -10,11 +17,15 @@ def get_args():
     ap.add_argument('-d', '--database', dest='database', default='authority')
     ap.add_argument('-s', '--s3file', dest='s3file', default='datafiles/topwams.txt')
     ap.add_argument('-w', '--no-wipe', dest='wipe', default=True, action='store_false')
+    ap.add_argument('-n', '--num-processes', dest='num_processes', default=6)
     return ap.parse_known_args()
 
 
-def create_tables(args, db):
+def create_tables(args):
+    db = get_db_connection(args)
     cursor = db.cursor()
+
+    print "Creating tables"
 
     if args.wipe:
         cursor.execute("DROP DATABASE IF EXISTS authority")
@@ -22,7 +33,7 @@ def create_tables(args, db):
     cursor.execute("CREATE DATABASE IF NOT EXISTS authority")
     cursor.execute("USE authority")
 
-    print "Creating table wikis..."
+    print "\tCreating table wikis..."
     cursor.execute("""
     CREATE TABLE  wikis (
       wiki_id INT PRIMARY KEY NOT NULL,
@@ -33,7 +44,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
-    print "Creating table articles..."
+    print "\tCreating table articles..."
     cursor.execute("""
     CREATE TABLE  articles (
       doc_id varchar(255) PRIMARY KEY NOT NULL,
@@ -47,7 +58,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
-    print "Creating table users..."
+    print "\tCreating table users..."
     cursor.execute("""
     CREATE TABLE  users (
       user_id INT PRIMARY KEY NOT NULL,
@@ -56,7 +67,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
-    print "Creating table topics..."
+    print "\tCreating table topics..."
     cursor.execute("""
     CREATE TABLE  topics (
       topic_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -66,7 +77,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
-    print "Creating table articles_users..."
+    print "\tCreating table articles_users..."
     cursor.execute("""
     CREATE TABLE  articles_users (
       doc_id VARCHAR(255) NOT NULL,
@@ -76,7 +87,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
-    print "Creating table topics_users..."
+    print "\tCreating table topics_users..."
     cursor.execute("""
     CREATE TABLE topics_users (
       topic_id INT NOT NULL,
@@ -88,7 +99,7 @@ def create_tables(args, db):
     ) ENGINE= InnoDB
     """)
 
-    print "Creating table articles_topics..."
+    print "\tCreating table articles_topics..."
     cursor.execute("""
     CREATE TABLE articles_topics (
       topic_id INT NOT NULL,
@@ -102,13 +113,54 @@ def create_tables(args, db):
     ) ENGINE= InnoDB
     """)
 
+    print "Created all tables"
 
+
+def insert_data(args):
+    use_caching(is_read_only=True, shouldnt_compute=True)
+    db = get_db_connection(args)
+    cursor = db.cursor()
+
+    print "Inserting wiki data for", args.wid
+
+    items = requests.get('http://www.wikia.com/api/v1/Wikis/Details', params={'ids': args.wid}).json().get('items')
+    if not items:
+        return False
+
+    cursor.execute("""
+    INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %f, "%s", "%s")
+    """ % (args.wid, items[args.wid]['wam_score'], items[args.wid]['title'], items[args.wid]['url']))
+
+    authority_dict = WikiAuthorityService().get_value(args.wid)
+    if not authority_dict:
+        return False
+
+    print "Inserting authority data for pages on wiki", args.wid
+    for key in authority_dict:
+        wiki_id, article_id = key.split('_')
+        cursor.execute("""
+        INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %d, %f)
+        """ % (key, article_id, wiki_id, authority_dict[key]))
+
+
+
+
+def get_db_connection(args):
+    return mdb.connect(args.host, args.user, args.password)
 
 
 def main():
     args, _ = get_args()
-    db_connection = mdb.connect(args.host, args.user, args.password)
-    create_tables(args, db_connection)
+
+    start = time.time()
+    create_tables(args)
+    bucket = connect_s3().get_bucket('nlp-data')
+    wids = filter_wids([line.strip()
+                        for line in bucket.get_key(args.s3path).get_contents_as_string().split("\n")
+                        if line.strip()], True)
+    p = Pool(processes=args.num_processes)
+    p.map_async(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids]).get()
+    print "Finished in", (time.time() - start), "seconds"
 
 
 if __name__ == '__main__':

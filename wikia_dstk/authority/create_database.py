@@ -96,6 +96,7 @@ def create_tables(db):
 def main():
     args, _ = get_args()
     db_connection = mdb.connect(args.host, args.user, args.password)
+    create_tables(db_connection)
 
 
 if __name__ == '__main__':

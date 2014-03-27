@@ -180,7 +180,7 @@ def insert_data(args):
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
             """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[key])))
 
-            entity_data = wpe[article_id]
+            entity_data = wpe.get(article_id, {})
             entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
             cursor.execute(u"""
             SELECT id FROM topics WHERE name IN ("%s")

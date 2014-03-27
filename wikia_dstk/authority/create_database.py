@@ -68,7 +68,7 @@ def create_tables(args):
       user_id INT PRIMARY KEY NOT NULL,
       user_name varchar(255) NOT NULL,
       total_authority FLOAT NULL,
-      total_authority_scaled FLOAT NULL,
+      total_authority_scaled FLOAT NULL
     ) ENGINE=InnoDB
     """)
 

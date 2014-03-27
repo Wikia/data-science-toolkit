@@ -191,6 +191,7 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
                 """ % (article_id, wiki_id, result[0]))
+            db.commit()
 
             cursor = db.cursor()
 
@@ -209,7 +210,7 @@ def insert_data(args):
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
                     """ % (contribs[u'user_id'].decode(u'utf8'), topic_id, local_authority, local_authority))
-
+                db.commit()
         db.commit()
 
     except Exception as e:

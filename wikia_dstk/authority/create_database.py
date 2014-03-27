@@ -159,7 +159,7 @@ def insert_data(args):
             """ % (key, article_id, wiki_id, str(authority_dict_fixed[key])))
 
         print u"Getting page authority for wiki", args.wid
-        pas = PageAuthorityService.get_value(wiki_id)
+        pas = PageAuthorityService().get_value(wiki_id)
         if not pas:
             return
 

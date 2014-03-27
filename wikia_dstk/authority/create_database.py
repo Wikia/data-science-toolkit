@@ -133,14 +133,15 @@ def insert_data(args):
 
         print u"Inserting wiki data for", args.wid
 
-        items = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details', params={u'ids': args.wid}).json().get(u'items')
+        items = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
+                             params={u'ids': args.wid}).json().get(u'items')
         if not items:
             return False
 
         wiki_data = items[args.wid]
 
         cursor.execute(u"""
-        INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, u"%s", u"%s")
+        INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
         """ % (args.wid, str(wiki_data[u'wam_score']).encode(u'utf8'),
                 wiki_data[u'title'].encode(u'utf8'), wiki_data[u'url'].encode(u'utf8')))
 
@@ -154,7 +155,7 @@ def insert_data(args):
         for key in authority_dict_fixed:
             wiki_id, article_id = key.split(u'_')
             cursor.execute(u"""
-            INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES (u"%s", %s, %s, %s)
+            INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
             u""" % (key, article_id, wiki_id, str(authority_dict[key])))
 
         print u"Getting page authority for wiki", args.wid
@@ -207,13 +208,9 @@ def insert_data(args):
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
                     """ % (author[u'user_id'].encode(u'utf8'), topic_id, local_authority, local_authority))
 
-
-
-
-
-
     except Exception as e:
         print e, traceback.format_exc()
+        raise e
 
 
 def get_db_connection(args):

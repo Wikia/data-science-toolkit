@@ -141,8 +141,8 @@ def insert_data(args):
 
     print "Inserting authority data for pages on wiki", args.wid
     for key in authority_dict:
-        print key
-        wiki_id, article_id = key.split('_')
+        splt = key.split('_')
+        wiki_id, article_id = splt[-2], splt[-1]   # fix stupid bug
         cursor.execute("""
         INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
         """ % (key, article_id, wiki_id, str(authority_dict[key])))

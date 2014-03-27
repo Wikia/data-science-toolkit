@@ -6,6 +6,7 @@ from nlp_services.caching import use_caching
 from nlp_services.authority import WikiAuthorityService, PageAuthorityService
 from nlp_services.discourse.entities import WikiPageToEntitiesService
 import os
+import json
 import traceback
 import time
 import requests
@@ -140,6 +141,7 @@ def insert_data(args):
         if not items:
             return False
 
+        wiki_id = args.wid
         wiki_data = items[args.wid]
 
         cursor.execute(u"""
@@ -166,13 +168,20 @@ def insert_data(args):
         print u"Getting page authority for wiki", args.wid
         pas = PageAuthorityService().get_value(wiki_id)
         if not pas:
-            print "NO PAGE AUTHORITY SERVICE FOR", args.wid
+            print u"NO PAGE AUTHORITY SERVICE FOR", args.wid
             return False
 
         wpe = WikiPageToEntitiesService().get_value(wiki_id)
         if not wpe:
-            print "NO WIKI PAGE TO ENTITIES SERVICE FOR", args.wid
-            return False
+            wpe = WikiPageToEntitiesService().get_value(u"%s_%s" % (wiki_id, wiki_id))
+            if not wpe:
+                print u"NO WIKI PAGE TO ENTITIES SERVICE FOR", wiki_id
+                bucket = connect_s3().get_bucket(u'nlp-data')
+                key = bucket.get_key(key_name=u'/service_responses/%s/%s/PageAuthorityService.get' % (wiki_id, wiki_id))
+                wpe = json.loads(key.get_contents_as_string(), ensure_ascii=False)
+                if not key:
+                    print u"NOT EVEN A FUCKING KEY", wiki_id
+                    return False
 
         print u"Priming entity data"
         for page, entity_data in wpe.items():

@@ -4,8 +4,7 @@ setup(name="wikia_dstk",
       version="0.0.1",
       author="Robert Elwell",
       author_email="robert.elwell@gmail.com",
-      description="A library for automated data science scripts that rely on" +
-      " NLP libs, etc.",
+      description="A library for automated data science scripts that rely on NLP libs, etc.",
       license="Other",
       packages=[
           "wikia_dstk.lda", "wikia_dstk.pipeline", "wikia_dstk.pipeline.event",
@@ -16,6 +15,6 @@ setup(name="wikia_dstk",
           "nlp_services>=0.0.1", "pyro4", "gensim", "scikit-learn", "requests",
           "boto", "nltk"],
       dependency_links=[
-          "https://github.com/relwell/nlp_services/archive/master.zip" +
-          "#egg=nlp_services-0.0.1"]
+          "https://github.com/relwell/nlp_services/archive/master.zip#egg=nlp_services-0.0.1"
+      ]
       )

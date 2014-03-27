@@ -195,6 +195,7 @@ def insert_data(args):
             cursor = db.cursor()
 
             for contribs in PageAuthorityService().get_value(doc_id, []):
+                print contribs
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
                 """ % (contribs[u'id'].decode(u'utf8'), contribs[u'user'].decode(u'utf8')))

@@ -140,9 +140,15 @@ def insert_data(args):
 
         wiki_data = items[args.wid]
 
+        #what's breaking
+        args.wid.encode(u'utf8')
+        str(wiki_data[u'wam_score']).decode(u'utf8')
+        wiki_data[u'title'].decode(u'utf8')
+        wiki_data[u'url'].decode(u'utf8')
+
         cursor.execute(u"""
         INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
-        """ % (args.wid, str(wiki_data[u'wam_score']).decode(u'utf8'),
+        """ % (args.wid.encode(u'utf8'), str(wiki_data[u'wam_score']).decode(u'utf8'),
                wiki_data[u'title'].decode(u'utf8'), wiki_data[u'url'].decode(u'utf8')))
 
         authority_dict = WikiAuthorityService().get_value(args.wid)

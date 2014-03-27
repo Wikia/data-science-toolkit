@@ -125,6 +125,10 @@ def create_tables(args):
     print u"Created all tables"
 
 
+def my_escape(s):
+    return s.replace(u'\\', u'').replace(u'"').replace(u"'")
+
+
 def insert_data(args):
     try:
         use_caching(is_read_only=True, shouldnt_compute=True)
@@ -165,7 +169,7 @@ def insert_data(args):
 
         print u"Priming entity data"
         for page, entity_data in wpe.items():
-            entity_list = map(db.escape,
+            entity_list = map(my_escape,
                               list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles'))))
             for i in range(0, len(entity_list), 20):
                 cursor.execute(u"""
@@ -181,7 +185,7 @@ def insert_data(args):
             """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
 
             entity_data = wpe.get(article_id, {})
-            entity_list = map(db.escape,
+            entity_list = map(my_escape,
                               list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', []))))
             cursor.execute(u"""
             SELECT topic_id FROM topics WHERE name IN ("%s")
@@ -199,7 +203,7 @@ def insert_data(args):
             for contribs in PageAuthorityService().get_value(doc_id, []):
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%d, "%s")
-                """ % (contribs[u'userid'], db.escape(contribs[u'user'])))
+                """ % (contribs[u'userid'], my_escape(contribs[u'user'])))
                 db.commit()
 
                 cursor.execute(u"""

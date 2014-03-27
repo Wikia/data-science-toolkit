@@ -215,7 +215,8 @@ def insert_data(args):
 
 
 def get_db_connection(args, database):
-    return mdb.connect(host=args.host, user=args.user, password=args.password, charset=u'utf8', database=database)
+    return mdb.connect(host=args.host, user=args.user, password=args.password,
+                       use_unicode=True, charset=u'utf8', database=database)
 
 
 def main():

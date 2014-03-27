@@ -129,11 +129,11 @@ def insert_data(args):
     if not items:
         return False
 
-    print items
+    wiki_data = items[args.wid]
 
     cursor.execute("""
     INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
-    """ % (args.wid, str(items[args.wid]['wam_score']), items[args.wid]['title'], items[args.wid]['url']))
+    """ % (args.wid, str(wiki_data['wam_score']), wiki_data['title'], wiki_data[args.wid]['url']))
 
     authority_dict = WikiAuthorityService().get_value(args.wid)
     if not authority_dict:
@@ -167,6 +167,7 @@ def main():
         open('cached_wids', 'w').write("\n".join(wids))
     p = Pool(processes=args.num_processes)
     print "Inserting data"
+    map(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids])
     p.map_async(insert_data, [Namespace(wid=wid, **vars(args)) for wid in wids]).get()
     print "Finished in", (time.time() - start), "seconds"
 

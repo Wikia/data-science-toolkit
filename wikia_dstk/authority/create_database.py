@@ -214,7 +214,7 @@ def insert_data(args):
         raise e
 
 
-def get_db_connection(args, database):
+def get_db_connection(args, database=None):
     return mdb.connect(host=args.host, user=args.user, password=args.password,
                        use_unicode=True, charset=u'utf8', database=database)
 

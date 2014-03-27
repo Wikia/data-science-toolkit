@@ -129,6 +129,8 @@ def insert_data(args):
     if not items:
         return False
 
+    print items
+
     cursor.execute("""
     INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
     """ % (args.wid, str(items[args.wid]['wam_score']), items[args.wid]['title'], items[args.wid]['url']))

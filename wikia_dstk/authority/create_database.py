@@ -126,7 +126,7 @@ def create_tables(args):
 
 
 def my_escape(s):
-    return s.replace(u'\\', u'').replace(u'"').replace(u"'")
+    return s.replace(u'\\', u'').replace(u'"', u'').replace(u"'", u'')
 
 
 def insert_data(args):

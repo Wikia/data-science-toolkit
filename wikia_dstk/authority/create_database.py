@@ -198,6 +198,8 @@ def insert_data(args):
                 INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
                 """ % (article_id, wiki_id, result[0]))
 
+            cursor = db.cursor()
+
             for author in contribs:
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")

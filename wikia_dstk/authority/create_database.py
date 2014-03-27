@@ -166,11 +166,11 @@ def insert_data(args):
         print u"Priming entity data"
         for page, entity_data in wpe.items():
             entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
-            for entity in entity_list:
+            for i in range(0, len(entity_list), 20):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
-                """ % entity)
-            db.commit()
+                """ % u'", "'.join(entity_list[i:i+20]))
+                db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
         for doc_id in authority_dict_fixed:

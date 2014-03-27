@@ -177,6 +177,7 @@ def insert_data(args):
                     print u"NOT EVEN A FUCKING KEY", wiki_id
                     return False
                 pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
+                print pas
 
         wpe = WikiPageToEntitiesService().get_value(wiki_id)
         if not wpe:
@@ -194,7 +195,7 @@ def insert_data(args):
         db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
-        for page, contribs in pas:
+        for page, contribs in pas.items():
             page = u"_".join(page.split(u"_")[-2:])
             wiki_id, article_id = page.split(u"_")
             entity_data = wpe[page]

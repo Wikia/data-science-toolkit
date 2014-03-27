@@ -22,6 +22,7 @@ def create_tables(args, db):
     cursor.execute("CREATE DATABASE IF NOT EXISTS authority")
     cursor.execute("USE authority")
 
+    print "Creating table wikis..."
     cursor.execute("""
     CREATE TABLE  wikis (
       wiki_id INT PRIMARY KEY NOT NULL,
@@ -32,6 +33,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
+    print "Creating table articles..."
     cursor.execute("""
     CREATE TABLE  articles (
       doc_id varchar(255) PRIMARY KEY NOT NULL,
@@ -45,6 +47,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
+    print "Creating table users..."
     cursor.execute("""
     CREATE TABLE  users (
       user_id INT PRIMARY KEY NOT NULL,
@@ -53,6 +56,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
+    print "Creating table topics..."
     cursor.execute("""
     CREATE TABLE  topics (
       topic_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -61,6 +65,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
+    print "Creating table articles_users..."
     cursor.execute("""
     CREATE TABLE  articles_users (
       doc_id VARCHAR(255) NOT NULL,
@@ -70,6 +75,7 @@ def create_tables(args, db):
     ) ENGINE=InnoDB
     """)
 
+    print "Creating table topics_users..."
     cursor.execute("""
     CREATE TABLE topics_users (
       topic_id INT NOT NULL,
@@ -81,6 +87,7 @@ def create_tables(args, db):
     ) ENGINE= InnoDB
     """)
 
+    print "Creating table articles_topics..."
     cursor.execute("""
     CREATE TABLE articles_topics (
       topic_id INT NOT NULL,

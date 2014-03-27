@@ -156,7 +156,7 @@ def insert_data(args):
             wiki_id, article_id = key.split(u'_')
             cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
-            u""" % (key, article_id, wiki_id, str(authority_dict[key])))
+            u""" % (key, article_id, wiki_id, str(authority_dict_fixed[key])))
 
         print u"Getting page authority for wiki", args.wid
         pas = PageAuthorityService.get_value(wiki_id)

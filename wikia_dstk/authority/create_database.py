@@ -3,8 +3,10 @@ from . import filter_wids
 from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
-from nlp_services.authority import WikiAuthorityService
+from nlp_services.authority import WikiAuthorityService, PageAuthorityService
+from nlp_services.discourse.entities import WikiPageToEntitiesService
 import os
+import traceback
 import time
 import requests
 import MySQLdb as mdb
@@ -44,7 +46,7 @@ def create_tables(args):
       url VARCHAR(255) NULL,
       authority FLOAT NULL
     ) ENGINE=InnoDB
-    u""")
+    """)
 
     print u"\tCreating table articles..."
     cursor.execute(u"""
@@ -58,48 +60,53 @@ def create_tables(args):
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       UNIQUE KEY (article_id, wiki_id)
     ) ENGINE=InnoDB
-    u""")
+    """)
 
     print u"\tCreating table users..."
     cursor.execute(u"""
     CREATE TABLE  users (
       user_id INT PRIMARY KEY NOT NULL,
-      username varchar(255) NOT NULL,
-      total_authority FLOAT NULL
+      user_name varchar(255) NOT NULL,
+      total_authority FLOAT NULL,
+      total_authority_scaled FLOAT NULL,
     ) ENGINE=InnoDB
-    u""")
+    """)
 
     print u"\tCreating table topics..."
     cursor.execute(u"""
     CREATE TABLE  topics (
       topic_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
       name VARCHAR(255) NOT NULL,
-      total_authority FLOAT NULL,
       UNIQUE KEY (name)
     ) ENGINE=InnoDB
-    u""")
+    """)
 
     print u"\tCreating table articles_users..."
     cursor.execute(u"""
     CREATE TABLE  articles_users (
-      doc_id VARCHAR(255) NOT NULL,
+      article_id INT NOT NULL,
+      wiki_id INT NOT NULL,
       user_id INT NOT NULL,
-      authority FLOAT NOT NULL,
-      UNIQUE KEY (doc_id, user_id)
+      contribs FLOAT NOT NULL,
+      FOREIGN KEY (article_id) REFERENCES articles(article_id),
+      FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
+      FOREIGN KEY (user_id) REFERENCES users(user_id),
+      UNIQUE KEY (doc_id, user_id, wiki_id)
     ) ENGINE=InnoDB
-    u""")
+    """)
 
     print u"\tCreating table topics_users..."
     cursor.execute(u"""
     CREATE TABLE topics_users (
       topic_id INT NOT NULL,
       user_id INT NOT NULL,
-      authority FLOAT NULL,
+      local_authority FLOAT NULL,
+      scaled_authority FLOAT NULL,
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
       UNIQUE KEY (topic_id, user_id)
     ) ENGINE= InnoDB
-    u""")
+    """)
 
     print u"\tCreating table articles_topics..."
     cursor.execute(u"""
@@ -107,47 +114,106 @@ def create_tables(args):
       topic_id INT NOT NULL,
       article_id INT NOT NULL,
       wiki_id INT NOT NULL,
-      authority FLOAT NULL,
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       UNIQUE KEY (topic_id, wiki_id, article_id)
     ) ENGINE= InnoDB
-    u""")
+    """)
 
     print u"Created all tables"
 
 
 def insert_data(args):
-    use_caching(is_read_only=True, shouldnt_compute=True)
-    db = get_db_connection(args)
-    cursor = db.cursor()
-    cursor.execute(u"USE authority")
+    try:
+        use_caching(is_read_only=True, shouldnt_compute=True)
+        db = get_db_connection(args)
+        cursor = db.cursor()
+        cursor.execute(u"USE authority")
 
-    print u"Inserting wiki data for", args.wid
+        print u"Inserting wiki data for", args.wid
 
-    items = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details', params={u'ids': args.wid}).json().get(u'items')
-    if not items:
-        return False
+        items = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details', params={u'ids': args.wid}).json().get(u'items')
+        if not items:
+            return False
 
-    wiki_data = items[args.wid]
+        wiki_data = items[args.wid]
 
-    cursor.execute(u"""
-    INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, u"%s", u"%s")
-    u""" % (args.wid, str(wiki_data[u'wam_score']).encode(u'utf8'),
-            wiki_data[u'title'].encode(u'utf8'), wiki_data[u'url'].encode(u'utf8')))
-
-    authority_dict = WikiAuthorityService().get_value(args.wid)
-    if not authority_dict:
-        return False
-
-    print u"Inserting authority data for pages on wiki", args.wid
-    for key in authority_dict:
-        splt = key.split(u'_')
-        wiki_id, article_id = splt[-2], splt[-1]   # fix stupid bug
         cursor.execute(u"""
-        INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES (u"%s", %s, %s, %s)
-        u""" % (key, article_id, wiki_id, str(authority_dict[key])))
+        INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, u"%s", u"%s")
+        """ % (args.wid, str(wiki_data[u'wam_score']).encode(u'utf8'),
+                wiki_data[u'title'].encode(u'utf8'), wiki_data[u'url'].encode(u'utf8')))
+
+        authority_dict = WikiAuthorityService().get_value(args.wid)
+        if not authority_dict:
+            return False
+
+        print u"Inserting authority data for pages on wiki", args.wid
+        authority_dict_fixed = dict([(key.split(u'_')[-2]+u'_'+key.split(u'_')[-1], val)
+                                     for key, val in authority_dict.items()])
+        for key in authority_dict_fixed:
+            wiki_id, article_id = key.split(u'_')
+            cursor.execute(u"""
+            INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES (u"%s", %s, %s, %s)
+            u""" % (key, article_id, wiki_id, str(authority_dict[key])))
+
+        print u"Getting page authority for wiki", args.wid
+        pas = PageAuthorityService.get_value(wiki_id)
+        if not pas:
+            return
+
+        wpe = WikiPageToEntitiesService().get_value(wiki_id)
+        if not wpe:
+            return
+
+        print u"Priming entity data"
+        for page, entity_data in wpe.items():
+            entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
+            for entity in entity_list:
+                cursor.execute(u"""
+                INSERT IGNORE INTO topics (name) VALUES ("%s")
+                """ % entity)
+
+        print u"Inserting page and author and contrib data for wiki", wiki_id
+        for page, contribs in pas.items():
+            page = u"_".join(page.split(u"_")[-2:])
+            wiki_id, article_id = page.split(u"_")
+            entity_data = wpe[page]
+            entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
+            cursor.execute(u"""
+            SELECT id FROM topics WHERE name IN ("%s")
+            """ % (u'", "'.join(entity_list)))
+            topic_ids = []
+            for result in cursor.fetchall():
+                topic_ids.append(result[0])
+                cursor.execute(u"""
+                INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
+                """ % (article_id, wiki_id, result[0]))
+
+            for author in contribs:
+                cursor.execute(u"""
+                INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
+                """ % (author[u'user_id'].encode(u'utf8'), author[u'user'].encode(u'utf8')))
+
+                cursor.execute(u"""
+                INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
+                """ % (article_id, wiki_id, author[u'user_id'].encode(u'utf8'), author[u'contribs']))
+
+                local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
+
+                for topic_id in topic_ids:
+                    cursor.execute(u"""
+                    INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
+                    """ % (author[u'user_id'].encode(u'utf8'), topic_id, local_authority, local_authority))
+
+
+
+
+
+
+    except Exception as e:
+        print e, traceback.format_exc()
 
 
 def get_db_connection(args):

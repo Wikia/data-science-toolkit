@@ -36,7 +36,7 @@ def create_tables(db):
       pageviews INT NULL,
       local_authority FLOAT NULL,
       global_authority FLOAT NULL,
-      FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id)
+      FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       UNIQUE KEY (article_id, wiki_id)
     ) ENGINE=InnoDB
     """)

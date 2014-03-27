@@ -142,8 +142,8 @@ def insert_data(args):
 
         cursor.execute(u"""
         INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
-        """ % (args.wid, str(wiki_data[u'wam_score']).encode(u'utf8'),
-                wiki_data[u'title'].encode(u'utf8'), wiki_data[u'url'].encode(u'utf8')))
+        """ % (args.wid, str(wiki_data[u'wam_score']).decode(u'utf8'),
+               wiki_data[u'title'].decode(u'utf8'), wiki_data[u'url'].decode(u'utf8')))
 
         authority_dict = WikiAuthorityService().get_value(args.wid)
         if not authority_dict:
@@ -194,11 +194,11 @@ def insert_data(args):
             for author in contribs:
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
-                """ % (author[u'user_id'].encode(u'utf8'), author[u'user'].encode(u'utf8')))
+                """ % (author[u'user_id'].decode(u'utf8'), author[u'user'].decode(u'utf8')))
 
                 cursor.execute(u"""
                 INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
-                """ % (article_id, wiki_id, author[u'user_id'].encode(u'utf8'), author[u'contribs']))
+                """ % (article_id, wiki_id, author[u'user_id'].decode(u'utf8'), author[u'contribs']))
 
                 local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
 
@@ -206,7 +206,7 @@ def insert_data(args):
                     cursor.execute(u"""
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
-                    """ % (author[u'user_id'].encode(u'utf8'), topic_id, local_authority, local_authority))
+                    """ % (author[u'user_id'].decode(u'utf8'), topic_id, local_authority, local_authority))
 
     except Exception as e:
         print e, traceback.format_exc()

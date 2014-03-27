@@ -6,7 +6,7 @@ def get_args():
     ap = ArgumentParser()
     ap.add_argument('--host', dest='host', default='localhost')
     ap.add_argument('-u', '--user', dest='user', default='root')
-    ap.add_argument('-p', '--password', dest='pass', default='root')
+    ap.add_argument('-p', '--password', dest='password', default='root')
     ap.add_argument('-d', '--database', dest='database', default='authority')
     ap.add_argument('-s', '--s3file', dest='s3file', default='datafiles/topwams.txt')
     return ap.parse_known_args()

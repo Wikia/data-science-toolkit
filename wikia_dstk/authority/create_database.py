@@ -133,7 +133,7 @@ def insert_data(args):
 
     cursor.execute("""
     INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
-    """ % (args.wid, str(wiki_data['wam_score']), wiki_data['title'], wiki_data[args.wid]['url']))
+    """ % (args.wid, str(wiki_data['wam_score']), wiki_data['title'], wiki_data['url']))
 
     authority_dict = WikiAuthorityService().get_value(args.wid)
     if not authority_dict:

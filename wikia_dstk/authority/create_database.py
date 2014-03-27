@@ -182,7 +182,7 @@ def insert_data(args):
             entity_data = wpe.get(article_id, {})
             entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', [])))
             cursor.execute(u"""
-            SELECT id FROM topics WHERE name IN ("%s")
+            SELECT topic_id FROM topics WHERE name IN ("%s")
             """ % (u'", "'.join(entity_list)))
             topic_ids = []
             for result in cursor.fetchall():

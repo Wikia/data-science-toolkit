@@ -147,7 +147,7 @@ def insert_data(args):
         cursor.execute(u"""
         INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
         """ % (args.wid, str(wiki_data[u'wam_score']),
-               wiki_data[u'title'], wiki_data[u'url']))
+               db.escape(wiki_data[u'title']), wiki_data[u'url']))
         db.commit()
 
         authority_dict = WikiAuthorityService().get_value(args.wid)
@@ -165,7 +165,8 @@ def insert_data(args):
 
         print u"Priming entity data"
         for page, entity_data in wpe.items():
-            entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
+            entity_list = map(db.escape,
+                              list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles'))))
             for i in range(0, len(entity_list), 20):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
@@ -180,7 +181,8 @@ def insert_data(args):
             """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
 
             entity_data = wpe.get(article_id, {})
-            entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', [])))
+            entity_list = map(db.escape,
+                              list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', []))))
             cursor.execute(u"""
             SELECT topic_id FROM topics WHERE name IN ("%s")
             """ % (u'", "'.join(entity_list)))
@@ -197,7 +199,7 @@ def insert_data(args):
             for contribs in PageAuthorityService().get_value(doc_id, []):
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%d, "%s")
-                """ % (contribs[u'userid'], contribs[u'user']))
+                """ % (contribs[u'userid'], db.escape(contribs[u'user'])))
                 db.commit()
 
                 cursor.execute(u"""

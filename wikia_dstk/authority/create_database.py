@@ -168,20 +168,20 @@ def insert_data(args):
         print u"Getting page authority for wiki", args.wid
         pas = PageAuthorityService().get_value(wiki_id)
         if not pas:
-            print u"NO PAGE AUTHORITY SERVICE FOR", args.wid
-            return False
-
-        wpe = WikiPageToEntitiesService().get_value(wiki_id)
-        if not wpe:
-            wpe = WikiPageToEntitiesService().get_value(u"%s_%s" % (wiki_id, wiki_id))
-            if not wpe:
-                print u"NO WIKI PAGE TO ENTITIES SERVICE FOR", wiki_id
+            pas = PageAuthorityService().get_value(wiki_id+u"_"+wiki_id)  # maybe a bug?
+            if not pas:
+                print u"NO PAGE AUTHORITY SERVICE FOR", args.wid
                 bucket = connect_s3().get_bucket(u'nlp-data')
                 key = bucket.get_key(key_name=u'/service_responses/%s/%s/PageAuthorityService.get' % (wiki_id, wiki_id))
-                wpe = json.loads(key.get_contents_as_string(), ensure_ascii=False)
+                pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
                 if not key:
                     print u"NOT EVEN A FUCKING KEY", wiki_id
                     return False
+
+        wpe = WikiPageToEntitiesService().get_value(wiki_id)
+        if not wpe:
+            print u"NO WIKI PAGE TO ENTITIES SERVICE FOR", wiki_id
+            return False
 
         print u"Priming entity data"
         for page, entity_data in wpe.items():

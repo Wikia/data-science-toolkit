@@ -213,6 +213,7 @@ def insert_data(args):
                     """ % (contribs[u'userid'], topic_id, local_authority, local_authority))
                 db.commit()
         db.commit()
+        print u"Done with", args.wid
 
     except Exception as e:
         print e, traceback.format_exc()

@@ -170,8 +170,7 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
                 """ % entity)
-
-        db.commit()
+            db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
         for doc_id in authority_dict_fixed:
@@ -191,7 +190,7 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
                 """ % (article_id, wiki_id, result[0]))
-            db.commit()
+                db.commit()
 
             cursor = db.cursor()
 
@@ -199,10 +198,12 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
                 """ % (contribs[u'user_id'].decode(u'utf8'), contribs[u'user'].decode(u'utf8')))
+                db.commit()
 
                 cursor.execute(u"""
                 INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
                 """ % (article_id, wiki_id, contribs[u'user_id'].decode(u'utf8'), contribs[u'contribs']))
+                db.commit()
 
                 local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
                 for topic_id in topic_ids:

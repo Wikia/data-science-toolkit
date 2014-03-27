@@ -62,6 +62,7 @@ def create_tables(args, db):
       topic_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
       name VARCHAR(255) NOT NULL,
       total_authority FLOAT NULL,
+      UNIQUE KEY (name)
     ) ENGINE=InnoDB
     """)
 

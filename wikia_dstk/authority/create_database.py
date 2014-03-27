@@ -167,7 +167,7 @@ def insert_data(args):
             print u"NO WIKI PAGE TO ENTITIES SERVICE FOR", wiki_id
             return False
 
-        print u"Priming entity data"
+        print u"Priming entity data on", wiki_id
         for page, entity_data in wpe.items():
             entity_list = map(my_escape,
                               list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles'))))

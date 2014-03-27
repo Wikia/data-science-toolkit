@@ -173,10 +173,10 @@ def insert_data(args):
                 print u"NO PAGE AUTHORITY SERVICE FOR", args.wid
                 bucket = connect_s3().get_bucket(u'nlp-data')
                 key = bucket.get_key(key_name=u'/service_responses/%s/%s/PageAuthorityService.get' % (wiki_id, wiki_id))
-                pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
                 if not key:
                     print u"NOT EVEN A FUCKING KEY", wiki_id
                     return False
+                pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
 
         wpe = WikiPageToEntitiesService().get_value(wiki_id)
         if not wpe:

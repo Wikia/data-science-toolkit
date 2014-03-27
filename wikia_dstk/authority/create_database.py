@@ -129,7 +129,7 @@ def insert_data(args):
 
     cursor.execute("""
     INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %f, "%s", "%s")
-    """ % (args.wid, items[args.wid]['wam_score'], items[args.wid]['title'], items[args.wid]['url']))
+    """ % (args.wid, float(items[args.wid]['wam_score']), items[args.wid]['title'], items[args.wid]['url']))
 
     authority_dict = WikiAuthorityService().get_value(args.wid)
     if not authority_dict:
@@ -140,9 +140,7 @@ def insert_data(args):
         wiki_id, article_id = key.split('_')
         cursor.execute("""
         INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %d, %f)
-        """ % (key, article_id, wiki_id, authority_dict[key]))
-
-
+        """ % (key, article_id, wiki_id, float(authority_dict[key])))
 
 
 def get_db_connection(args):
@@ -155,6 +153,7 @@ def main():
     start = time.time()
     create_tables(args)
     bucket = connect_s3().get_bucket('nlp-data')
+    print "Getting and filtering wiki IDs"
     wids = filter_wids([line.strip()
                         for line in bucket.get_key(args.s3path).get_contents_as_string().split("\n")
                         if line.strip()], True)

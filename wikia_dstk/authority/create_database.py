@@ -157,28 +157,6 @@ def insert_data(args):
         print u"Inserting authority data for pages on wiki", args.wid
         authority_dict_fixed = dict([(key.split(u'_')[-2]+u'_'+key.split(u'_')[-1], val)
                                      for key, val in authority_dict.items()])
-        for key in authority_dict_fixed:
-            wiki_id, article_id = key.split(u'_')
-            cursor.execute(u"""
-            INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
-            """ % (key, article_id, wiki_id, str(authority_dict_fixed[key])))
-
-        db.commit()
-
-        print u"Getting page authority for wiki", args.wid
-        pas = PageAuthorityService().get_value(wiki_id)
-        if not pas:
-            pas = PageAuthorityService().get_value(wiki_id+u"_"+wiki_id)  # maybe a bug?
-            if not pas:
-                print u"NO PAGE AUTHORITY SERVICE FOR", args.wid
-                bucket = connect_s3().get_bucket(u'nlp-data')
-                key = bucket.get_key(key_name=u'/service_responses/%s/%s/PageAuthorityService.get' % (wiki_id, wiki_id))
-                if not key:
-                    print u"NOT EVEN A FUCKING KEY", wiki_id
-                    return False
-                pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
-
-        print pas
 
         wpe = WikiPageToEntitiesService().get_value(wiki_id)
         if not wpe:
@@ -196,10 +174,13 @@ def insert_data(args):
         db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
-        for page, contribs in pas.items():
-            page = u"_".join(page.split(u"_")[-2:])
-            wiki_id, article_id = page.split(u"_")
-            entity_data = wpe[page]
+        for doc_id in authority_dict_fixed:
+            wiki_id, article_id = doc_id.split(u'_')
+            cursor.execute(u"""
+            INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
+            """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[key])))
+
+            entity_data = wpe[article_id]
             entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles')))
             cursor.execute(u"""
             SELECT id FROM topics WHERE name IN ("%s")
@@ -213,22 +194,22 @@ def insert_data(args):
 
             cursor = db.cursor()
 
-            for author in contribs:
+            for contribs in PageAuthorityService().get_value(doc_id, []):
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
-                """ % (author[u'user_id'].decode(u'utf8'), author[u'user'].decode(u'utf8')))
+                """ % (contribs[u'user_id'].decode(u'utf8'), contribs[u'user'].decode(u'utf8')))
 
                 cursor.execute(u"""
                 INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
-                """ % (article_id, wiki_id, author[u'user_id'].decode(u'utf8'), author[u'contribs']))
+                """ % (article_id, wiki_id, contribs[u'user_id'].decode(u'utf8'), contribs[u'contribs']))
 
                 local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
-
                 for topic_id in topic_ids:
                     cursor.execute(u"""
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
-                    """ % (author[u'user_id'].decode(u'utf8'), topic_id, local_authority, local_authority))
+                    """ % (contribs[u'user_id'].decode(u'utf8'), topic_id, local_authority, local_authority))
+
         db.commit()
 
     except Exception as e:

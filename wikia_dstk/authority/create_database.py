@@ -160,7 +160,8 @@ def insert_data(args):
             cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
             """ % (key, article_id, wiki_id, str(authority_dict_fixed[key])))
-            db.commit()
+
+        db.commit()
 
         print u"Getting page authority for wiki", args.wid
         pas = PageAuthorityService().get_value(wiki_id)
@@ -178,7 +179,8 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
                 """ % entity)
-                db.commit()
+
+        db.commit()
 
         print u"Inserting page and author and contrib data for wiki", wiki_id
         for page, contribs in pas.items():
@@ -195,18 +197,15 @@ def insert_data(args):
                 cursor.execute(u"""
                 INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
                 """ % (article_id, wiki_id, result[0]))
-                db.commit()
 
             for author in contribs:
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%s, "%s")
                 """ % (author[u'user_id'].decode(u'utf8'), author[u'user'].decode(u'utf8')))
-                db.commit()
 
                 cursor.execute(u"""
                 INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, "%s", %s)
                 """ % (article_id, wiki_id, author[u'user_id'].decode(u'utf8'), author[u'contribs']))
-                db.commit()
 
                 local_authority = contribs[u'contribs'] * authority_dict_fixed.get(page, 0)
 
@@ -215,7 +214,7 @@ def insert_data(args):
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
                     """ % (author[u'user_id'].decode(u'utf8'), topic_id, local_authority, local_authority))
-                    db.commit()
+        db.commit()
 
     except Exception as e:
         print e, traceback.format_exc()

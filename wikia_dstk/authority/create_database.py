@@ -177,7 +177,8 @@ def insert_data(args):
                     print u"NOT EVEN A FUCKING KEY", wiki_id
                     return False
                 pas = json.loads(key.get_contents_as_string(), ensure_ascii=False)
-                print pas
+
+        print pas
 
         wpe = WikiPageToEntitiesService().get_value(wiki_id)
         if not wpe:

@@ -120,6 +120,7 @@ def insert_data(args):
     use_caching(is_read_only=True, shouldnt_compute=True)
     db = get_db_connection(args)
     cursor = db.cursor()
+    cursor.execute("USE authority")
 
     print "Inserting wiki data for", args.wid
 

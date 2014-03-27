@@ -52,7 +52,7 @@ def create_tables(args, db):
     CREATE TABLE  users (
       user_id INT PRIMARY KEY NOT NULL,
       username varchar(255) NOT NULL,
-      total_authority FLOAT NULL,
+      total_authority FLOAT NULL
     ) ENGINE=InnoDB
     """)
 

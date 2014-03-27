@@ -136,24 +136,16 @@ def insert_data(args):
         response = requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
                                 params={u'ids': args.wid})
 
-        print response.encoding
-
         items = response.json().get(u'items')
         if not items:
             return False
 
         wiki_data = items[args.wid]
 
-        #what's breaking
-        args.wid.encode(u'utf8')
-        str(wiki_data[u'wam_score']).encode(u'utf8')
-        wiki_data[u'title'].encode(u'utf8')
-        wiki_data[u'url'].encode(u'utf8')
-
-        cursor.execute(u"""
+        cursor.execute((u"""
         INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
-        """ % (args.wid.encode(u'utf8'), str(wiki_data[u'wam_score']).decode(u'utf8'),
-               wiki_data[u'title'].decode(u'utf8'), wiki_data[u'url'].decode(u'utf8')))
+        """ % (args.wid.encode(u'utf8'), str(wiki_data[u'wam_score']).encode(u'utf8'),
+               wiki_data[u'title'].encode(u'utf8'), wiki_data[u'url'].encode(u'utf8'))).encode(u"utf8"))
 
         authority_dict = WikiAuthorityService().get_value(args.wid)
         if not authority_dict:

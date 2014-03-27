@@ -94,7 +94,7 @@ def create_tables(db):
 
 
 def main():
-    args = get_args()
+    args, _ = get_args()
     db_connection = mdb.connect(args.host, args.user, args.password)
 
 

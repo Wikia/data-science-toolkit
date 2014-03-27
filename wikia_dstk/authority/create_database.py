@@ -177,7 +177,7 @@ def insert_data(args):
             wiki_id, article_id = doc_id.split(u'_')
             cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES ("%s", %s, %s, %s)
-            """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[key])))
+            """ % (doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
 
             entity_data = wpe.get(article_id, {})
             entity_list = list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', [])))

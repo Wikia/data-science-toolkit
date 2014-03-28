@@ -33,9 +33,8 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
     print "getting here"
     try:
         sentence_index = db.nodes.indexes.get(u'sentence')
-        wiki_word_index = db.nodes.indexes.get(u'wiki_word')
         doc_sent_id = u"_".join([wiki_id, doc, sentence])
-        word_id = word_xml.get(u'idx')
+        word_id = int(word_xml.get(u'idx'))
         word = word_xml.text.encode(u'utf8')
         word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
         if not word_nodes:
@@ -44,11 +43,6 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
             word_node = db.nodes.create(**params)
             word_node.labels.add(u'Word')
             sentence_index[doc_sent_id][word_id] = word_node
-            words = wiki_word_index[wiki_id][word]
-            if words:
-                wiki_word_index[wiki_id][word] += [word_node]
-            else:
-                wiki_word_index[wiki_id][word] = [word_node]
         else:
             word_node = word_nodes[0]
         return word_node

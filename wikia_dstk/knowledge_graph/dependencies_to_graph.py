@@ -25,7 +25,7 @@ for $document in $documents
             return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
                     {$dependency}
                    &lt;/dependencywrapper&gt;
-</text></query>""" % (wid, offset, limit)
+</text></query>""" % (offset, limit, wid)
 
 
 def node_from_index(db, wiki_id, doc, sentence, word_xml):

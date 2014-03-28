@@ -21,11 +21,13 @@ def get_query(wid, offset=1, limit=500):
 xquery version "3.0";
 let $documents := collection("/db/%s/")
 for $document in $documents
+    return <document base-uri="{fn:base-uri($document)}">{
     for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
         for $dependency in $dependencies
             return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
                     {$dependency}
                    &lt;/dependencywrapper&gt;
+    }</document>
 </text></query>""" % (offset, limit, wid)
 
 
@@ -50,19 +52,20 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
         raise e
 
 
-def process_dependency(args):
+def process_dependencies(args):
     try:
         db = GraphDatabase(args.neo4j)
-        wrapper = etree.fromstring(args.xml)
-        doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
-        sentence = wrapper.get(u'sentence')
-        for dependency in wrapper[0]:
-            try:
-                governor = node_from_index(db, args.wiki_id, doc, sentence, dependency[0])
-                dependent = node_from_index(db, args.wiki_id, doc, sentence, dependency[1])
-                db.relationships.create(governor, dependency.get(u'type'), dependent)
-            except IndexError:
-                continue
+        document = etree.fromstring(args.xml)
+        doc_id = document.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
+        for wrapper in document:
+            sentence = wrapper.get(u'sentence')
+            for dependency in wrapper[0]:
+                try:
+                    governor = node_from_index(db, args.wiki_id, doc_id, sentence, dependency[0])
+                    dependent = node_from_index(db, args.wiki_id, doc_id, sentence, dependency[1])
+                    db.relationships.create(governor, dependency.get(u'type'), dependent)
+                except IndexError:
+                    continue
     except Exception as e:
         print e, traceback.format_exc()
         raise e
@@ -96,7 +99,7 @@ def main():
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        map(process_dependency,
+        map(process_dependencies,
             [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')

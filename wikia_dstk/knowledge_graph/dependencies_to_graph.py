@@ -40,7 +40,6 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
         word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
         if not word_nodes:
             params = dict(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
-            print params
             word_node = db.nodes.create(**params)
             word_node.labels.add(u'Word')
             sentence_index[doc_sent_id][word_id] = word_node
@@ -55,7 +54,6 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
 def process_dependencies(args):
     try:
         db = GraphDatabase(args.neo4j)
-        print args.xml
         document = etree.fromstring(args.xml)
         doc_id = document.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
         for wrapper in document:
@@ -95,13 +93,12 @@ def main():
 
     p = Pool(processes=args.num_processes)
     while True:
-        print get_query(args.wiki_id, offset, limit)
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        map(process_dependencies,
+        p.map(process_dependencies,
             [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')

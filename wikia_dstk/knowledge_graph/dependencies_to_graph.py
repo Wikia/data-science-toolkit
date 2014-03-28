@@ -50,7 +50,7 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml_string):
         else:
             word_node = word_nodes[0]
         return word_node
-    except Exception as e:
+    except (Exception, KeyError) as e:
         print e, traceback.format_exc()
         raise e
 

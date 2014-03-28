@@ -66,7 +66,6 @@ def main():
                     governor = node_from_index(db, wiki_id, doc_id, sentence, sentence_index, dependency[0])
                     dependent = node_from_index(db, wiki_id, doc_id, sentence, sentence_index, dependency[1])
                     db.relationships.create(governor, dependency.get(u'type'), dependent)
-                    print etree.tostring(dependency)
                 except IndexError:
                     continue
     except Exception as e:

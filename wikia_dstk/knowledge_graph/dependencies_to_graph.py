@@ -95,6 +95,7 @@ def main():
 
     p = Pool(processes=args.num_processes)
     while True:
+        print get_query(args.wiki_id, offset, limit)
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})

@@ -60,7 +60,6 @@ def main():
                 this_args = dom_args.pop()
                 cmd = (u'/usr/bin/python -m wikia_dstk.knowledge_graph.dependencies_to_graph_worker '
                        + argstring_from_namespace(this_args))
-                print cmd
                 processes.append(Popen(cmd, shell=True))
             processes = filter(lambda x: x.poll is None, processes)
 

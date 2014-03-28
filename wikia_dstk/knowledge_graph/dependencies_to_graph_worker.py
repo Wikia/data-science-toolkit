@@ -39,11 +39,11 @@ let $document := document("%s")
 return &lt;document base-uri="%s"&gt;{
 for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
     for $dependency in $dependencies
-        return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
+        return &lt;dependencywrapper base-uri="%s" sentence="{$dependency/../@id}"&gt;
                 {$dependency}
                &lt;/dependencywrapper&gt;
 }&lt;/document&gt;
-</text></query>""" % (base_uri, base_uri)
+</text></query>""" % (base_uri, base_uri, base_uri)
 
 
 def main():
@@ -51,6 +51,8 @@ def main():
     try:
         db = GraphDatabase(args.neo4j)
         sentence_index = db.nodes.indexes.get(u'sentence')
+
+        print get_query(args.base_uri)
 
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.base_uri),

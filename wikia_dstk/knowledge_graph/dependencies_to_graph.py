@@ -84,7 +84,7 @@ def main():
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
-        p.map_async(process_dependency, [Namespace(dependencies_wrapper=d, **args) for d in dom]).get()
+        p.map_async(process_dependency, [Namespace(dependencies_wrapper=d, **vars(args)) for d in dom]).get()
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content

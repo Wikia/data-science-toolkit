@@ -1,4 +1,5 @@
 import requests
+import traceback
 from lxml import etree
 from neo4jrestclient.client import GraphDatabase
 from neo4jrestclient.request import NotFoundError
@@ -29,24 +30,27 @@ for $document in $documents
 
 
 def node_from_index(db, wiki_id, doc, sentence, word_xml):
-    sentence_index = db.nodes.indexes.get(u'sentence')
-    wiki_word_index = db.nodes.indexes.get(u'wiki_word')
-    doc_sent_id = u"_".join([wiki_id, doc, sentence])
-    word_id = word_xml.get(u'idx')
-    word = word_xml.text.encode(u'utf8')
-    word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
-    if not word_nodes:
-        word_node = db.nodes.create(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
-        word_node.labels.add(u'Word')
-        sentence_index[doc_sent_id][word_id] = word_node
-        words = wiki_word_index[wiki_id][word]
-        if words:
-            wiki_word_index[wiki_id][word] += [word_node]
+    try:
+        sentence_index = db.nodes.indexes.get(u'sentence')
+        wiki_word_index = db.nodes.indexes.get(u'wiki_word')
+        doc_sent_id = u"_".join([wiki_id, doc, sentence])
+        word_id = word_xml.get(u'idx')
+        word = word_xml.text.encode(u'utf8')
+        word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
+        if not word_nodes:
+            word_node = db.nodes.create(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
+            word_node.labels.add(u'Word')
+            sentence_index[doc_sent_id][word_id] = word_node
+            words = wiki_word_index[wiki_id][word]
+            if words:
+                wiki_word_index[wiki_id][word] += [word_node]
+            else:
+                wiki_word_index[wiki_id][word] = [word_node]
         else:
-            wiki_word_index[wiki_id][word] = [word_node]
-    else:
-        word_node = word_nodes[0]
-    return word_node
+            word_node = word_nodes[0]
+        return word_node
+    except Exception as e:
+        print e, traceback.format_exc()
 
 
 def process_dependency(args):

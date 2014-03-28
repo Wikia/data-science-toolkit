@@ -56,12 +56,12 @@ def main():
         dom_args = [Namespace(base_uri=d.get(u'base-uri'), **vars(args)) for d in dom]
         processes = []
         while len(dom_args):
-            while len(processes) < args.num_processes:
+            while len(processes) < args.num_processes and len(dom_args):
                 this_args = dom_args.pop()
                 cmd = (u'/usr/bin/python -m wikia_dstk.knowledge_graph.dependencies_to_graph_worker '
                        + argstring_from_namespace(this_args))
                 processes.append(Popen(cmd, shell=True))
-            processes = filter(lambda x: x.poll is None, processes)
+            processes = filter(lambda x: x.poll() is None, processes)
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:

@@ -55,17 +55,21 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
 
 
 def process_dependency(args):
-    db = GraphDatabase(args.neo4j)
-    wrapper = etree.fromstring(args.xml)
-    doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
-    sentence = wrapper.get(u'sentence')
-    for dependency in wrapper[0]:
-        try:
-            governor = node_from_index(db, args.wiki_id, doc, sentence, dependency[0])
-            dependent = node_from_index(db, args.wiki_id, doc, sentence, dependency[1])
-            db.relationships.create(governor, dependency.get(u'type'), dependent)
-        except IndexError:
-            continue
+    try:
+        db = GraphDatabase(args.neo4j)
+        wrapper = etree.fromstring(args.xml)
+        doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
+        sentence = wrapper.get(u'sentence')
+        for dependency in wrapper[0]:
+            try:
+                governor = node_from_index(db, args.wiki_id, doc, sentence, dependency[0])
+                dependent = node_from_index(db, args.wiki_id, doc, sentence, dependency[1])
+                db.relationships.create(governor, dependency.get(u'type'), dependent)
+            except IndexError:
+                continue
+    except Exception as e:
+        print e, traceback.format_exc()
+        raise e
 
 
 def main():
@@ -95,8 +99,10 @@ def main():
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
+
         p.map_async(process_dependency,
                     [Namespace(wrapper=etree.tostring(d), **vars(args)) for d in dom]).get()
+
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content

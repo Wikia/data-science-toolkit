@@ -51,6 +51,7 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
         return word_node
     except Exception as e:
         print e, traceback.format_exc()
+        raise e
 
 
 def process_dependency(args):

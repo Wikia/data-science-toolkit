@@ -21,13 +21,13 @@ def get_query(wid, offset=1, limit=500):
 xquery version "3.0";
 let $documents := collection("/db/%s/")
 for $document in $documents
-    return <document base-uri="{fn:base-uri($document)}">{
+    return &lt;document base-uri="{fn:base-uri($document)}"&gt;{
     for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
         for $dependency in $dependencies
             return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
                     {$dependency}
                    &lt;/dependencywrapper&gt;
-    }</document>
+    }&lt;/document&gt;
 </text></query>""" % (offset, limit, wid)
 
 

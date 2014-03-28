@@ -56,8 +56,6 @@ def main():
                           data=get_query(args.base_uri),
                           headers={u'Content-type': u'application/xml'})
 
-        print r.content
-
         document = etree.fromstring(r.content)
         doc_id = args.base_uri.split(u'/')[-1].split(u'.')[0]
         for wrapper in document:
@@ -68,6 +66,7 @@ def main():
                     governor = node_from_index(db, args.wiki_id, doc_id, sentence, sentence_index, dependency[0])
                     dependent = node_from_index(db, args.wiki_id, doc_id, sentence, sentence_index, dependency[1])
                     db.relationships.create(governor, dependency.get(u'type'), dependent)
+                    print etree.tostring(dependency)
                 except IndexError:
                     continue
     except Exception as e:

@@ -52,7 +52,8 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
 
 def process_dependency(args):
     try:
-        db = GraphDatabase(args.neo4j)
+        from neo4jrestclient.client import GraphDatabase as gdb
+        db = gdb(args.neo4j)
         wrapper = etree.fromstring(args.xml)
         doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
         sentence = wrapper.get(u'sentence')

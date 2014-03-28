@@ -28,7 +28,6 @@ parser.add_option('-b', '--batchsize', dest='batchsize', type='int',
 (options, args) = parser.parse_args()
 
 BATCHSIZE = options.batchsize
-LOCAL = options.local
 
 TEXT_DIR = ensure_dir_exists('/data/text/')
 TEMP_TEXT_DIR = ensure_dir_exists('/data/temp_text/')

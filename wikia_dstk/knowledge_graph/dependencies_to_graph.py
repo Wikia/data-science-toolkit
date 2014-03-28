@@ -58,8 +58,10 @@ def main():
         while len(dom_args):
             while len(processes) < args.num_processes:
                 this_args = dom_args.pop()
-                processes.append(Popen(u'/usr/bin/python -m wikia_dstk.knowledge_graph.dependencies_to_graph_worker '
-                                       + argstring_from_namespace(this_args)), shell=True)
+                cmd = (u'/usr/bin/python -m wikia_dstk.knowledge_graph.dependencies_to_graph_worker '
+                       + argstring_from_namespace(this_args))
+                print cmd
+                processes.append(Popen(cmd), shell=True)
             processes = filter(lambda x: x.poll is None, processes)
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')

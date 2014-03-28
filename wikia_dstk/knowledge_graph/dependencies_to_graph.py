@@ -29,11 +29,12 @@ for $document in $documents
 </text></query>""" % (offset, limit, wid)
 
 
-def node_from_index(db, wiki_id, doc, sentence, word_xml):
+def node_from_index(db, wiki_id, doc, sentence, word_xml_string):
     try:
         sentence_index = db.nodes.indexes.get(u'sentence')
         wiki_word_index = db.nodes.indexes.get(u'wiki_word')
         doc_sent_id = u"_".join([wiki_id, doc, sentence])
+        word_xml = etree.fromstring(word_xml_string)
         word_id = word_xml.get(u'idx')
         word = word_xml.text.encode(u'utf8')
         word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
@@ -94,7 +95,8 @@ def main():
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
-        p.map_async(process_dependency, [Namespace(dependencies_wrapper=d, **vars(args)) for d in dom]).get()
+        p.map_async(process_dependency,
+                    [Namespace(dependencies_wrapper=etree.tostring(d), **vars(args)) for d in dom]).get()
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content

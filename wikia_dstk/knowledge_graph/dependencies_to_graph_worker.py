@@ -60,7 +60,7 @@ def main():
         wiki_id = args.base_uri.split(u'/')[-2]
         doc_id = args.base_uri.split(u'/')[-1].split(u'.')[0]
         for wrapper in document:
-            print wrapper.get(u'sentence')
+            print etree.tostring(wrapper)
             sentence = wrapper.get(u'sentence')
             for dependency in wrapper[0]:
                 try:

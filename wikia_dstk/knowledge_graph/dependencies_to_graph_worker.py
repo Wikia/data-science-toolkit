@@ -36,14 +36,13 @@ def get_query(base_uri):
     return u"""<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
 xquery version "3.0";
 let $document := document("%s")
-for $document in $documents
-    return &lt;document base-uri="%s"&gt;{
-    for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
-        for $dependency in $dependencies
-            return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
-                    {$dependency}
-                   &lt;/dependencywrapper&gt;
-    }&lt;/document&gt;
+return &lt;document base-uri="%s"&gt;{
+for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
+    for $dependency in $dependencies
+        return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
+                {$dependency}
+               &lt;/dependencywrapper&gt;
+}&lt;/document&gt;
 </text></query>""" % (base_uri, base_uri)
 
 

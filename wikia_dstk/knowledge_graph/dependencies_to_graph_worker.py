@@ -57,9 +57,12 @@ def main():
                           data=get_query(args.base_uri),
                           headers={u'Content-type': u'application/xml'})
 
+        print r.content
+
         document = etree.fromstring(r.content)
         doc_id = args.base_uri.split(u'/')[-1].split(u'.')[0]
         for wrapper in document:
+            print etree.tostring(wrapper)
             sentence = wrapper.get(u'sentence')
             for dependency in wrapper[0]:
                 try:

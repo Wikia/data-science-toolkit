@@ -101,8 +101,8 @@ def main():
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        p.map_async(process_dependency,
-                    [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom]).get()
+        map(process_dependency,
+                    [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:

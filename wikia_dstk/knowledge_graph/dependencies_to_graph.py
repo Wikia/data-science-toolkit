@@ -12,7 +12,7 @@ def get_args():
     ap.add_argument(u'-d', u'--exist-db', dest=u'exist_db', default=u'http://nlp-s3:8080')
     ap.add_argument(u'-j', u'--neo4j', dest=u'neo4j', default=u'http://nlp-s3:7474')
     ap.add_argument(u'-w', u'--wiki-id', dest=u'wiki_id', required=True)
-    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', default=6, type=int)
+    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', default=4, type=int)
     return ap.parse_args()
 
 
@@ -30,7 +30,6 @@ for $document in $documents
 
 
 def node_from_index(db, wiki_id, doc, sentence, word_xml):
-    print "getting here"
     try:
         sentence_index = db.nodes.indexes.get(u'sentence')
         doc_sent_id = u"_".join([wiki_id, doc, sentence])
@@ -97,8 +96,7 @@ def main():
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        map(process_dependency,
-            [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
+        p.map(process_dependency, [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:

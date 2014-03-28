@@ -152,7 +152,7 @@ def insert_entities(args):
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
                 """ % u'"), ("'.join(entity_list[i:i+50]))
                 db.commit()
-        return args.wid
+        return args
     except Exception as e:
         print e, traceback.format_exc()
         return False
@@ -179,7 +179,7 @@ def insert_pages(args):
             """ % u", ".join([u"""("%s", %s, %s, %s)""" % arg for arg in args]))
 
         db.commit()
-        return args.wid
+        return args
     except Exception as e:
         print e, traceback.format_exc()
         return False
@@ -206,7 +206,7 @@ def insert_wiki_ids(args):
         """ % (args.wid, str(wiki_data[u'wam_score']),
                my_escape(wiki_data[u'title']), wiki_data[u'url']))
         db.commit()
-        return args.wid
+        return args
     except Exception as e:
         print e, traceback.format_exc()
         return False
@@ -264,7 +264,7 @@ def insert_contrib_data(args):
                 db.commit()
         db.commit()
         print u"Done with", args.wid
-        return args.wid
+        return args
     except Exception as e:
         print e, traceback.format_exc()
         return False

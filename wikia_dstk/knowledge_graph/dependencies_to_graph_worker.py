@@ -52,21 +52,19 @@ def main():
         db = GraphDatabase(args.neo4j)
         sentence_index = db.nodes.indexes.get(u'sentence')
 
-        print get_query(args.base_uri)
-
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.base_uri),
                           headers={u'Content-type': u'application/xml'})
 
         document = etree.fromstring(r.content)
+        wiki_id = args.base_uri.split(u'/')[-2]
         doc_id = args.base_uri.split(u'/')[-1].split(u'.')[0]
         for wrapper in document:
-            print etree.tostring(wrapper)
             sentence = wrapper.get(u'sentence')
             for dependency in wrapper[0]:
                 try:
-                    governor = node_from_index(db, args.wiki_id, doc_id, sentence, sentence_index, dependency[0])
-                    dependent = node_from_index(db, args.wiki_id, doc_id, sentence, sentence_index, dependency[1])
+                    governor = node_from_index(db, wiki_id, doc_id, sentence, sentence_index, dependency[0])
+                    dependent = node_from_index(db, wiki_id, doc_id, sentence, sentence_index, dependency[1])
                     db.relationships.create(governor, dependency.get(u'type'), dependent)
                     print etree.tostring(dependency)
                 except IndexError:

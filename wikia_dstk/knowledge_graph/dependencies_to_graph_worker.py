@@ -47,7 +47,6 @@ for $document in $documents
 </text></query>""" % (base_uri, base_uri)
 
 
-
 def main():
     args, _ = get_args()
     try:

@@ -39,7 +39,9 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
         word = word_xml.text.encode(u'utf8')
         word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
         if not word_nodes:
-            word_node = db.nodes.create(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
+            params = dict(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
+            print params
+            word_node = db.nodes.create(**params)
             word_node.labels.add(u'Word')
             sentence_index[doc_sent_id][word_id] = word_node
             words = wiki_word_index[wiki_id][word]
@@ -102,16 +104,16 @@ def main():
         dom = etree.fromstring(r.content)
 
         map(process_dependency,
-                    [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
+            [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content
             break
 
+        offset += limit
         if int(hits) <= offset:
             break
-        offset += limit
 
 
 if __name__ == u'__main__':

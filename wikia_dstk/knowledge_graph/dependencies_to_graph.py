@@ -12,7 +12,7 @@ def get_args():
     ap.add_argument(u'-d', u'--exist-db', dest=u'exist_db', default=u'http://nlp-s3:8080')
     ap.add_argument(u'-j', u'--neo4j', dest=u'neo4j', default=u'http://nlp-s3:7474')
     ap.add_argument(u'-w', u'--wiki-id', dest=u'wiki_id', required=True)
-    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', default=4, type=int)
+    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', default=6, type=int)
     return ap.parse_args()
 
 
@@ -52,8 +52,7 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml):
 
 def process_dependency(args):
     try:
-        from neo4jrestclient.client import GraphDatabase as gdb
-        db = gdb(args.neo4j)
+        db = GraphDatabase(args.neo4j)
         wrapper = etree.fromstring(args.xml)
         doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
         sentence = wrapper.get(u'sentence')
@@ -97,13 +96,15 @@ def main():
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        p.map(process_dependency, [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
+        map(process_dependency,
+            [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content
             break
 
+        print offset, "/", hits
         offset += limit
         if int(hits) <= offset:
             break

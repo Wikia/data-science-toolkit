@@ -172,7 +172,7 @@ def insert_pages(args):
         dbargs = []
         for doc_id in authority_dict_fixed:
                 wiki_id, article_id = doc_id.split(u'_')
-                args.append((doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
+                dbargs.append((doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
 
         cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES %s

@@ -79,9 +79,6 @@ def main():
         db.nodes.indexes.create(u'sentence')
 
     p = Pool(processes=args.num_processes)
-
-    p.map_async(process_dependency)
-
     while True:
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.wiki_id, offset, limit),

@@ -30,6 +30,7 @@ for $document in $documents
 
 
 def node_from_index(db, wiki_id, doc, sentence, word_xml):
+    print "getting here"
     try:
         sentence_index = db.nodes.indexes.get(u'sentence')
         wiki_word_index = db.nodes.indexes.get(u'wiki_word')

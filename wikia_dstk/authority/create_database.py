@@ -169,14 +169,14 @@ def insert_pages(args):
 
         print u"Inserting authority data for pages on wiki", args.wid
 
-        args = []
+        dbargs = []
         for doc_id in authority_dict_fixed:
                 wiki_id, article_id = doc_id.split(u'_')
                 args.append((doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
 
         cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES %s
-            """ % u", ".join([u"""("%s", %s, %s, %s)""" % arg for arg in args]))
+            """ % u", ".join([u"""("%s", %s, %s, %s)""" % arg for arg in dbargs]))
 
         db.commit()
         return args

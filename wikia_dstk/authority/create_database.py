@@ -204,7 +204,7 @@ def insert_wiki_ids(args):
         cursor.execute(u"""
         INSERT INTO wikis (wiki_id, wam_score, title, url) VALUES (%s, %s, "%s", "%s")
         """ % (args.wid, str(wiki_data[u'wam_score']),
-               db.escape(wiki_data[u'title']), wiki_data[u'url']))
+               my_escape(wiki_data[u'title']), wiki_data[u'url']))
         db.commit()
         return args.wid
     except Exception as e:

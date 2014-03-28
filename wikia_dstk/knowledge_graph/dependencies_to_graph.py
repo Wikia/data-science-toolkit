@@ -29,12 +29,11 @@ for $document in $documents
 </text></query>""" % (offset, limit, wid)
 
 
-def node_from_index(db, wiki_id, doc, sentence, word_xml_string):
+def node_from_index(db, wiki_id, doc, sentence, word_xml):
     try:
         sentence_index = db.nodes.indexes.get(u'sentence')
         wiki_word_index = db.nodes.indexes.get(u'wiki_word')
         doc_sent_id = u"_".join([wiki_id, doc, sentence])
-        word_xml = etree.fromstring(word_xml_string)
         word_id = word_xml.get(u'idx')
         word = word_xml.text.encode(u'utf8')
         word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
@@ -57,9 +56,10 @@ def node_from_index(db, wiki_id, doc, sentence, word_xml_string):
 
 def process_dependency(args):
     db = GraphDatabase(args.neo4j)
-    doc = args.dependencies_wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
-    sentence = args.dependencies_wrapper.get(u'sentence')
-    for dependency in args.dependencies_wrapper[0]:
+    wrapper = etree.fromstring(args.xml)
+    doc = wrapper.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
+    sentence = wrapper.get(u'sentence')
+    for dependency in wrapper[0]:
         try:
             governor = node_from_index(db, args.wiki_id, doc, sentence, dependency[0])
             dependent = node_from_index(db, args.wiki_id, doc, sentence, dependency[1])
@@ -96,7 +96,7 @@ def main():
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
         p.map_async(process_dependency,
-                    [Namespace(dependencies_wrapper=etree.tostring(d), **vars(args)) for d in dom]).get()
+                    [Namespace(wrapper=etree.tostring(d), **vars(args)) for d in dom]).get()
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:
             print r.content

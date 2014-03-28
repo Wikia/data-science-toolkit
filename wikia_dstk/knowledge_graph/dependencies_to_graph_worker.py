@@ -35,7 +35,7 @@ def node_from_index(db, wiki_id, doc, sentence, sentence_index, word_xml):
 def get_query(base_uri):
     return u"""<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
 xquery version "3.0";
-let $document := document("%s")
+let $document := doc("%s")
 return &lt;document base-uri="%s"&gt;{
 for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
     for $dependency in $dependencies

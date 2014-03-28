@@ -1,10 +1,11 @@
+from .. import argstring_from_namespace
 import requests
 import traceback
 from lxml import etree
 from neo4jrestclient.client import GraphDatabase
 from neo4jrestclient.request import NotFoundError
 from argparse import ArgumentParser, Namespace
-from multiprocessing import Pool
+from subprocess import Popen
 
 
 def get_args():
@@ -21,54 +22,8 @@ def get_query(wid, offset=1, limit=500):
 xquery version "3.0";
 let $documents := collection("/db/%s/")
 for $document in $documents
-    return &lt;document base-uri="{fn:base-uri($document)}"&gt;{
-    for $dependencies in $document//dependencies[@type='collapsed-ccprocessed-dependencies']
-        for $dependency in $dependencies
-            return &lt;dependencywrapper base-uri="{fn:base-uri($document)}" sentence="{$dependency/../@id}"&gt;
-                    {$dependency}
-                   &lt;/dependencywrapper&gt;
-    }&lt;/document&gt;
+    return &lt;document base-uri="{fn:base-uri($document)}" /&gt;
 </text></query>""" % (offset, limit, wid)
-
-
-def node_from_index(db, wiki_id, doc, sentence, word_xml):
-    try:
-        sentence_index = db.nodes.indexes.get(u'sentence')
-        doc_sent_id = u"_".join([wiki_id, doc, sentence])
-        word_id = int(word_xml.get(u'idx'))
-        word = word_xml.text.encode(u'utf8')
-        word_nodes = [node for node in sentence_index[doc_sent_id][word_id]]
-        if not word_nodes:
-            params = dict(word=word, doc=doc, sentence=sentence, word_id=word_id, wiki_id=wiki_id)
-            word_node = db.nodes.create(**params)
-            word_node.labels.add(u'Word')
-            sentence_index[doc_sent_id][word_id] = word_node
-        else:
-            word_node = word_nodes[0]
-        return word_node
-    except (Exception, KeyError) as e:
-        print e, traceback.format_exc()
-        raise e
-
-
-def process_dependencies(args):
-    try:
-        print vars(args)
-        db = GraphDatabase(args.neo4j)
-        document = etree.fromstring(args.xml)
-        doc_id = document.get(u'base-uri').split(u'/')[-1].split(u'.')[0]
-        for wrapper in document:
-            sentence = wrapper.get(u'sentence')
-            for dependency in wrapper[0]:
-                try:
-                    governor = node_from_index(db, args.wiki_id, doc_id, sentence, dependency[0])
-                    dependent = node_from_index(db, args.wiki_id, doc_id, sentence, dependency[1])
-                    db.relationships.create(governor, dependency.get(u'type'), dependent)
-                except IndexError:
-                    continue
-    except Exception as e:
-        print e, traceback.format_exc()
-        raise e
 
 
 def main():
@@ -92,15 +47,20 @@ def main():
     except NotFoundError:
         db.nodes.indexes.create(u'wiki_word')
 
-    p = Pool(processes=args.num_processes)
     while True:
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,
                           data=get_query(args.wiki_id, offset, limit),
                           headers={u'Content-type': u'application/xml'})
         dom = etree.fromstring(r.content)
 
-        p.map(process_dependencies,
-            [Namespace(xml=etree.tostring(d), **vars(args)) for d in dom])
+        dom_args = [Namespace(base_uri=d.get(u'base-uri'), **vars(args)) for d in dom]
+        processes = []
+        while len(dom_args):
+            while len(processes) < args.num_processes:
+                this_args = dom_args.pop()
+                processes.append(Popen(u'python -m wikia_dstk.knowledge_graph.dependencies_to_graph_worker '
+                                       + argstring_from_namespace(this_args)))
+            processes = filter(lambda x: x.poll is None, processes)
 
         hits = dom.get(u'{http://exist.sourceforge.net/NS/exist}hits')
         if not hits:

@@ -83,6 +83,11 @@ def main():
     except NotFoundError:
         db.nodes.indexes.create(u'sentence')
 
+    try:
+        db.nodes.indexes.get(u'wiki_word')
+    except NotFoundError:
+        db.nodes.indexes.create(u'wiki_word')
+
     p = Pool(processes=args.num_processes)
     while True:
         r = requests.post(u'%s/exist/rest/db/' % args.exist_db,

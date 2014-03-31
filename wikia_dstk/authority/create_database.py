@@ -261,7 +261,7 @@ def insert_contrib_data(args):
                     INSERT INTO topics_users (user_id, topic_id, local_authority) VALUES (%d, %s, %s)
                     ON DUPLICATE KEY UPDATE local_authority = local_authority + %s
                     """ % (contribs[u'userid'], topic_id, local_authority, local_authority))
-                db.commit()
+                    db.commit()
         db.commit()
         print u"Done with", args.wid
         return args

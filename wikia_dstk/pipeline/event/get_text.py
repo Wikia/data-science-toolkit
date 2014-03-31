@@ -109,3 +109,4 @@ if __name__ == '__main__':
 
         for worker in workers:
             worker.start()
+            worker.join()

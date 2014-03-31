@@ -7,11 +7,11 @@
 import logging
 import os
 import shutil
+import sys
 import traceback
 from . import QueryIterator, clean_list
 from ... import ensure_dir_exists
-from multiprocessing import Process, Queue
-from multiprocessing.process import current_process
+from multiprocessing import Pool
 from optparse import OptionParser
 from time import sleep
 
@@ -43,48 +43,34 @@ def write_text(event_file):
     :rtype: string
     :return: A string indicating the name of the completed event file
     """
-    for line in open(event_file):
-        query = line.strip()
-        logger.info('Writing query from %s: "%s"' % (current_process(), query))
-        qi = QueryIterator('http://search-s10.prod.wikia.net:8983/solr/main/',
-                           {'query': query, 'fields': 'id,wid,html_en,indexed',
-                            'sort': 'id asc'})
-        for doc in qi:
-            # Sanitize and write text
-            text = '\n'.join(clean_list(doc.get('html_en', '')))
-            localpath = os.path.join(TEXT_DIR, doc['id'])
-            logger.debug('Writing text from %s to %s' % (doc['id'], localpath))
-            with open(localpath, 'w') as f:
-                f.write(text)
-    return 'Finished event file %s' % event_file
+    try:
+        temp_event_file = os.path.join(
+            TEMP_EVENT_DIR, os.path.basename(event_file))
+        shutil.move(event_file, temp_event_file)
+        for line in open(temp_event_file):
+            query = line.strip()
+            logger.info('Writing query: "%s"' % query)
+            qi = QueryIterator(
+                'http://search-s10.prod.wikia.net:8983/solr/main/',
+                {'query': query, 'fields': 'id,wid,html_en,indexed',
+                 'sort': 'id asc'})
+            for doc in qi:
+                # Sanitize and write text
+                text = '\n'.join(clean_list(doc.get('html_en', '')))
+                localpath = os.path.join(TEXT_DIR, doc['id'])
+                logger.debug('Writing text from %s to %s' % (doc['id'],
+                                                             localpath))
+                with open(localpath, 'w') as f:
+                    f.write(text)
+        os.remove(temp_event_file)
+        return 'Finished event file %s' % event_file
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except:
+        return '%s: %s' % (event_file, traceback.format_exc())
 
-
-def write_worker(event_queue, result_queue):
-    """
-    Take queue of event files, move each file to TEMP_EVENT_DIR, call
-    write_text() on the aforementioned file, and add the returned list of
-    written files to a queue of text files
-
-    :type event_queue: multiprocessing.Queue
-    :param event_queue: A Queue of event files to call write_text() on
-
-    :type result_queue: multiprocessing.Queue
-    :param result_queue: A Queue of strings indicating completion of
-                         write_text()
-    """
-    for event_file in iter(event_queue.get, None):
-        try:
-            results = write_text(event_file)
-            for result in results:
-                result_queue.put(result)
-            os.remove(event_file)
-        except:
-            logger.error(traceback.format_exc())
 
 if __name__ == '__main__':
-    event_queue = Queue()
-    result_queue = Queue()
-
     while True:
         # List of query queue files to iterate over
         event_files = [os.path.join(EVENT_DIR, event_file) for event_file in
@@ -97,16 +83,6 @@ if __name__ == '__main__':
             sleep(60)
             continue
 
-        for event_file in event_files:
-            temp_event_file = os.path.join(TEMP_EVENT_DIR,
-                                           os.path.basename(event_file))
-            shutil.move(event_file, temp_event_file)
-            event_queue.put(temp_event_file)
-
-        workers = [Process(target=write_worker,
-                           args=(event_queue, result_queue)) for n in
-                   range(options.workers)]
-
-        for worker in workers:
-            worker.start()
-            worker.join()
+        for status in Pool(processes=options.workers).map(write_text,
+                                                          event_files):
+            print status

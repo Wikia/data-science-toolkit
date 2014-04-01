@@ -2,6 +2,7 @@ from . import get_db_and_cursor
 from argparse import ArgumentParser, Namespace
 from multiprocessing import Pool
 import requests
+import traceback
 
 
 def get_args():
@@ -15,35 +16,39 @@ def get_args():
 
 
 def get_pageviews_for_wiki(args):
-    db, cursor = get_db_and_cursor(args)
-    _, wiki_id, url = args.row
-    cursor.execute(u"SELECT article_id FROM articles WHERE wiki_id = %d" % wiki_id)
-    params = {
-        u'controller': u'WikiaSearchIndexerController',
-        u'method': u'get',
-        u'service': u'Metadata'
-    }
-    print url, cursor.rowcount, u"rows"
-    while True:
-        rows = cursor.fetchmany(15)
-        if not rows:
-            break
-        params[u'ids'] = u'|'.join([apply(str, x) for x in rows])
-        try:
-            response = requests.get(u"%swikia.php" % url, params=params).json()
-        except ValueError:
-            continue
-        updates = [(doc[u'id'], doc.get(u"views", {}).get(u"set", 0))
-                   for doc in response.get(u"contents", {})]
-        cases = u"\n".join([u"WHEN \"%s\" THEN %d" % update for update in updates])
-        cursor.execute(u"""
-            UPDATE articles
-            SET pageviews = CASE
-            %s
-            END
-            WHERE doc_id IN ("%s")""" % (cases, u"\",\"".join(map(lambda y: y[0], updates))))
-        db.commit()
-    print u"done with", url
+    try:
+        db, cursor = get_db_and_cursor(args)
+        _, wiki_id, url = args.row
+        cursor.execute(u"SELECT article_id FROM articles WHERE wiki_id = %d" % wiki_id)
+        params = {
+            u'controller': u'WikiaSearchIndexerController',
+            u'method': u'get',
+            u'service': u'Metadata'
+        }
+        print url, cursor.rowcount, u"rows"
+        while True:
+            rows = cursor.fetchmany(15)
+            if not rows:
+                break
+            params[u'ids'] = u'|'.join([apply(str, x) for x in rows])
+            try:
+                response = requests.get(u"%swikia.php" % url, params=params).json()
+            except ValueError:
+                continue
+            updates = [(doc[u'id'], doc.get(u"views", {}).get(u"set", 0))
+                       for doc in response.get(u"contents", {})]
+            cases = u"\n".join([u"WHEN \"%s\" THEN %d" % update for update in updates])
+            cursor.execute(u"""
+                UPDATE articles
+                SET pageviews = CASE
+                %s
+                END
+                WHERE doc_id IN ("%s")""" % (cases, u"\",\"".join(map(lambda y: y[0], updates))))
+            db.commit()
+        print u"done with", url
+    except Exception as e:
+        print e
+        print traceback.format_exc()
 
 
 def main():

@@ -47,7 +47,7 @@ def get_pageviews_for_wiki(args):
                     END
                     WHERE doc_id IN ('%s')""" % (cases, update_ids)
                 print sql
-                cursor.execute(sql)
+                db.cursor().execute(sql)
                 db.commit()
         print u"done with", url
     except Exception as e:

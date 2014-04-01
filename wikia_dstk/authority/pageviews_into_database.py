@@ -38,14 +38,14 @@ def get_pageviews_for_wiki(args):
             updates = [(doc[u'id'], doc.get(u"views", {}).get(u"set", 0))
                        for doc in response.get(u"contents", {}) if u'id' in doc]
             if updates:
-                cases = u"\n".join([u"WHEN \"%s\" THEN %d" % update for update in updates])
-                update_ids = u"\",\"".join(map(lambda y: str(y[0]), updates))
+                cases = u"\n".join([u"WHEN '%s' THEN %d" % update for update in updates])
+                update_ids = u"','".join(map(lambda y: str(y[0]), updates))
                 cursor.execute(u"""
                     UPDATE articles
                     SET pageviews = CASE
                     %s
                     END
-                    WHERE doc_id IN ("%s")""" % (cases, update_ids))
+                    WHERE doc_id IN ('%s')""" % (cases, update_ids))
                 db.commit()
         print u"done with", url
     except Exception as e:

@@ -28,7 +28,6 @@ def get_pageviews_for_wiki(args):
         print url, cursor.rowcount, u"rows"
         while True:
             rows = cursor.fetchmany(15)
-            print rows
             if not rows:
                 break
             params[u'ids'] = u'|'.join([apply(str, x) for x in rows])
@@ -38,17 +37,16 @@ def get_pageviews_for_wiki(args):
                 continue
             updates = [(doc[u'id'], doc.get(u"views", {}).get(u"set", 0))
                        for doc in response.get(u"contents", {}) if u'id' in doc]
-            cases = u"\n".join([u"WHEN \"%s\" THEN %d" % update for update in updates])
-            print cases
-            update_ids = u"\",\"".join(map(lambda y: str(y[0]), updates))
-            print update_ids
-            cursor.execute(u"""
-                UPDATE articles
-                SET pageviews = CASE
-                %s
-                END
-                WHERE doc_id IN ("%s")""" % (cases, update_ids))
-            db.commit()
+            if updates:
+                cases = u"\n".join([u"WHEN \"%s\" THEN %d" % update for update in updates])
+                update_ids = u"\",\"".join(map(lambda y: str(y[0]), updates))
+                cursor.execute(u"""
+                    UPDATE articles
+                    SET pageviews = CASE
+                    %s
+                    END
+                    WHERE doc_id IN ("%s")""" % (cases, update_ids))
+                db.commit()
         print u"done with", url
     except Exception as e:
         print e

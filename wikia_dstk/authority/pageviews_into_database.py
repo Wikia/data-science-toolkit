@@ -40,12 +40,13 @@ def get_pageviews_for_wiki(args):
             if updates:
                 cases = u"\n".join([u"WHEN '%s' THEN %d" % update for update in updates])
                 update_ids = u"','".join(map(lambda y: str(y[0]), updates))
-                cursor.execute(u"""
+                sql = u"""
                     UPDATE articles
                     SET pageviews = CASE
                     %s
                     END
-                    WHERE doc_id IN ('%s')""" % (cases, update_ids))
+                    WHERE doc_id IN ('%s')""" % (cases, update_ids)
+                cursor.execute(sql)
                 db.commit()
         print u"done with", url
     except Exception as e:

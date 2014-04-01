@@ -1,4 +1,6 @@
 import requests
+import MySQLdb as mdb
+
 from multiprocessing import Pool
 from boto import connect_s3
 
@@ -20,3 +22,15 @@ def filter_wids(wids, refresh=False):
         wids = [x[0] for x in p.map_async(not_processed, wids).get() if x[1]]
 
     return wids
+
+
+def get_db_connection(args):
+    return mdb.connect(host=args.host, user=args.user, passwd=args.password,
+                       use_unicode=True, charset=u'utf8')
+
+
+def get_db_and_cursor(args):
+    db = get_db_connection(args)
+    cursor = db.cursor()
+    cursor.execute(U'USE authority')
+    return db, cursor

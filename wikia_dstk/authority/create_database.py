@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from . import filter_wids
+from . import filter_wids, get_db_connection, get_db_and_cursor
 from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
@@ -9,7 +9,6 @@ import os
 import traceback
 import time
 import requests
-import MySQLdb as mdb
 
 
 def get_args():
@@ -126,11 +125,6 @@ def create_tables(args):
 
 def my_escape(s):
     return s.replace(u'\\', u'').replace(u'"', u'').replace(u"'", u'')
-
-
-def get_db_connection(args):
-    return mdb.connect(host=args.host, user=args.user, passwd=args.password,
-                       use_unicode=True, charset=u'utf8')
 
 
 def insert_entities(args):
@@ -277,13 +271,6 @@ def get_authority_dict_fixed(args):
 
     return dict([(key.split(u'_')[-2]+u'_'+key.split(u'_')[-1], val)
                  for key, val in authority_dict.items()])
-
-
-def get_db_and_cursor(args):
-    db = get_db_connection(args)
-    cursor = db.cursor()
-    cursor.execute(U'USE authority')
-    return db, cursor
 
 
 def main():

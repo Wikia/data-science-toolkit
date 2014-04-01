@@ -18,7 +18,7 @@ def get_args():
 def get_pageviews_for_wiki(args):
     try:
         db, cursor = get_db_and_cursor(args)
-        _, wiki_id, url = args.row
+        wiki_id, url = args.row
         cursor.execute(u"SELECT article_id FROM articles WHERE wiki_id = %d" % wiki_id)
         params = {
             u'controller': u'WikiaSearchIndexerController',
@@ -49,6 +49,7 @@ def get_pageviews_for_wiki(args):
     except Exception as e:
         print e
         print traceback.format_exc()
+        raise e
 
 
 def main():

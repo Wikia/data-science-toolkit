@@ -42,7 +42,7 @@ def get_pageviews_for_wiki(args):
                 update_ids = u"','".join(map(lambda y: str(y[0]), updates))
                 sql = u"""
                     UPDATE articles
-                    SET pageviews = CASE
+                    SET pageviews = CASE doc_id
                     %s
                     END
                     WHERE doc_id IN ('%s')""" % (cases, update_ids)

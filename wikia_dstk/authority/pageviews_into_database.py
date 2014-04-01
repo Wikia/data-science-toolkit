@@ -47,7 +47,7 @@ def get_pageviews_for_wiki(args):
 
 
 def main():
-    _, args = get_args()
+    args, _ = get_args()
     db, cursor = get_db_and_cursor(args)
     p = Pool(processes=args.num_processes)
     cursor.execute(u"SELECT wiki_id, url FROM wikis ")

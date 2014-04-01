@@ -88,6 +88,7 @@ def write_wids(wids):
     """
     with open(wids) as wids_list:
         for wid in wids_list:
+            wid = wid.strip()
             query = 'iscontent:true AND wid:%s' % wid
             with open(EVENT_DIR + wid, 'w') as f:
                 f.write(query)

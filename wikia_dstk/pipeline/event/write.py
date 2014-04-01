@@ -3,9 +3,6 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from ... import ensure_dir_exists
 
-# This script writes a Solr query for all documents indexed since last time,
-# split into multiple event files to facilitate multiprocessing
-
 EVENT_DIR = ensure_dir_exists('/data/events/')
 LAST_INDEXED = '/data/last_indexed.txt'
 SPLIT = 4  # Number of event files to split the time delta into
@@ -49,7 +46,8 @@ def total_seconds(td):
 
 def write_since_last_indexed():
     """
-    Write query for all English documents indexed since last date stored.
+    Write query for all English documents indexed since last date stored,
+    splitting into multiple event files to facilitate multiprocessing.
     """
     # Read the date this script was last run
     with open(LAST_INDEXED, 'r') as f:

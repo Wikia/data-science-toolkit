@@ -223,7 +223,7 @@ def insert_contrib_data(args):
         for doc_id in authority_dict_fixed:
             wiki_id, article_id = doc_id.split(u'_')
 
-            entity_data = wpe.get(article_id, {})
+            entity_data = wpe.get(doc_id, {})
             entity_list = filter(lambda x: x, map(lambda x: x.strip(), map(my_escape,
                                  list(set(entity_data.get(u'redirects', {}).values()
                                           + entity_data.get(u'titles', []))))))

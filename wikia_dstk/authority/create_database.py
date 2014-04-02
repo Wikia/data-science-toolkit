@@ -91,7 +91,7 @@ def create_tables(args):
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
-      UNIQUE KEY (article_id, user_id, wiki_id)
+      PRIMARY KEY (article_id, user_id, wiki_id)
     ) ENGINE=InnoDB
     """)
 
@@ -101,11 +101,11 @@ def create_tables(args):
       topic_id INT NOT NULL,
       user_id INT NOT NULL,
       local_authority FLOAT NULL,
-      local_authority_pv
+      local_authority_pv FLOAT NULL,
       scaled_authority FLOAT NULL,
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
-      UNIQUE KEY (topic_id, user_id)
+      PRIMARY KEY (topic_id, user_id)
     ) ENGINE= InnoDB
     """)
 
@@ -118,7 +118,7 @@ def create_tables(args):
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
-      UNIQUE KEY (topic_id, wiki_id, article_id)
+      PRIMARY KEY (topic_id, wiki_id, article_id)
     ) ENGINE= InnoDB
     """)
 

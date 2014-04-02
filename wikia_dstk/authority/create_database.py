@@ -55,6 +55,7 @@ def create_tables(args):
       wiki_id INT NOT NULL,
       pageviews INT NULL,
       local_authority FLOAT NULL,
+      local_authority_pv FLOAT NULL,
       global_authority FLOAT NULL,
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       UNIQUE KEY (article_id, wiki_id)
@@ -100,6 +101,7 @@ def create_tables(args):
       topic_id INT NOT NULL,
       user_id INT NOT NULL,
       local_authority FLOAT NULL,
+      local_authority_pv
       scaled_authority FLOAT NULL,
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),

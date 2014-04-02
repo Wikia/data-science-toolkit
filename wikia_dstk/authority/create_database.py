@@ -236,8 +236,6 @@ def insert_contrib_data(args):
                 sql = u"""
                 INSERT IGNORE INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
                 """ % (article_id, wiki_id, topic_id)
-                print sql
-                topic_ids.append(result[0])
                 cursor.execute(sql)
                 db.commit()
 

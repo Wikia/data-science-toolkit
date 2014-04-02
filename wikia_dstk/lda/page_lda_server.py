@@ -119,14 +119,13 @@ def data_to_features(data_dict):
 
 def get_feature_data(args):
     print "Loading terms..."
-    wids = [str(int(wid)) for wid in args.wiki_ids_file]
-    print "Working on ", len(wids[:args.num_wikis]), "wikis"
+    wids = [str(int(wid)) for wid in args.wiki_ids_file][:args.num_wikis]
+    print "Working on ", len(wids), "wikis"
     doc_id_to_terms_tuples = []
-    pool = Pool(processes=8)
-    for result in pool.map(get_data, wids[:args.num_wikis]):
-        doc_id_to_terms_tuples += result
-
-    doc_id_to_terms = dict(doc_id_to_terms_tuples)
+    pool = Pool(processes=args.num_processes)
+    r = pool.map_async(get_data, wids)
+    r.wait()
+    doc_id_to_terms = defaultdict(dict, r.get())
     print len(doc_id_to_terms), "instances"
     return doc_id_to_terms
 
@@ -195,7 +194,6 @@ def get_model_from_args(args):
 
     with open(text_filename, 'w') as text_output:
         text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
-
 
     ### The following is from wiki_lda_server
     log("\n---LDA Model---")

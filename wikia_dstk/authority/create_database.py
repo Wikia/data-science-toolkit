@@ -230,12 +230,14 @@ def insert_contrib_data(args):
             cursor.execute(u"""
             SELECT topic_id FROM topics WHERE name IN ("%s")
             """ % (u'", "'.join(entity_list)))
-            topic_ids = []
-            for result in cursor.fetchall():
-                topic_ids.append(result[0])
-                cursor.execute(u"""
+            topic_ids = [result[0] for result in cursor.fetchall()]
+            for topic_id in topic_ids:
+                sql = u"""
                 INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
-                """ % (article_id, wiki_id, result[0]))
+                """ % (article_id, wiki_id, topic_id)
+                print sql
+                topic_ids.append(result[0])
+                cursor.execute(sql)
                 db.commit()
 
             cursor = db.cursor()
@@ -247,7 +249,7 @@ def insert_contrib_data(args):
                 db.commit()
 
                 cursor.execute(u"""
-                INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, %d, %s)
+                INSERT INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, %d, %s)
                 """ % (article_id, wiki_id, contribs[u'userid'], contribs[u'contribs']))
                 db.commit()
 

@@ -15,7 +15,7 @@ def get_args():
 
 
 def main():
-    args = get_args()
+    args, _ = get_args()
     db, cursor = get_db_and_cursor(args)
     cursor.execute(u"SELECT wiki_id FROM wikis")
     namespaces = [Namespace(wid=row[0], **vars(args)) for row in cursor.fetchall()]

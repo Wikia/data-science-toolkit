@@ -7,7 +7,7 @@ from config import config
 
 def get_args():
     ap = get_argparser_from_config(config)
-    ap.add_option('-d', '--date', dest='date', help='The query start date')
+    ap.add_argument('-d', '--date', dest='date', help='The query start date')
     return ap.parse_known_args()
 
 

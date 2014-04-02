@@ -232,7 +232,7 @@ def insert_contrib_data(args):
             SELECT topic_id FROM topics WHERE name IN ("%s")
             """ % (u'", "'.join(entity_list)))
             topic_ids = list(set([result[0] for result in cursor.fetchall()]))
-            print len(topic_ids), u"for", doc_id
+
             for topic_id in topic_ids:
                 sql = u"""
                 INSERT IGNORE INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)

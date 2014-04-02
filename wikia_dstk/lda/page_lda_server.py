@@ -9,7 +9,6 @@ import gensim
 import traceback
 from nlp_services.caching import use_caching
 from nlp_services.document_access import ListDocIdsService
-from nlp_services.caching import use_caching
 from nlp_services.syntax import WikiToPageHeadsService
 from nlp_services.title_confirmation import preprocess
 from nlp_services.discourse.entities import WikiPageToEntitiesService
@@ -22,27 +21,34 @@ from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
 
 def get_args():
-    ap = argparse.ArgumentParser(description="Perform latent dirichlet allocation against wiki data")
+    ap = argparse.ArgumentParser(
+        description="Generate a per-page topic model using latent dirichlet " +
+        "analysis.")
+    ap.add_argument('--wiki_ids', dest='wiki_ids_file', nargs='?',
+                    type=argparse.FileType('r'),
+                    help="The source file of wiki IDs sorted by WAM")
     ap.add_argument('--num-wikis', dest='num_wikis', type=int,
                     default=os.getenv('NUM_WIKIS', 5000),
                     help="Number of top N wikis to include in learner")
     ap.add_argument('--num-topics', dest='num_topics', type=int,
                     default=os.getenv('NUM_TOPICS', 999),
                     help="Number of topics you want from the LDA process")
-    ap.add_argument('--max-topic-frequency', dest='max_topic_frequency', type=int,
-                    default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
+    ap.add_argument('--max-topic-frequency', dest='max_topic_frequency',
+                    type=int, default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
                     help="Threshold for number of wikis a given topic appears in")
     ap.add_argument('--num-processes', dest="num_processes", type=int,
                     default=os.getenv('NUM_PROCESSES', 8),
                     help="Number of processes for async data access from S3")
     ap.add_argument('--model-prefix', dest='model_prefix', type=str,
-                    default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M')),
+                    default=os.getenv(
+                        'MODEL_PREFIX', datetime.strftime(
+                            datetime.now(), '%Y-%m-%d-%H-%M')),
                     help="Prefix to uniqueify model")
     ap.add_argument('--path-prefix', dest='path_prefix', type=str,
                     default=os.getenv('PATH_PREFIX', "/mnt/"),
                     help="Prefix to path")
     ap.add_argument('--s3-prefix', dest='s3_prefix', type=str,
-                    default=os.getenv('S3_PREFIX', "models/wiki/"),
+                    default=os.getenv('S3_PREFIX', "models/page/"),
                     help="Prefix on s3 for model location")
     ap.add_argument('--auto-launch', dest='auto_launch', type=bool,
                     default=os.getenv('AUTOLAUNCH_NODES', True),
@@ -53,7 +59,8 @@ def get_args():
     ap.add_argument('--node-ami', dest='ami', type=str,
                     default=os.getenv('NODE_AMI', "ami-40701570"),
                     help="AMI of the node machines")
-    ap.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
+    ap.add_argument('--dont-terminate-on-complete',
+                    dest='terminate_on_complete', action='store_false',
                     default=os.getenv('TERMINATE_ON_COMPLETE', True),
                     help="Prevent terminating this instance")
     ap.add_argument('--git-ref', dest='git_ref',
@@ -62,17 +69,27 @@ def get_args():
     return ap.parse_args()
 
 
-def get_data(wiki_id):
-    use_caching(per_service_cache={'TopEntitiesService.get': {'dont_compute': True},
-                                   'HeadsCountService.get': {'dont_compute': True}})
-    hcs = HeadsCountService().get_value(wiki_id)
-    tes = TopEntitiesService().get_value(wiki_id)
-    if type(hcs) == dict:
-        hcs = hcs.items()
-    if type(tes) == dict:
-        tes = tes.items()
-    return wiki_id, {'heads': sorted(hcs, key=lambda y: y[1], reverse=True)[:50],
-                     'entities': sorted(tes, key=lambda y: y[1], reverse=True)}
+def get_data(wid):
+    print wid
+    use_caching(shouldnt_compute=True)
+    #should be CombinedEntitiesService yo
+    doc_ids_to_heads = WikiToPageHeadsService().get_value(wid, {})
+    doc_ids_to_entities = WikiPageToEntitiesService().get_value(wid, {})
+    doc_ids_combined = {}
+    if doc_ids_to_heads == {}:
+        print wid, "no heads"
+    if doc_ids_to_entities == {}:
+        print wid, "no entities"
+    for doc_id in doc_ids_to_heads:
+        entity_response = doc_ids_to_entities.get(
+            doc_id, {'titles': [], 'redirects': {}})
+        doc_ids_combined[doc_id] = map(preprocess,
+                                       entity_response['titles'] +
+                                       entity_response['redirects'].keys() +
+                                       entity_response['redirects'].values() +
+                                       list(set(doc_ids_to_heads.get(doc_id,
+                                                                     []))))
+    return doc_ids_combined.items()
 
 
 def get_wiki_data_from_api(wiki_ids):
@@ -101,6 +118,19 @@ def data_to_features(data_dict):
 
 
 def get_feature_data(args):
+    print "Loading terms..."
+    wids = [str(int(wid)) for wid in args.wiki_ids_file]
+    print "Working on ", len(wids[:args.num_wikis]), "wikis"
+    doc_id_to_terms_tuples = []
+    pool = Pool(processes=8)
+    for result in pool.map(get_data, wids[:args.num_wikis]):
+        doc_id_to_terms_tuples += result
+
+    doc_id_to_terms = dict(doc_id_to_terms_tuples)
+    print len(doc_id_to_terms), "instances"
+    return doc_id_to_terms
+
+    ### The following is from wiki_lda_server
     bucket = connect_s3().get_bucket('nlp-data')
     widlines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
     wids = filter(lambda x: x, widlines)[:args.num_wikis]
@@ -131,8 +161,45 @@ def get_feature_data(args):
 
 
 def get_model_from_args(args):
+    print "\n---LDA Model---"
+    lda_docs = {}
+    modelname = 'page-lda-%dwikis-%dtopics.model' % (args.num_wikis,
+                                                     args.num_topics)
+    model_location = args.model_dest+'/'+modelname
+    if os.path.exists(model_location):
+        print "(loading from file)"
+        lda_model = gensim.models.LdaModel.load(model_location)
+    else:
+        print model_location, "does not exist"
+        print "(building...)"
+        lda_model = gensim.models.LdaModel(bow_docs.values(),
+                                           num_topics=args.num_topics,
+                                           id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
+                                           distributed=True)
+        print "Done, saving model."
+        lda_model.save(model_location)
+
+    print "Writing topics to files"
+    sparse_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-sparse-topics.csv' % (args.num_wikis, args.num_topics)
+    dense_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-dense-topics.csv' % (args.num_wikis, args.num_topics)
+    text_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-words.txt' % (args.num_wikis, args.num_topics)
+    with open(sparse_filename, 'w') as sparse_csv:
+        with open(dense_filename, 'w') as dense_csv:
+            for doc_id in doc_id_to_terms:
+                vec = bow_docs[doc_id]
+                sparse = lda_model[vec]
+                dense = vec2dense(sparse, args.num_topics)
+                lda_docs[doc_id] = sparse
+                sparse_csv.write(",".join([str(doc_id)]+['%d-%.8f' % x for x in sparse])+"\n")
+                dense_csv.write(",".join([doc_id]+['%.8f' % x for x in list(dense)])+"\n")
+
+    with open(text_filename, 'w') as text_output:
+        text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
+
+
+    ### The following is from wiki_lda_server
     log("\n---LDA Model---")
-    modelname = '%s-%s-lda-%swikis-%stopics.model' % (args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
+    modelname = '%s-%s-page-lda-%swikis-%stopics.model' % (args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
     bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log("(loading from file)")
@@ -180,6 +247,7 @@ def get_model_from_args(args):
 
 def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+    use_caching()
     args = get_args()
     get_model_from_args(args)
     log("Done")

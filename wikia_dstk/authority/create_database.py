@@ -55,6 +55,7 @@ def create_tables(args):
       wiki_id INT NOT NULL,
       pageviews INT NULL,
       local_authority FLOAT NULL,
+      local_authority_pv FLOAT NULL,
       global_authority FLOAT NULL,
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       UNIQUE KEY (article_id, wiki_id)
@@ -90,7 +91,7 @@ def create_tables(args):
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
-      UNIQUE KEY (article_id, user_id, wiki_id)
+      PRIMARY KEY (article_id, user_id, wiki_id)
     ) ENGINE=InnoDB
     """)
 
@@ -100,10 +101,11 @@ def create_tables(args):
       topic_id INT NOT NULL,
       user_id INT NOT NULL,
       local_authority FLOAT NULL,
+      local_authority_pv FLOAT NULL,
       scaled_authority FLOAT NULL,
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (user_id) REFERENCES users(user_id),
-      UNIQUE KEY (topic_id, user_id)
+      PRIMARY KEY (topic_id, user_id)
     ) ENGINE= InnoDB
     """)
 
@@ -116,7 +118,7 @@ def create_tables(args):
       FOREIGN KEY (topic_id) REFERENCES topics(topic_id),
       FOREIGN KEY (article_id) REFERENCES articles(article_id),
       FOREIGN KEY (wiki_id) REFERENCES wikis(wiki_id),
-      UNIQUE KEY (topic_id, wiki_id, article_id)
+      PRIMARY KEY (topic_id, wiki_id, article_id)
     ) ENGINE= InnoDB
     """)
 
@@ -221,19 +223,21 @@ def insert_contrib_data(args):
         for doc_id in authority_dict_fixed:
             wiki_id, article_id = doc_id.split(u'_')
 
-            entity_data = wpe.get(article_id, {})
-            entity_list = map(my_escape,
-                              list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles', []))))
+            entity_data = wpe.get(doc_id, {})
+            entity_list = filter(lambda x: x, map(lambda x: x.strip(), map(my_escape,
+                                 list(set(entity_data.get(u'redirects', {}).values()
+                                          + entity_data.get(u'titles', []))))))
 
             cursor.execute(u"""
             SELECT topic_id FROM topics WHERE name IN ("%s")
             """ % (u'", "'.join(entity_list)))
-            topic_ids = []
-            for result in cursor.fetchall():
-                topic_ids.append(result[0])
-                cursor.execute(u"""
-                INSERT INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
-                """ % (article_id, wiki_id, result[0]))
+            topic_ids = list(set([result[0] for result in cursor.fetchall()]))
+
+            for topic_id in topic_ids:
+                sql = u"""
+                INSERT IGNORE INTO articles_topics (article_id, wiki_id, topic_id) VALUES (%s, %s, %s)
+                """ % (article_id, wiki_id, topic_id)
+                cursor.execute(sql)
                 db.commit()
 
             cursor = db.cursor()
@@ -245,7 +249,7 @@ def insert_contrib_data(args):
                 db.commit()
 
                 cursor.execute(u"""
-                INSERT IGNORE INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, %d, %s)
+                INSERT INTO articles_users (article_id, wiki_id, user_id, contribs) VALUES (%s, %s, %d, %s)
                 """ % (article_id, wiki_id, contribs[u'userid'], contribs[u'contribs']))
                 db.commit()
 

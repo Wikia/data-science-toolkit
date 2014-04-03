@@ -6,13 +6,13 @@ from boto import connect_s3
 
 
 def exists(wid):
-    return wid, requests.get('http://www.wikia.com/api/v1/Wikis/Details',
-                             params=dict(ids=[wid.strip()])).json().get('items')
+    return wid, requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
+                             params=dict(ids=[wid.strip()])).json().get(u'items')
 
 
 def not_processed(wid):
-    bucket = connect_s3().get_bucket('nlp-data')
-    return wid, not bucket.get_key('service_responses/%s/WikiAuthorityService.get' % wid.strip())
+    bucket = connect_s3().get_bucket(u'nlp-data')
+    return wid, not bucket.get_key(u'service_responses/%s/WikiAuthorityService.get' % wid.strip())
 
 
 def filter_wids(wids, refresh=False):
@@ -34,3 +34,23 @@ def get_db_and_cursor(args):
     cursor = db.cursor()
     cursor.execute(U'USE authority')
     return db, cursor
+
+
+class MinMaxScaler:
+    """
+    Scales values from 0 to 1 by default
+    """
+
+    def __init__(self, vals=None, set_min=None, set_max=None, enforced_min=0, enforced_max=1):
+        if vals:
+            self.min = min(vals)
+            self.max = max(vals)
+        else:
+            self.min = set_min
+            self.max = set_max
+        self.enforced_min = enforced_min
+        self.enforced_max = enforced_max
+
+    def scale(self, val):
+        return (((self.enforced_max - self.enforced_min) * (val - self.min))
+                / (self.max - self.min)) + self.enforced_min

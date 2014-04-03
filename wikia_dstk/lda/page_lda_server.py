@@ -160,42 +160,6 @@ def get_feature_data(args):
 
 
 def get_model_from_args(args):
-    print "\n---LDA Model---"
-    lda_docs = {}
-    modelname = 'page-lda-%dwikis-%dtopics.model' % (args.num_wikis,
-                                                     args.num_topics)
-    model_location = args.model_dest+'/'+modelname
-    if os.path.exists(model_location):
-        print "(loading from file)"
-        lda_model = gensim.models.LdaModel.load(model_location)
-    else:
-        print model_location, "does not exist"
-        print "(building...)"
-        lda_model = gensim.models.LdaModel(bow_docs.values(),
-                                           num_topics=args.num_topics,
-                                           id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
-                                           distributed=True)
-        print "Done, saving model."
-        lda_model.save(model_location)
-
-    print "Writing topics to files"
-    sparse_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-sparse-topics.csv' % (args.num_wikis, args.num_topics)
-    dense_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-dense-topics.csv' % (args.num_wikis, args.num_topics)
-    text_filename = args.model_dest+'/page-lda-%dwiki-%dtopics-words.txt' % (args.num_wikis, args.num_topics)
-    with open(sparse_filename, 'w') as sparse_csv:
-        with open(dense_filename, 'w') as dense_csv:
-            for doc_id in doc_id_to_terms:
-                vec = bow_docs[doc_id]
-                sparse = lda_model[vec]
-                dense = vec2dense(sparse, args.num_topics)
-                lda_docs[doc_id] = sparse
-                sparse_csv.write(",".join([str(doc_id)]+['%d-%.8f' % x for x in sparse])+"\n")
-                dense_csv.write(",".join([doc_id]+['%.8f' % x for x in list(dense)])+"\n")
-
-    with open(text_filename, 'w') as text_output:
-        text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
-
-    ### The following is from wiki_lda_server
     log("\n---LDA Model---")
     modelname = '%s-%s-page-lda-%swikis-%stopics.model' % (args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
     bucket = connect_s3().get_bucket('nlp-data')
@@ -216,24 +180,29 @@ def get_model_from_args(args):
                 if args.auto_launch:
                     launching = launch_lda_nodes(args.instance_count, args.ami)
                 log("Getting Data...")
-                wid_to_features = get_feature_data(args)
+                doc_id_to_terms = get_feature_data(args)
                 log("Turning Data into Vectors")
-                dct, bow_docs = get_dct_and_bow_from_features(wid_to_features)
+                dct, bow_docs = get_dct_and_bow_from_features(doc_id_to_terms)
                 log("Waiting for workers to get sorted out")
                 launching.wait()
-                log("Waiting an extra five minutes for workers to get their shit together")
+                log("Waiting an extra five minutes for workers to get their " +
+                    "shit together")
                 time.sleep(300)
                 log("Finally building model from features")
-                lda_model = gensim.models.LdaModel(bow_docs.values(),
-                                                   num_topics=args.num_topics,
-                                                   id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
-                                                   distributed=True)
+                lda_model = gensim.models.LdaModel(
+                    bow_docs.values(), num_topics=args.num_topics,
+                    id2word=dict([(x[1], x[0]) for x in dct.token2id.items()]),
+                    distributed=True)
                 log("Done, saving model.")
                 lda_model.save(args.path_prefix+modelname)
-                write_csv_and_text_data(args, bucket, modelname, wid_to_features, bow_docs, lda_model)
+                write_csv_and_text_data(args, bucket, modelname,
+                                        doc_id_to_terms, bow_docs, lda_model)
                 log("uploading model to s3")
-                key = bucket.new_key('%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, modelname))
-                key.set_contents_from_file(open(args.path_prefix+modelname, 'r'))
+                key = bucket.new_key(
+                    '%s%s/%s/%s' % (args.s3_prefix, args.git_ref,
+                                    args.model_prefix, modelname))
+                key.set_contents_from_file(
+                    open(args.path_prefix+modelname, 'r'))
                 terminate_lda_nodes()
             except Exception as e:
                 print e

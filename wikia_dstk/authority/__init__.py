@@ -24,8 +24,17 @@ def filter_wids(wids, refresh=False):
     return wids
 
 
+def add_db_arguments(ap):
+    ap.add_argument(u'--host', dest=u'host', default=u'localhost')
+    ap.add_argument(u'-u', u'--user', dest=u'user', default=u'root')
+    ap.add_argument(u'-p', u'--password', dest=u'password', default=u'root')
+    ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
+    ap.add_argument(u'-P', u'--port', dest=u'port', default=None)
+    return ap
+
+
 def get_db_connection(args):
-    return mdb.connect(host=args.host, user=args.user, passwd=args.password,
+    return mdb.connect(host=args.host, user=args.user, passwd=args.password, port=args.port,
                        use_unicode=True, charset=u'utf8')
 
 

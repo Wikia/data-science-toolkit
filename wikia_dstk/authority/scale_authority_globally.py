@@ -1,15 +1,11 @@
-from . import get_db_and_cursor, MinMaxScaler
+from . import get_db_and_cursor, MinMaxScaler, add_db_arguments
 from argparse import ArgumentParser, Namespace
 from multiprocessing import Pool
 import traceback
 
 
 def get_args():
-    ap = ArgumentParser()
-    ap.add_argument(u'--host', dest=u'host', default=u'localhost')
-    ap.add_argument(u'-u', u'--user', dest=u'user', default=u'root')
-    ap.add_argument(u'-p', u'--password', dest=u'password', default=u'root')
-    ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
+    ap = add_db_arguments(ArgumentParser())
     ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int, default=6)
     ap.add_argument(u'-s', u'--smoothing', dest=u'smoothing', type=float, default=0.0001)
     return ap.parse_known_args()

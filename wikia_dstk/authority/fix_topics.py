@@ -1,15 +1,11 @@
 from .create_database import insert_contrib_data
-from . import get_db_and_cursor
+from . import get_db_and_cursor, add_db_arguments
 from multiprocessing import Pool
 from argparse import ArgumentParser, Namespace
 
 
 def get_args():
-    ap = ArgumentParser()
-    ap.add_argument(u'--host', dest=u'host', default=u'localhost')
-    ap.add_argument(u'-u', u'--user', dest=u'user', default=u'root')
-    ap.add_argument(u'-p', u'--password', dest=u'password', default=u'root')
-    ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
+    ap = add_db_arguments(ArgumentParser())
     ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int, default=6)
     return ap.parse_known_args()
 

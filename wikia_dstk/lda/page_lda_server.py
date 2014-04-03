@@ -24,7 +24,7 @@ def get_args():
     ap = argparse.ArgumentParser(
         description="Generate a per-page topic model using latent dirichlet " +
         "analysis.")
-    ap.add_argument('--wiki_ids', dest='wiki_ids_file', nargs='?',
+    ap.add_argument('--wiki-ids', dest='wiki_ids_file', nargs='?',
                     type=argparse.FileType('r'),
                     help="The source file of wiki IDs sorted by WAM")
     ap.add_argument('--num-wikis', dest='num_wikis', type=int,

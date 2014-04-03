@@ -6,7 +6,7 @@ from . import run_server_from_args
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--wiki_ids', dest='wiki_ids_file', nargs='?',
+    parser.add_argument('--wiki-ids', dest='wiki_ids_file', nargs='?',
                         type=argparse.FileType('r'),
                         help="The source file of wiki IDs sorted by WAM")
     parser.add_argument('--ami', dest='ami', type=str,

@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-from . import filter_wids, get_db_connection, get_db_and_cursor
+from . import filter_wids, get_db_connection, get_db_and_cursor, add_db_arguments
 from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
@@ -12,11 +12,7 @@ import requests
 
 
 def get_args():
-    ap = ArgumentParser()
-    ap.add_argument(u'--host', dest=u'host', default=u'localhost')
-    ap.add_argument(u'-u', u'--user', dest=u'user', default=u'root')
-    ap.add_argument(u'-p', u'--password', dest=u'password', default=u'root')
-    ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
+    ap = add_db_arguments(ArgumentParser())
     ap.add_argument(u'-s', u'--s3path', dest=u's3path', default=u'datafiles/topwams.txt')
     ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True, action=u'store_false')
     ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int, default=6)

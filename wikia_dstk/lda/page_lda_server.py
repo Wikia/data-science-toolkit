@@ -92,11 +92,13 @@ def get_data(wid):
     return doc_ids_combined.items()
 
 
+# Not sure if this is necessary anymore
 def get_wiki_data_from_api(wiki_ids):
     return dict(requests.get('http://www.wikia.com/api/v1/Wikis/Details',
                              params={'ids': wiki_ids}).json().get('items', {}))
 
 
+# Not sure if this is necessary anymore
 def data_to_features(data_dict):
     features = []
     try:
@@ -121,7 +123,6 @@ def get_feature_data(args):
     print "Loading terms..."
     wids = [str(int(wid)) for wid in args.wiki_ids_file][:args.num_wikis]
     print "Working on ", len(wids), "wikis"
-    doc_id_to_terms_tuples = []
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()

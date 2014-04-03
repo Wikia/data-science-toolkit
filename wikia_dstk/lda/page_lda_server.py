@@ -92,33 +92,6 @@ def get_data(wid):
     return doc_ids_combined.items()
 
 
-# Not sure if this is necessary anymore
-def get_wiki_data_from_api(wiki_ids):
-    return dict(requests.get('http://www.wikia.com/api/v1/Wikis/Details',
-                             params={'ids': wiki_ids}).json().get('items', {}))
-
-
-# Not sure if this is necessary anymore
-def data_to_features(data_dict):
-    features = []
-    try:
-        heads_to_count = data_dict.get('heads', [])
-        entities_to_count = data_dict.get('entities', [])
-        api_data = data_dict.get('api_data', {})
-        features = []
-        features += [word for head, count in heads_to_count for word in [normalize(head)] * int(count)]
-        features += [word for entity, count in entities_to_count
-                     for word in ['_'.join(filter(lambda x: x, map(normalize, entity.split(' '))))] * int(count)]
-        features += unis_bis(api_data.get('title', ''))
-        features += unis_bis(api_data.get('headline', ''))
-        features += unis_bis(api_data.get('desc', ''))
-    except Exception as e:
-        log(data_dict)
-        print e
-        print traceback.format_exc()
-    return features
-
-
 def get_feature_data(args):
     print "Loading terms..."
     wids = [str(int(wid)) for wid in args.wiki_ids_file][:args.num_wikis]
@@ -129,35 +102,6 @@ def get_feature_data(args):
     doc_id_to_terms = defaultdict(dict, r.get())
     print len(doc_id_to_terms), "instances"
     return doc_id_to_terms
-
-    ### The following is from wiki_lda_server
-    bucket = connect_s3().get_bucket('nlp-data')
-    widlines = bucket.get_key('datafiles/topwams.txt').get_contents_as_string().split("\n")
-    wids = filter(lambda x: x, widlines)[:args.num_wikis]
-
-    log("Loading entities and heads for ", len(wids), "wikis")
-    pool = Pool(processes=args.num_processes)
-    r = pool.map_async(get_data, wids)
-    r.wait()
-    wiki_data = defaultdict(dict, r.get())
-
-    log("Getting data from API")
-    widstrings = [','.join(wids[i:i+20]) for i in range(0, len(wids), 20)]
-    r = pool.map_async(get_wiki_data_from_api, widstrings)
-    for grouping in r.get():
-        if type(grouping) != dict:
-            continue
-        for wiki_id, api_data in grouping.items():
-            wiki_data[wiki_id]['api_data'] = api_data
-
-    log("Turning data into features")
-    wiki_ids, data_dicts = zip(*wiki_data.items())
-    log("Working on", len(wiki_ids))
-    r = pool.map_async(data_to_features, data_dicts)
-    r.wait()
-    wid_to_features = zip(wiki_ids, r.get())
-    log(len(set([value for _, values in wid_to_features for value in values])), "features")
-    return dict(wid_to_features)
 
 
 def get_model_from_args(args):

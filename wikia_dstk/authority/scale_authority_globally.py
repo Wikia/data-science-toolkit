@@ -29,6 +29,24 @@ def scale_authority_pv(args):
                    % (mms.scale(wam), args.wiki_id))
     db.commit()
 
+    cursor.execute(u"""INSERT INTO topics_users (topic_id, user_id, local_authority_pv, scaled_authority)
+                       SELECT arto.topic_id,
+                              arus.user_id,
+                              arus.contribs * articles.local_authority_pv,
+                              arus.contribs * articles.global_authority
+                       FROM articles_topics arto
+                            INNER JOIN articles
+                            ON arto.wiki_id = %d AND articles.wiki_id = %d
+                            AND arto.article_id = articles.article_id
+                            INNER JOIN articles_users arus
+                            ON arus.wiki_id = %d AND arto.wiki_id = %d
+                            AND arus.article_id = arto.article_id
+                       ON DUPLICATE KEY UPDATE
+                       local_authority_pv = IFNULL(local_authority_pv, 0) +  VALUES(local_authority_pv),
+                       scaled_authority = IFNULL(scaled_authority_pv, 0) + VALUES(scaled_authority),
+                       """
+                   % (args.wiki_id, args.wiki_id, args.wiki_id, args.wiki_id))
+    db.commit()
 
 
 def main():

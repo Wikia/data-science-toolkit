@@ -7,7 +7,7 @@ from . import run_server_from_args
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ami', dest='ami', type=str,
-                        default="ami-d6e785e6",
+                        default="ami-f4d0bfc4",
                         help='The AMI to launch')
     parser.add_argument('--num-nodes', dest='node_count', type=int,
                         default=20,

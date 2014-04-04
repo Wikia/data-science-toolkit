@@ -89,6 +89,7 @@ def get_data(wid):
                                        entity_response['redirects'].values() +
                                        list(set(doc_ids_to_heads.get(doc_id,
                                                                      []))))
+    log(doc_ids_combined.items())  # DEBUG
     return doc_ids_combined.items()
 
 

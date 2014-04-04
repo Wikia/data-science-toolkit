@@ -68,9 +68,6 @@ def get_data(wiki_id):
         hcs = hcs.items()
     if type(tes) == dict:
         tes = tes.items()
-    # DEBUG
-    print(wiki_id, {'heads': sorted(hcs, key=lambda y: y[1], reverse=True)[:50],
-                  'entities': sorted(tes, key=lambda y: y[1], reverse=True)})
     return wiki_id, {'heads': sorted(hcs, key=lambda y: y[1], reverse=True)[:50],
                      'entities': sorted(tes, key=lambda y: y[1], reverse=True)}
 
@@ -127,6 +124,9 @@ def get_feature_data(args):
     r.wait()
     wid_to_features = zip(wiki_ids, r.get())
     log(len(set([value for _, values in wid_to_features for value in values])), "features")
+    # DEBUG
+    from pprint import pprint
+    pprint(dict(wid_to_features))
     return dict(wid_to_features)
 
 

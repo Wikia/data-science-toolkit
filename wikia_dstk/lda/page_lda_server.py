@@ -89,8 +89,8 @@ def get_data(wid):
                                        entity_response['redirects'].values() +
                                        list(set(doc_ids_to_heads.get(doc_id,
                                                                      []))))
-    from pprint import pprint
-    pprint(doc_ids_combined.items())  # DEBUG
+    #from pprint import pprint
+    #pprint(doc_ids_combined.items())  # DEBUG
     return doc_ids_combined.items()
 
 
@@ -106,8 +106,12 @@ def get_feature_data(args):
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()
-    doc_id_to_terms = defaultdict(dict, r.get())
+    #doc_id_to_terms = defaultdict(dict, r.get())
+    #doc_id_to_terms = {page_id: ['_'.join([normalize(token) for term.split(' ') in list_of_terms for token in term])
+    doc_id_to_terms = {page_id: ['_'.join([normalize(token) for token in term.split(' ')]) for term in list_of_terms] for (page_id, list_of_terms) in r.get()}
     log(len(doc_id_to_terms), "instances")
+    from pprint import pprint
+    pprint(doc_id_to_terms)  # DEBUG
     return doc_id_to_terms
 
 

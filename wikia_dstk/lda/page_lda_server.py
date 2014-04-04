@@ -14,6 +14,7 @@ from nlp_services.title_confirmation import preprocess
 from nlp_services.discourse.entities import WikiPageToEntitiesService
 from multiprocessing import Pool
 from boto import connect_s3
+from boto.s3.key import Key
 from collections import defaultdict
 from datetime import datetime
 from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
@@ -25,7 +26,7 @@ def get_args():
         description="Generate a per-page topic model using latent dirichlet " +
         "analysis.")
     ap.add_argument('--wiki-ids', dest='wiki_ids_file', nargs='?',
-                    type=argparse.FileType('r'),
+                    type=str, default=os.getenv('WIKI_IDS_FILE'),
                     help="The source file of wiki IDs sorted by WAM")
     ap.add_argument('--num-wikis', dest='num_wikis', type=int,
                     default=os.getenv('NUM_WIKIS', 5000),
@@ -94,7 +95,11 @@ def get_data(wid):
 
 def get_feature_data(args):
     print "Loading terms..."
-    wids = [str(int(wid)) for wid in args.wiki_ids_file][:args.num_wikis]
+    bucket = connect_s3().get_bucket('nlp-data')
+    k = Key(bucket)
+    k.key = args.wiki_ids_file
+    wids = [str(int(wid)) for wid in
+            k.get_contents_as_string().split('\n')][:args.num_wikis]
     print "Working on ", len(wids), "wikis"
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)

@@ -163,7 +163,7 @@ def log(*args):
     """
     TODO: use a real logger
     """
-    print ' '.join(args)
+    print ' '.join([str(arg) for arg in args])
     sys.stdout.flush()
 
 

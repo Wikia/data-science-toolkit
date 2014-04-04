@@ -68,8 +68,7 @@ def main():
     args = get_args()
     bucket = S3Connection().get_bucket('nlp-data')
     k = Key(bucket)
-    k.key = 'lda_page_events/%s' % datetime.isoformat(
-        datetime.utcnow()).replace(' ', '_')
+    k.key = 'lda_page_events/%s' % datetime.isoformat(datetime.utcnow())
     k.set_contents_from_string(args.wiki_ids_file.read())
     run_server_from_args(
         args, 'wikia_dstk.lda.page_lda_server',

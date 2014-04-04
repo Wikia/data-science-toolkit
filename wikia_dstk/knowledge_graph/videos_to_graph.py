@@ -72,7 +72,8 @@ def main():
             db.labels.create(label)
         except:
             continue
-    pool = Pool(processes=args.num_processes)
+    #pool = Pool(processes=args.num_processes)
+    pool = False
     run_queries(args, pool)
 
 

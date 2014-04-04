@@ -57,3 +57,7 @@ def main():
     for i in range(0, cursor.rowcount, 500):
         print i, u"wikis"
         p.map_async(scale_authority_pv, [Namespace(wiki_id=row[0], **vars(args)) for row in cursor.fetchmany(500)]).get()
+
+
+if __name__ == '__main__':
+    main()

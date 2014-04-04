@@ -100,6 +100,7 @@ def get_feature_data(args):
     k.key = args.wiki_ids_file
     wids = [str(int(wid)) for wid in
             k.get_contents_as_string().split('\n')][:args.num_wikis]
+    k.delete()
     print "Working on ", len(wids), "wikis"
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)

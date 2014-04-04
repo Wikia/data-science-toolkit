@@ -21,6 +21,8 @@ def handle_doc(tup):
     try:
         args, doc = tup
         db = GraphDatabase(args.graph_db)
+        if u'title_en' not in doc:
+            return
         name = doc[u'title_en'].replace(u'"', u'').lower()
         print name.encode(u'utf8')
         actor_index = db.nodes.indexes.get(u'actor')

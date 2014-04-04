@@ -23,24 +23,18 @@ def handle_doc(tup):
         db = GraphDatabase(args.graph_db)
         name = doc[u'title_en'].replace(u'"', u'').lower()
         print name.encode(u'utf8')
-        video_index = db.nodes.indexes.get(u'video')
         actor_index = db.nodes.indexes.get(u'actor')
         wid = doc[u'wid']
-        video_nodes = [node for node in video_index[wid][name.encode(u'utf8')] if wid in video_index]
-        if not video_nodes:
-            video_node = db.nodes.create(ids=doc[u'id'], name=name.encode(u'utf8'))
-            video_node.labels.add(u'Video')
-            video_index[wid][name.encode(u'utf8')] = video_node
-        else:
-            video_node = video_nodes[0]
+        video_node = db.nodes.create(doc_id=doc[u'id'], name=name.encode(u'utf8'))
+        video_node.labels.add(u'Video')
 
         for actor in doc[u'video_actors_txt']:
-            actors = [node for node in actor_index[wid][actor]]
+            actors = [node for node in actor_index[wid][actor] if wid in actor_index]
             if not actors:
                 actor_node = db.nodes.create(name=actor)
                 if u"Actor" not in actor_node.labels:
                     actor_node.labels.add(u'Actor')
-                actor_index[doc[u'wid']][actor] = actor_node
+                actor_index[wid][actor] = actor_node
             else:
                 actor_node = actors[0]
 
@@ -69,10 +63,6 @@ def run_queries(args, pool, start=0):
 def main():
     args = get_args()
     db = GraphDatabase(args.graph_db)
-    try:
-        video_index = db.nodes.indexes.create(u'video')
-    except Exception as e:
-        print e
     try:
         actor_index = db.nodes.indexes.create(u'actor')
     except Exception as e:

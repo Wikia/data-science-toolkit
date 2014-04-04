@@ -106,7 +106,7 @@ def get_feature_data(args):
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()
-    doc_id_to_terms = {page_id: list_of_terms for (page_id, list_of_terms) in r.get()}
+    doc_id_to_terms = [foo for foo in r.get()]
     #doc_id_to_terms = {page_id: ['_'.join([normalize(token) for token in term.split(' ')]) for term in list_of_terms] for (page_id, list_of_terms) in r.get()}
     log(len(doc_id_to_terms), "instances")
     from pprint import pprint

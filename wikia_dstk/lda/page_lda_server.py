@@ -71,16 +71,16 @@ def get_args():
 
 
 def get_data(wid):
-    print wid
+    log(wid)
     use_caching(shouldnt_compute=True)
     #should be CombinedEntitiesService yo
     doc_ids_to_heads = WikiToPageHeadsService().get_value(wid, {})
     doc_ids_to_entities = WikiPageToEntitiesService().get_value(wid, {})
     doc_ids_combined = {}
     if doc_ids_to_heads == {}:
-        print wid, "no heads"
+        log(wid, "no heads")
     if doc_ids_to_entities == {}:
-        print wid, "no entities"
+        log(wid, "no entities")
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})
@@ -94,19 +94,19 @@ def get_data(wid):
 
 
 def get_feature_data(args):
-    print "Loading terms..."
+    log("Loading terms...")
     bucket = connect_s3().get_bucket('nlp-data')
     k = Key(bucket)
     k.key = args.wiki_ids_file
     wids = [wid.strip() for wid in
             k.get_contents_as_string().split('\n')][:args.num_wikis]
     k.delete()
-    print "Working on ", len(wids), "wikis"
+    log("Working on ", len(wids), "wikis")
     pool = Pool(processes=args.num_processes)
     r = pool.map_async(get_data, wids)
     r.wait()
     doc_id_to_terms = defaultdict(dict, r.get())
-    print len(doc_id_to_terms), "instances"
+    log(len(doc_id_to_terms), "instances")
     return doc_id_to_terms
 
 
@@ -156,8 +156,8 @@ def get_model_from_args(args):
                     open(args.path_prefix+modelname, 'r'))
                 terminate_lda_nodes()
             except Exception as e:
-                print e
-                print traceback.format_exc()
+                log(e)
+                log(traceback.format_exc())
                 terminate_lda_nodes()
                 return
                 #return harakiri()

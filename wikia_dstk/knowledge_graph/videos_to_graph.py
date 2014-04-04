@@ -36,13 +36,13 @@ def handle_doc(tup):
     else:
         video_node = video_nodes[0]
 
-    for actor in doc[u'actors_txt']:
+    for actor in doc[u'video_actors_txt']:
         actors = [node for node in actor_index[wid][actor]]
         if not actors:
-            actor_node = db.nodes.create(name=value)
+            actor_node = db.nodes.create(name=actor)
             if u"Actor" not in actor_node.labels:
                 actor_node.labels.add(u'Actor')
-            actor_index[doc[u'wid']][value] = actor_node
+            actor_index[doc[u'wid']][actor] = actor_node
         else:
             actor_node = actors[0]
 
@@ -54,7 +54,7 @@ def handle_doc(tup):
 
 
 def run_queries(args, pool, start=0):
-    query_params = dict(q=u'is_video:true AND actors_txt:*', fl=u'id,title_en,actors_txt,wid',
+    query_params = dict(q=u'is_video:true AND video_actors_txt:*', fl=u'id,title_en,video_actors_txt,wid',
                         wt=u'json', start=start, rows=500)
     while True:
         response = requests.get(u'%s/select' % args.solr, params=query_params).json()

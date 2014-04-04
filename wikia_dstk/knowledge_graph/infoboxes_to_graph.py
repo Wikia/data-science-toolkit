@@ -101,7 +101,7 @@ def run_queries(args, pool, start=0):
                         wt=u'json', start=start, rows=500)
     while True:
         response = requests.get(u'%s/select' % args.solr, params=query_params).json()
-        pool.map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+        map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
         if response[u'response'][u'numFound'] <= query_params[u'start']:
             return True
         query_params['start'] += query_params['rows']
@@ -123,7 +123,7 @@ def main():
             db.labels.create(label)
         except:
             continue
-    pool = Pool(processes=args.num_processes)
+    pool = False  # Pool(processes=args.num_processes)
     run_queries(args, pool)
 
 

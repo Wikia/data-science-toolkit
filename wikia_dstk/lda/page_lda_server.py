@@ -1,7 +1,6 @@
 import time
 import warnings
 import os
-import requests
 import argparse
 import sys
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -112,7 +111,8 @@ def get_feature_data(args):
 
 def get_model_from_args(args):
     log("\n---LDA Model---")
-    modelname = '%s-%s-page-lda-%swikis-%stopics.model' % (args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
+    modelname = '%s-%s-page-lda-%swikis-%stopics.model' % (
+        args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
     bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log("(loading from file)")

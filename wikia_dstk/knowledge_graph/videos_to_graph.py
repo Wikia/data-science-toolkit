@@ -26,15 +26,18 @@ def handle_doc(tup):
         name = doc[u'title_en'].replace(u'"', u'').lower()
         print name.encode(u'utf8')
         actor_index = db.nodes.indexes.get(u'actor')
-        wid = doc[u'wid']
         video_node = db.nodes.create(doc_id=doc[u'id'], name=name.encode(u'utf8'))
         video_node.labels.add(u'Video')
 
         for actor in doc[u'video_actors_txt']:
-            actor_node = db.nodes.create(name=actor)
-            if u"Actor" not in actor_node.labels:
-                actor_node.labels.add(u'Actor')
-            actor_index[wid][actor] = actor_node
+            actors = actor_index[u'actor'][actor]
+            if len(actors) == 0:
+                actor_node = db.nodes.create(name=actor)
+                if u"Actor" not in actor_node.labels:
+                    actor_node.labels.add(u'Actor')
+                actor_index[u'actors'][actor] = actor_node
+            else:
+                actor = actors[0]
 
             try:
                 db.relationships.create(video_node, u'stars', actor_node)

@@ -34,8 +34,12 @@ def add_db_arguments(ap):
 
 
 def get_db_connection(args):
-    return mdb.connect(host=args.host, user=args.user, passwd=args.password, port=args.port,
-                       use_unicode=True, charset=u'utf8')
+    if args.port:
+        return mdb.connect(host=args.host, user=args.user, passwd=args.password, port=args.port,
+                           use_unicode=True, charset=u'utf8')
+    else:
+        return mdb.connect(host=args.host, user=args.user, passwd=args.password,
+                           use_unicode=True, charset=u'utf8')
 
 
 def get_db_and_cursor(args):

@@ -17,10 +17,6 @@ def escape_value(string):
     return string.replace(u"'", u"\\'")
 
 
-def escape_key(string):
-    return escape_value(string.replace(u" ", u"_"))
-
-
 def handle_doc(tup):
     try:
         args, doc = tup
@@ -57,7 +53,6 @@ def handle_doc(tup):
         print e
         traceback.format_exc()
         raise e
-
 
 
 def run_queries(args, pool, start=0):

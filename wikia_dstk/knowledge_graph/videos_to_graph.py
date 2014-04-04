@@ -71,12 +71,12 @@ def main():
     db = GraphDatabase(args.graph_db)
     try:
         video_index = db.nodes.indexes.create(u'video')
-    except:
-        pass
+    except Exception as e:
+        print e
     try:
         actor_index = db.nodes.indexes.create(u'actor')
-    except:
-        pass
+    except Exception as e:
+        print e
     for label in [u'Video', u'Actor']:
         try:
             db.labels.create(label)

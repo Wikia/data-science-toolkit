@@ -98,7 +98,7 @@ def get_feature_data(args):
     bucket = connect_s3().get_bucket('nlp-data')
     k = Key(bucket)
     k.key = args.wiki_ids_file
-    wids = [str(int(wid)) for wid in
+    wids = [wid.strip() for wid in
             k.get_contents_as_string().split('\n')][:args.num_wikis]
     k.delete()
     print "Working on ", len(wids), "wikis"

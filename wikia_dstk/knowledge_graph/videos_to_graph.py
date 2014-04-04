@@ -1,6 +1,7 @@
 from neo4jrestclient.client import GraphDatabase
 from argparse import ArgumentParser
 from multiprocessing import Pool
+import traceback
 import requests
 
 
@@ -21,36 +22,42 @@ def escape_key(string):
 
 
 def handle_doc(tup):
-    args, doc = tup
-    db = GraphDatabase(args.graph_db)
-    name = doc[u'title_en'].replace(u'"', u'').lower()
-    print name.encode(u'utf8')
-    video_index = db.nodes.indexes.get(u'video')
-    actor_index = db.nodes.indexes.get(u'actor')
-    wid = doc[u'wid']
-    video_nodes = [node for node in video_index[wid][name.encode(u'utf8')]]
-    if not video_nodes:
-        video_node = db.nodes.create(ids=doc[u'id'], name=name.encode(u'utf8'))
-        video_node.labels.add(u'Video')
-        video_index[wid][name.encode(u'utf8')] = video_node
-    else:
-        video_node = video_nodes[0]
-
-    for actor in doc[u'video_actors_txt']:
-        actors = [node for node in actor_index[wid][actor]]
-        if not actors:
-            actor_node = db.nodes.create(name=actor)
-            if u"Actor" not in actor_node.labels:
-                actor_node.labels.add(u'Actor')
-            actor_index[doc[u'wid']][actor] = actor_node
+    try:
+        args, doc = tup
+        db = GraphDatabase(args.graph_db)
+        name = doc[u'title_en'].replace(u'"', u'').lower()
+        print name.encode(u'utf8')
+        video_index = db.nodes.indexes.get(u'video')
+        actor_index = db.nodes.indexes.get(u'actor')
+        wid = doc[u'wid']
+        video_nodes = [node for node in video_index[wid][name.encode(u'utf8')]]
+        if not video_nodes:
+            video_node = db.nodes.create(ids=doc[u'id'], name=name.encode(u'utf8'))
+            video_node.labels.add(u'Video')
+            video_index[wid][name.encode(u'utf8')] = video_node
         else:
-            actor_node = actors[0]
+            video_node = video_nodes[0]
 
-        try:
-            db.relationships.create(video_node, u'stars', actor_node)
-            db.relationships.create(actor_node, u'acts_in', video_node)
-        except Exception as e:
-            print e
+        for actor in doc[u'video_actors_txt']:
+            actors = [node for node in actor_index[wid][actor]]
+            if not actors:
+                actor_node = db.nodes.create(name=actor)
+                if u"Actor" not in actor_node.labels:
+                    actor_node.labels.add(u'Actor')
+                actor_index[doc[u'wid']][actor] = actor_node
+            else:
+                actor_node = actors[0]
+
+            try:
+                db.relationships.create(video_node, u'stars', actor_node)
+                db.relationships.create(actor_node, u'acts_in', video_node)
+            except Exception as e:
+                print e
+    except Exception as e:
+        print e
+        traceback.format_exc()
+        raise e
+
 
 
 def run_queries(args, pool, start=0):

@@ -1,5 +1,7 @@
 import argparse
 import os
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 from datetime import datetime
 from . import run_server_from_args
 
@@ -64,9 +66,15 @@ def get_args():
 
 def main():
     args = get_args()
+    bucket = S3Connection().get_bucket('nlp-data')
+    k = Key(bucket)
+    k.key = 'lda_page_events/%s' % datetime.isoformat(
+        datetime.utcnow()).replace(' ', '_')
+    k.set_contents_from_string(args.wiki_ids_file.read())
     run_server_from_args(
         args, 'wikia_dstk.lda.page_lda_server',
-        user_data_extras="export NUM_WIKIS=%d" % args.num_wikis)
+        user_data_extras="export NUM_WIKIS=%d && export WIKI_IDS_FILE=%s" % (
+            args.num_wikis, k.key))
 
 
 if __name__ == '__main__':

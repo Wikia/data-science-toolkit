@@ -29,14 +29,10 @@ def handle_doc(tup):
         video_node.labels.add(u'Video')
 
         for actor in doc[u'video_actors_txt']:
-            actors = [node for node in actor_index[wid][actor] if wid in actor_index]
-            if not actors:
-                actor_node = db.nodes.create(name=actor)
-                if u"Actor" not in actor_node.labels:
-                    actor_node.labels.add(u'Actor')
-                actor_index[wid][actor] = actor_node
-            else:
-                actor_node = actors[0]
+            actor_node = db.nodes.create(name=actor)
+            if u"Actor" not in actor_node.labels:
+                actor_node.labels.add(u'Actor')
+            actor_index[wid][actor] = actor_node
 
             try:
                 db.relationships.create(video_node, u'stars', actor_node)

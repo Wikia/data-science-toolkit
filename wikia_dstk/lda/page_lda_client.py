@@ -35,7 +35,7 @@ def get_args():
                                 datetime.now(), '%Y-%m-%d-%H-%M')),
                         help="Prefix to uniqueify model")
     parser.add_argument('--s3-prefix', dest='s3_prefix', type=str,
-                        default=os.getenv('S3_PREFIX', "models/wiki/"),
+                        default=os.getenv('S3_PREFIX', "models/page/"),
                         help="Prefix on s3 for model location")
     parser.add_argument('--auto-launch', dest='auto_launch', type=bool,
                         default=os.getenv('AUTOLAUNCH_NODES', True),

@@ -26,7 +26,7 @@ def handle_doc(tup):
         video_index = db.nodes.indexes.get(u'video')
         actor_index = db.nodes.indexes.get(u'actor')
         wid = doc[u'wid']
-        video_nodes = [node for node in video_index[wid][name.encode(u'utf8')]]
+        video_nodes = [node for node in video_index[wid][name.encode(u'utf8')] if wid in video_index]
         if not video_nodes:
             video_node = db.nodes.create(ids=doc[u'id'], name=name.encode(u'utf8'))
             video_node.labels.add(u'Video')

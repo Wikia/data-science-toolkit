@@ -2,6 +2,7 @@ from neo4jrestclient.client import GraphDatabase
 from argparse import ArgumentParser
 from multiprocessing import Pool
 import requests
+import traceback
 
 
 def get_args():
@@ -21,73 +22,78 @@ def escape_key(string):
 
 
 def handle_doc(tup):
-    args, doc = tup
-    db = GraphDatabase(args.graph_db)
-    name = doc[u'title_en'].replace(u'"', u'').lower()
-    print name.encode(u'utf8')
-    name_index = db.nodes.indexes.get(u'name')
-    wiki_index = db.nodes.indexes.get(u'wiki_ids')
-    wid = doc[u'wid']
-    name_nodes = [node for node in name_index[wid][name.encode(u'utf8')]]
-    page_ids = [doc[u'id']]
-    if not name_nodes:
-        page_node = db.nodes.create(ids=page_ids, name=name.encode(u'utf8'))
-        page_node.labels.add(u'Page')
-        name_index[wid][name.encode('utf8')] = page_node
-    else:
-        page_node = name_nodes[0]
-        try:
-            if u'ids' in page_node:
-                page_node[u'ids'] += ','+doc[u'id']
-            else:
-                page_node[u'ids'] = ','+doc[u'id']
-        except Exception as e:
-            print e, page_node
-
-    box_nodes = []
-    for line in doc[u'infoboxes_txt']:
-        splt = line.split(u'|')
-        if len(splt) > 2:
-            key = splt[1].lower().replace(u':', '').strip()
-            value = u'|'.join(splt[2:]).strip().lower().encode(u'utf8')
-            props = [node for node in name_index[wid][value]]
-            if not props:
-                box_node = db.nodes.create(name=value)
-                if u"Object" not in box_node.labels:
-                    box_node.labels.add(u'Object')
-                name_index[doc[u'wid']][value] = box_node
-            else:
-                box_node = props[0]
-            try:
-                db.relationships.create(box_node, escape_key(key).encode(u'utf8'), page_node)
-            except Exception as e:
-                print e
-            if u"Subject" not in page_node.labels:
-                page_node.labels.add(u'Subject')
-            box_nodes.append(box_node)
-            try:
-                print u"\t(%s)-[:%s]->(%s)".encode(u'utf8') % (
-                    name.encode(u'utf8'), escape_key(key).encode(u'utf8'), value.encode(u'utf8')
-                )
-            except UnicodeDecodeError:
-                pass
-
-    wiki_nodes = [node for node in wiki_index[u'wiki_id'][doc[u'wid']]]
-    if not wiki_nodes:
-        wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
-        wiki_node.labels.add(u'Wiki')
-        wiki_index[u'wiki_id'][doc[u'wid']] = wiki_node
-    else:
-        wiki_node = wiki_nodes[0]
     try:
-        db.relationships.create(wiki_node, u'involves', page_node)
-    except Exception as e:
-        print e
-    for infobox_node in box_nodes:
+        args, doc = tup
+        db = GraphDatabase(args.graph_db)
+        name = doc[u'title_en'].replace(u'"', u'').lower()
+        print name.encode(u'utf8')
+        name_index = db.nodes.indexes.get(u'name')
+        wiki_index = db.nodes.indexes.get(u'wiki_ids')
+        wid = doc[u'wid']
+        name_nodes = [node for node in name_index[wid][name.encode(u'utf8')]]
+        page_ids = [doc[u'id']]
+        if not name_nodes:
+            page_node = db.nodes.create(ids=page_ids, name=name.encode(u'utf8'))
+            page_node.labels.add(u'Page')
+            name_index[wid][name.encode('utf8')] = page_node
+        else:
+            page_node = name_nodes[0]
+            try:
+                if u'ids' in page_node:
+                    page_node[u'ids'] += ','+doc[u'id']
+                else:
+                    page_node[u'ids'] = ','+doc[u'id']
+            except Exception as e:
+                print e, page_node
+
+        box_nodes = []
+        for line in doc[u'infoboxes_txt']:
+            splt = line.split(u'|')
+            if len(splt) > 2:
+                key = splt[1].lower().replace(u':', '').strip()
+                value = u'|'.join(splt[2:]).strip().lower().encode(u'utf8')
+                props = [node for node in name_index[wid][value]]
+                if not props:
+                    box_node = db.nodes.create(name=value)
+                    if u"Object" not in box_node.labels:
+                        box_node.labels.add(u'Object')
+                    name_index[doc[u'wid']][value] = box_node
+                else:
+                    box_node = props[0]
+                try:
+                    db.relationships.create(box_node, escape_key(key).encode(u'utf8'), page_node)
+                except Exception as e:
+                    print e
+                if u"Subject" not in page_node.labels:
+                    page_node.labels.add(u'Subject')
+                box_nodes.append(box_node)
+                try:
+                    print u"\t(%s)-[:%s]->(%s)".encode(u'utf8') % (
+                        name.encode(u'utf8'), escape_key(key).encode(u'utf8'), value.encode(u'utf8')
+                    )
+                except UnicodeDecodeError:
+                    pass
+
+        wiki_nodes = [node for node in wiki_index[u'wiki_id'][doc[u'wid']]]
+        if not wiki_nodes:
+            wiki_node = db.nodes.create(wiki_id=doc[u'wid'])
+            wiki_node.labels.add(u'Wiki')
+            wiki_index[u'wiki_id'][doc[u'wid']] = wiki_node
+        else:
+            wiki_node = wiki_nodes[0]
         try:
-            db.relationships.create(wiki_node, u'involves', infobox_node)
+            db.relationships.create(wiki_node, u'involves', page_node)
         except Exception as e:
             print e
+        for infobox_node in box_nodes:
+            try:
+                db.relationships.create(wiki_node, u'involves', infobox_node)
+            except Exception as e:
+                print e
+    except (Exception, ValueError, KeyError) as e:
+        print e
+        print traceback.format_exc()
+        raise e
 
 
 def run_queries(args, pool, start=0):

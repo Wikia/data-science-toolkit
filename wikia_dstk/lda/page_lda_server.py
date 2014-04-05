@@ -111,8 +111,7 @@ def get_feature_data(args):
         for (pid, list_of_terms) in wid:
             normalized = []
             for term in list_of_terms:
-                print term
-                tokens = [normalized(token) for token in term.split(' ')]
+                tokens = [normalize(token) for token in term.split(' ')]
                 normalized.append('_'.join(tokens))
             doc_id_to_terms[pid] = normalized
     #doc_id_to_terms = {page_id: ['_'.join([normalize(token) for token in term.split(' ')]) for term in list_of_terms] for (page_id, list_of_terms) in r.get()}

@@ -111,6 +111,7 @@ def get_feature_data(args):
         for (pid, list_of_terms) in wid:
             normalized = []
             for term in list_of_terms:
+                print term
                 tokens = [normalized(token) for token in term.split(' ')]
                 normalized.append('_'.join(tokens))
             doc_id_to_terms[pid] = normalized

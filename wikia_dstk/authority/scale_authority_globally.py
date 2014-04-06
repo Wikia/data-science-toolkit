@@ -62,7 +62,7 @@ def main():
     cursor.execute(u"SELECT wiki_id FROM wikis ")
     for i in range(0, cursor.rowcount, 500):
         print i, u"wikis"
-        p.map_async(scale_authority_pv, [Namespace(wiki_id=row[0], **vars(args)) for row in cursor.fetchmany(500)]).get()
+        map(scale_authority_pv, [Namespace(wiki_id=row[0], **vars(args)) for row in cursor.fetchmany(500)])
 
 
 if __name__ == '__main__':

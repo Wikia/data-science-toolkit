@@ -45,8 +45,8 @@ def scale_authority_pv(args):
                                 ON arus.wiki_id = %d AND arto.wiki_id = %d
                                 AND arus.article_id = arto.article_id
                            ON DUPLICATE KEY UPDATE
-                           local_authority_pv = IFNULL(local_authority_pv, 0) +  VALUES(local_authority_pv),
-                           scaled_authority = IFNULL(scaled_authority_pv, 0) + VALUES(scaled_authority)
+                           topics_users.local_authority_pv = IFNULL(topics_users.local_authority_pv, 0) +  VALUES(topics_users.local_authority_pv),
+                           topics_users.scaled_authority = IFNULL(topics_users.scaled_authority_pv, 0) + VALUES(topics_users.scaled_authority)
                            """
                        % (args.wiki_id, args.wiki_id, args.wiki_id, args.wiki_id))
         db.commit()

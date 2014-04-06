@@ -51,7 +51,7 @@ def scale_authority_pv(args):
         db.commit()
     except Exception as e:
         print e
-        traceback.format_exc()
+        print traceback.format_exc()
         raise e
 
 

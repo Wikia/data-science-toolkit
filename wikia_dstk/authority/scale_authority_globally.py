@@ -18,6 +18,9 @@ def scale_authority_pv(args):
         wam = cursor.fetchone()[0]
         cursor.execute(u"SELECT MAX(pageviews), MIN(pageviews) FROM articles WHERE wiki_id = %d" % args.wiki_id)
         max_pv, min_pv = cursor.fetchone()
+        if max_pv is None or min_pv is None:
+            print args.wiki_id, u"doesn't have min/max pvs"
+            return
         sql = (u"""UPDATE articles
                    SET local_authority_pv = local_authority
                                           * (((pageviews - %0.5f)/(1-%0.5f)) + %0.5f)

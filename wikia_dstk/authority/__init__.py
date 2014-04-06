@@ -29,7 +29,7 @@ def add_db_arguments(ap):
     ap.add_argument(u'-u', u'--user', dest=u'user', default=u'root')
     ap.add_argument(u'-p', u'--password', dest=u'password', default=u'root')
     ap.add_argument(u'-d', u'--database', dest=u'database', default=u'authority')
-    ap.add_argument(u'-P', u'--port', dest=u'port', default=None)
+    ap.add_argument(u'-P', u'--port', dest=u'port', type=int, default=None)
     return ap
 
 

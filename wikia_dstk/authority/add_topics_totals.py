@@ -14,7 +14,7 @@ def add_topics_totals(args):
     cursor.execute(u"""SELECT SUM(IFNULL(arts.global_authority, 0))
                        FROM articles_topics arto
                        INNER JOIN articles arts
-                         ON arts.topic_id = %d
+                         ON arto.topic_id = %d
                         AND arts.wiki_id = arto.wiki_id
                         AND arts.article_id = arto.article_id
                        """ % args.topic_id)
@@ -33,15 +33,18 @@ def main():
                        WHERE TABLE_NAME = 'topics' AND COLUMN_NAME = 'total_authority'""")
 
     if not cursor.fetchall():
+        print u"Updating table"
         cursor.execute(u"""ALTER TABLE topics ADD COLUMN total_authority FLOAT NULL""")
         db.commit()
+
 
     cursor.execute(u"""SELECT DISTINCT topic_id FROM topics""")
 
     p = Pool(processes=args.num_processes)
     mp_args = [Namespace(topic_id=row[0], **vars(args)) for row in cursor.fetchall()]
+    print len(mp_args) , u"topics total"
     for i in range(0, len(mp_args), 500):
-        print i, u"wikis"
+        print i, u"topics"
         p.map(add_topics_totals, mp_args[i:i+500])
 
 if __name__ == u"__main__":

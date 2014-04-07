@@ -57,13 +57,16 @@ def scale_authority_pv(args):
                           args.wiki_id, args.wiki_id, args.wiki_id, args.wiki_id))
         db.commit()
 
+        cursor.execute(u"""SELECT SUM(IFNULL(global_authority, 0))
+                           FROM articles WHERE wiki_id = %d""" % args.wiki_id)
+        total_authority = cursor.fetchone()[0]
+
         cursor.execute(u"""UPDATE wikis
-                           INNER JOIN (SELECT wiki_id, SUM(IFNULL(global_authority, 0)) AS total_global
-                                      FROM articles WHERE wiki_id = %d GROUP BY wiki_id) al
+                           INNER JOIN ( GROUP BY wiki_id) al
                                       ON al.wiki_id = wikis.wiki_id
-                           SET wikis.authority = al.total_global
+                           SET wikis.authority = %.05f
                            WHERE wikis.wiki_id = %d
-                        """ % (args.wiki_id, args.wiki_id))
+                        """ % (total_authority, args.wiki_id))
         db.commit()
 
 

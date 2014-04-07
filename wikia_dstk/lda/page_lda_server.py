@@ -148,7 +148,8 @@ def get_model_from_args(args):
                 log(e)
                 log(traceback.format_exc())
                 terminate_lda_nodes()
-                return harakiri()
+                return
+                #return harakiri()
     return lda_model
 
 
@@ -158,8 +159,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
-    if args.terminate_on_complete:
-        harakiri()
+    #if args.terminate_on_complete:
+    #    harakiri()
 
 
 if __name__ == '__main__':

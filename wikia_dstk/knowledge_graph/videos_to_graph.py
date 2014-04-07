@@ -44,6 +44,7 @@ def main():
         print i
         actor_nodes += map(lambda x: db.nodes.create(name=x), actors[i:i+500])
 
+    print u"Labeling actor nodes"
     map(lambda y: y.labels.add(u'Actor'), actor_nodes)
     actors_to_node = dict(zip(actors, actor_nodes))
 
@@ -52,7 +53,7 @@ def main():
                         wt=u'json', start=0, rows=500)
     while True:
         response = requests.get(u'%s/select' % args.solr, params=query_params).json()
-        for doc in doc in response[u'response'][u'docs']:
+        for doc in response[u'response'][u'docs']:
             if u'title_en' not in doc:
                 continue
             name = doc[u'title_en'].replace(u'"', u'').lower()

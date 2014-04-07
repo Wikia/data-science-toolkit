@@ -21,7 +21,7 @@ def add_topics_totals(args):
     (total,) = cursor.fetchone()
     cursor.execute(u"""UPDATE topics
                        SET total_authority = %.5f
-                       WHERE topic_id = %d""" % (total, args.topic_id))
+                       WHERE topic_id = %d""" % (float(total), args.topic_id))
     db.commit()
 
 

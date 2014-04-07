@@ -62,8 +62,6 @@ def scale_authority_pv(args):
         total_authority = cursor.fetchone()[0]
 
         cursor.execute(u"""UPDATE wikis
-                           INNER JOIN ( GROUP BY wiki_id) al
-                                      ON al.wiki_id = wikis.wiki_id
                            SET wikis.authority = %.05f
                            WHERE wikis.wiki_id = %d
                         """ % (total_authority, args.wiki_id))

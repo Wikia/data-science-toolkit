@@ -7,15 +7,12 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 import gensim
 import traceback
 from nlp_services.caching import use_caching
-from nlp_services.document_access import ListDocIdsService
 from nlp_services.syntax import WikiToPageHeadsService
 from nlp_services.title_confirmation import preprocess
 from nlp_services.discourse.entities import WikiPageToEntitiesService
-from multiprocessing import Pool
 from boto import connect_s3
-from collections import defaultdict
 from datetime import datetime
-from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
+from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
 
@@ -98,9 +95,6 @@ def get_feature_data(args):
             tokens = [normalize(token) for token in term.split(' ')]
             normalized.append('_'.join(tokens))
         doc_id_to_terms[pid] = normalized
-    # DEBUG
-    from pprint import pprint
-    pprint(doc_id_to_terms)
     return doc_id_to_terms
 
 
@@ -154,8 +148,7 @@ def get_model_from_args(args):
                 log(e)
                 log(traceback.format_exc())
                 terminate_lda_nodes()
-                return
-                #return harakiri()
+                return harakiri()
     return lda_model
 
 
@@ -165,8 +158,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
-    #if args.terminate_on_complete:
-    #    harakiri()
+    if args.terminate_on_complete:
+        harakiri()
 
 
 if __name__ == '__main__':

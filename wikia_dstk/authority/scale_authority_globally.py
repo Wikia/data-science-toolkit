@@ -23,7 +23,7 @@ def scale_authority_pv(args):
             return
         sql = (u"""UPDATE articles
                    SET local_authority_pv = local_authority
-                                          * (((pageviews - %0.5f)/(1-%0.5f)) + %0.5f)
+                                          * (((pageviews - %0.5f)/%0.5f) + %0.5f)
                    WHERE wiki_id = %d"""
                % (min_pv, (max_pv - min_pv), + args.smoothing, args.wiki_id))
         cursor.execute(sql)

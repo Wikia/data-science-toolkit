@@ -19,6 +19,8 @@ def add_topics_totals(args):
                         AND arts.article_id = arto.article_id
                        """ % args.topic_id)
     row = cursor.fetchone()
+    if not row or not row[0]:
+        return
     cursor.execute(u"""UPDATE topics
                        SET total_authority = %.5f
                        WHERE topic_id = %d""" % (float(row[0]), args.topic_id))

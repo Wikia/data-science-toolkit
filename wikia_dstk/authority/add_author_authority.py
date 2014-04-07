@@ -38,7 +38,7 @@ def main():
     print cursor.rowcount, u"user total"
     p = Pool(processes=args.num_processes)
     for i in range(0, cursor.rowcount, 500):
-        print i, u"topics"
+        print i, u"users"
         p.map_async(add_topics_totals,
                     [Namespace(user_id=row[0], **vars(args)) for row in cursor.fetchmany(500)]).get()
 

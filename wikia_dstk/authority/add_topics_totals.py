@@ -18,7 +18,8 @@ def add_topics_totals(args):
                         AND arts.wiki_id = arto.wiki_id
                         AND arts.article_id = arto.article_id
                        """ % args.topic_id)
-    (total) = cursor.fetchone()
+    row = cursor.fetchone()
+    print row
     cursor.execute(u"""UPDATE topics
                        SET total_authority = %.5f
                        WHERE topic_id = %d""" % (float(total), args.topic_id))

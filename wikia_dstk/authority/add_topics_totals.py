@@ -44,7 +44,7 @@ def main():
     print len(mp_args), u"topics total"
     for i in range(0, len(mp_args), 500):
         print i, u"topics"
-        p.map(add_topics_totals, mp_args[i:i+500])
+        p.map_async(add_topics_totals, mp_args[i:i+500]).get()
 
 if __name__ == u"__main__":
     main()

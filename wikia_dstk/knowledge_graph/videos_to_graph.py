@@ -37,10 +37,17 @@ def main():
 
     print u"Getting all actors..."
     actors = get_all_actors(args)
-    actor_nodes = map(lambda x: db.nodes.create(name=x), actors)
+
+    print u"Creating", len(actors), u"actor nodes"
+    actor_nodes = []
+    for i in range(0, len(actors), 500):
+        print i
+        actor_nodes += map(lambda x: db.nodes.create(name=x), actors[i:i+500])
+
     map(lambda y: y.labels.add(u'Actor'), actor_nodes)
     actors_to_node = dict(zip(actors, actor_nodes))
 
+    print u"Assigning videos to actors"
     query_params = dict(q=u'is_video:true AND video_actors_txt:*', fl=u'id,title_en,video_actors_txt,wid',
                         wt=u'json', start=0, rows=500)
     while True:

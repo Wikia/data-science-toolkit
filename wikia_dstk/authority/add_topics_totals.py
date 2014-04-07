@@ -43,3 +43,6 @@ def main():
     for i in range(0, len(mp_args), 500):
         print i, u"wikis"
         p.map(add_topics_totals, mp_args[i:i+500])
+
+if __name__ == u"__main__":
+    main()

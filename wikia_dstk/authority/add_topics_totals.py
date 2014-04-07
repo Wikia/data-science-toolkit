@@ -19,10 +19,9 @@ def add_topics_totals(args):
                         AND arts.article_id = arto.article_id
                        """ % args.topic_id)
     row = cursor.fetchone()
-    print row
     cursor.execute(u"""UPDATE topics
                        SET total_authority = %.5f
-                       WHERE topic_id = %d""" % (float(total), args.topic_id))
+                       WHERE topic_id = %d""" % (float(row[0]), args.topic_id))
     db.commit()
 
 
@@ -40,12 +39,12 @@ def main():
 
     cursor.execute(u"""SELECT DISTINCT topic_id FROM topics""")
 
+    print cursor.rowcount, u"topics total"
     p = Pool(processes=args.num_processes)
-    mp_args = [Namespace(topic_id=row[0], **vars(args)) for row in cursor.fetchall()]
-    print len(mp_args), u"topics total"
-    for i in range(0, len(mp_args), 500):
+    for i in range(0, cursor.rowcount, 500):
         print i, u"topics"
-        p.map_async(add_topics_totals, mp_args[i:i+500]).get()
+        p.map_async(add_topics_totals,
+                    [Namespace(topic_id=row[0], **vars(args)) for row in cursor.fetchmany(500)]).get()
 
 if __name__ == u"__main__":
     main()

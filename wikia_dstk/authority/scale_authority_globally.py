@@ -59,7 +59,7 @@ def scale_authority_pv(args):
 
         cursor.execute(u"""UPDATE wikis
                            INNER JOIN (SELECT wiki_id, SUM(IFNULL(global_authority, 0)) AS total_global
-                                      FROM articles_topics WHERE wiki_id = %d GROUP BY wiki_id) al
+                                      FROM articles WHERE wiki_id = %d GROUP BY wiki_id) al
                                       ON al.wiki_id = wikis.wiki_id
                            SET wikis.authority = al.total_global
                            WHERE wikis.wiki_id = %d

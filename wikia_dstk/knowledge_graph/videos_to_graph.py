@@ -23,7 +23,7 @@ def get_all_actors(args):
         if response[u'response'][u'numFound'] <= query_params[u'start']:
             return list(set(actors))
         query_params[u'start'] += query_params[u'rows']
-        print query_params[u'start']
+        print query_params[u'start'], u"/", response[u'response'][u'numFound']
 
 
 def main():

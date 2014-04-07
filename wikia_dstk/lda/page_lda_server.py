@@ -13,7 +13,6 @@ from nlp_services.title_confirmation import preprocess
 from nlp_services.discourse.entities import WikiPageToEntitiesService
 from multiprocessing import Pool
 from boto import connect_s3
-from boto.s3.key import Key
 from collections import defaultdict
 from datetime import datetime
 from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
@@ -24,12 +23,9 @@ def get_args():
     ap = argparse.ArgumentParser(
         description="Generate a per-page topic model using latent dirichlet " +
         "analysis.")
-    ap.add_argument('--wiki-ids', dest='wiki_ids_file', nargs='?',
-                    type=str, default=os.getenv('WIKI_IDS_FILE'),
+    ap.add_argument('--wiki-id', dest='wiki_id', type=str,
+                    default=os.getenv('WIKI_ID'),
                     help="The source file of wiki IDs sorted by WAM")
-    ap.add_argument('--num-wikis', dest='num_wikis', type=int,
-                    default=os.getenv('NUM_WIKIS', 5000),
-                    help="Number of top N wikis to include in learner")
     ap.add_argument('--num-topics', dest='num_topics', type=int,
                     default=os.getenv('NUM_TOPICS', 999),
                     help="Number of topics you want from the LDA process")
@@ -93,33 +89,25 @@ def get_data(wid):
 
 
 def get_feature_data(args):
-    log("Loading terms...")
-    bucket = connect_s3().get_bucket('nlp-data')
-    k = Key(bucket)
-    k.key = args.wiki_ids_file
-    wids = [wid.strip() for wid in
-            k.get_contents_as_string().split('\n')][:args.num_wikis]
-    k.delete()
-    log("Working on ", len(wids), "wikis")
-    pool = Pool(processes=args.num_processes)
-    r = pool.map_async(get_data, wids)
-    r.wait()
+    wid = args.wiki_id
+    log("Working on", wid)
     doc_id_to_terms = {}
-    for wid in r.get():
-        for (pid, list_of_terms) in wid:
-            normalized = []
-            for term in list_of_terms:
-                tokens = [normalize(token) for token in term.split(' ')]
-                normalized.append('_'.join(tokens))
-            doc_id_to_terms[pid] = normalized
-    log(len(doc_id_to_terms), "instances")
+    for (pid, list_of_terms) in get_data(wid):
+        normalized = []
+        for term in list_of_terms:
+            tokens = [normalize(token) for token in term.split(' ')]
+            normalized.append('_'.join(tokens))
+        doc_id_to_terms[pid] = normalized
+    # DEBUG
+    from pprint import pprint
+    pprint(doc_id_to_terms)
     return doc_id_to_terms
 
 
 def get_model_from_args(args):
     log("\n---LDA Model---")
-    modelname = '%s-%s-page-lda-%swikis-%stopics.model' % (
-        args.git_ref, args.model_prefix, args.num_wikis, args.num_topics)
+    modelname = '%s-%s-page-lda-wid-%s-%stopics.model' % (
+        args.git_ref, args.model_prefix, args.wiki_id, args.num_topics)
     bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log("(loading from file)")
@@ -175,11 +163,7 @@ def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     use_caching()
     args = get_args()
-    doc_id_to_terms = get_feature_data(args)  #debug
-    print '*****'
-    print doc_id_to_terms
-    print '*****'
-    #get_model_from_args(args)
+    get_model_from_args(args)
     log("Done")
     #if args.terminate_on_complete:
     #    harakiri()

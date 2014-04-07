@@ -175,7 +175,11 @@ def main():
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     use_caching()
     args = get_args()
-    get_model_from_args(args)
+    doc_id_to_terms = get_feature_data(args)  #debug
+    print '*****'
+    print doc_id_to_terms
+    print '*****'
+    #get_model_from_args(args)
     log("Done")
     #if args.terminate_on_complete:
     #    harakiri()

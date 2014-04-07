@@ -8,7 +8,7 @@ from . import run_server_from_args
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--wiki-id', dest='wiki_ids', type=str,
+    parser.add_argument('--wiki-id', dest='wiki_id', type=str,
                         help="The wiki ID for which to generate a topic model")
     parser.add_argument('--ami', dest='ami', type=str,
                         default="ami-f4d0bfc4",

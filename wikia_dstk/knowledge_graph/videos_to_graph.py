@@ -13,69 +13,60 @@ def get_args():
     return ap.parse_args()
 
 
-def escape_value(string):
-    return string.replace(u"'", u"\\'")
-
-
-def handle_doc(tup):
-    try:
-        args, doc = tup
-        db = GraphDatabase(args.graph_db)
-        if u'title_en' not in doc:
-            return
-        name = doc[u'title_en'].replace(u'"', u'').lower()
-        print name.encode(u'utf8')
-        actor_index = db.nodes.indexes.get(u'actor')
-        video_node = db.nodes.create(doc_id=doc[u'id'], name=name.encode(u'utf8'))
-        video_node.labels.add(u'Video')
-
-        for actor in doc[u'video_actors_txt']:
-            actors = actor_index[u'actor'][actor]
-            if len(actors) == 0:
-                actor_node = db.nodes.create(name=actor)
-                if u"Actor" not in actor_node.labels:
-                    actor_node.labels.add(u'Actor')
-                actor_index[u'actors'][actor] = actor_node
-            else:
-                actor = actors[0]
-
-            try:
-                db.relationships.create(video_node, u'stars', actor_node)
-                db.relationships.create(actor_node, u'acts_in', video_node)
-            except Exception as e:
-                print e
-    except Exception as e:
-        print e
-        traceback.format_exc()
-        raise e
-
-
-def run_queries(args, pool, start=0):
-    query_params = dict(q=u'is_video:true AND video_actors_txt:*', fl=u'id,title_en,video_actors_txt,wid',
-                        wt=u'json', start=start, rows=500)
+def get_all_actors(args):
+    query_params = dict(q=u'is_video:true AND video_actors_txt:*', fl=u'video_actors_txt',
+                        wt=u'json', start=0, rows=500)
+    actors = []
     while True:
         response = requests.get(u'%s/select' % args.solr, params=query_params).json()
-        map(handle_doc, [(args, doc) for doc in response[u'response'][u'docs']])
+        actors += [actor for doc in response[u'response'][u'docs'] for actor in doc.get(u'video_actors_txt', [])]
         if response[u'response'][u'numFound'] <= query_params[u'start']:
-            return True
-        query_params['start'] += query_params['rows']
+            return list(set(actors))
+        query_params[u'start'] += query_params[u'rows']
+        print query_params[u'start']
 
 
 def main():
     args = get_args()
     db = GraphDatabase(args.graph_db)
-    try:
-        actor_index = db.nodes.indexes.create(u'actor')
-    except Exception as e:
-        print e
     for label in [u'Video', u'Actor']:
         try:
             db.labels.create(label)
         except:
             continue
-    #pool = Pool(processes=args.num_processes)
-    pool = False
-    run_queries(args, pool)
+
+    print u"Getting all actors..."
+    actors = get_all_actors(args)
+    actor_nodes = map(lambda x: db.nodes.create(name=x), actors)
+    map(lambda y: y.labels.add(u'Actor'), actor_nodes)
+    actors_to_node = dict(zip(actors, actor_nodes))
+
+    query_params = dict(q=u'is_video:true AND video_actors_txt:*', fl=u'id,title_en,video_actors_txt,wid',
+                        wt=u'json', start=0, rows=500)
+    while True:
+        response = requests.get(u'%s/select' % args.solr, params=query_params).json()
+        for doc in doc in response[u'response'][u'docs']:
+            if u'title_en' not in doc:
+                continue
+            name = doc[u'title_en'].replace(u'"', u'').lower()
+
+            print name.encode(u'utf8')
+            video_node = db.nodes.create(doc_id=doc[u'id'], name=name.encode(u'utf8'))
+            video_node.labels.add(u'Video')
+
+            for actor in doc.get(u'video_actors_txt', []):
+                actor_node = actors_to_node[actor]
+                try:
+                    db.relationships.create(video_node, u'stars', actor_node)
+                    db.relationships.create(actor_node, u'acts_in', video_node)
+                except Exception as e:
+                    print e
+
+        if response[u'response'][u'numFound'] <= query_params[u'start']:
+            return True
+        query_params[u'start'] += query_params[u'rows']
+
+
 
 
 if __name__ == '__main__':

@@ -163,4 +163,6 @@ def main():
 
 
 if __name__ == '__main__':
+    start = time.time()
     main()
+    log(time.time() - start, 'seconds elapsed')

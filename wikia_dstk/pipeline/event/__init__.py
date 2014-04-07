@@ -58,7 +58,7 @@ class QueryIterator(object):
 
     def getParams(self):
         params = {
-             'q': self.query,
+            'q': self.query,
             'wt': 'json',
          'start': self.start,
           'rows': self.rows,

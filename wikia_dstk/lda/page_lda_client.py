@@ -8,9 +8,8 @@ from . import run_server_from_args
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--wiki-ids', dest='wiki_ids_file', nargs='?',
-                        type=argparse.FileType('r'),
-                        help="The source file of wiki IDs sorted by WAM")
+    parser.add_argument('--wiki-id', dest='wiki_ids', type=str,
+                        help="The wiki ID for which to generate a topic model")
     parser.add_argument('--ami', dest='ami', type=str,
                         default="ami-f4d0bfc4",
                         help='The AMI to launch')
@@ -20,9 +19,6 @@ def get_args():
     parser.add_argument('--num-topics', dest='num_topics', type=int,
                         action='store', default=os.getenv('NUM_TOPICS', 999),
                         help="The number of topics for the model to use")
-    parser.add_argument('--num-wikis', dest='num_wikis', type=int,
-                        action='store', default=os.getenv('NUM_WIKIS', 5000),
-                        help="The number of top N wikis to use")
     parser.add_argument('--path-prefix', dest='path_prefix', type=str,
                         action='store',
                         default=os.getenv('PATH_PREFIX', '/mnt/'),
@@ -66,14 +62,7 @@ def get_args():
 
 def main():
     args = get_args()
-    bucket = S3Connection().get_bucket('nlp-data')
-    k = Key(bucket)
-    k.key = 'lda_page_events/%s' % datetime.isoformat(datetime.utcnow())
-    k.set_contents_from_string(args.wiki_ids_file.read())
-    run_server_from_args(
-        args, 'wikia_dstk.lda.page_lda_server',
-        user_data_extras="export NUM_WIKIS=%d && export WIKI_IDS_FILE=%s" % (
-            args.num_wikis, k.key))
+    run_server_from_args(args, 'wikia_dstk.lda.page_lda_server')
 
 
 if __name__ == '__main__':

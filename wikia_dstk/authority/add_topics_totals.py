@@ -39,7 +39,7 @@ def main():
         cursor.execute(u"""ALTER TABLE topics ADD COLUMN total_authority FLOAT NULL""")
         db.commit()
 
-    cursor.execute(u"""SELECT DISTINCT topic_id FROM topics""")
+    cursor.execute(u"""SELECT DISTINCT topic_id FROM topics WHERE total_authority IS NULL""")
 
     print cursor.rowcount, u"topics total"
     p = Pool(processes=args.num_processes)

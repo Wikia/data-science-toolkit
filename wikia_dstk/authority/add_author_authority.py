@@ -15,8 +15,8 @@ def add_topics_totals(args):
                        FROM articles_users aru
                        INNER JOIN articles arts
                          ON aru.user_id = %d
-                        AND arts.wiki_id = arto.wiki_id
-                        AND arts.article_id = arto.article_id
+                        AND arts.wiki_id = aru.wiki_id
+                        AND arts.article_id = aru.article_id
                        """ % args.user_id)
 
     with_contribs = [(row[0] * row[2], row[1] * row[2]) for row in cursor.fetchall() if row and row[1] and row[2]]
@@ -38,7 +38,7 @@ def main():
     print cursor.rowcount, u"user total"
     p = Pool(processes=args.num_processes)
     for i in range(0, cursor.rowcount, 500):
-        print i, u"topics"
+        print i, u"users"
         p.map_async(add_topics_totals,
                     [Namespace(user_id=row[0], **vars(args)) for row in cursor.fetchmany(500)]).get()
 

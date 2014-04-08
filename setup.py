@@ -9,7 +9,7 @@ setup(name="wikia_dstk",
       packages=[
           "wikia_dstk.lda", "wikia_dstk.pipeline", "wikia_dstk.pipeline.event",
           "wikia_dstk.pipeline.parser", "wikia_dstk.pipeline.data_extraction",
-          "wikia_dstk.pipeline.wiki_data_extraction", "wikia_dstk.authority"
+          "wikia_dstk.pipeline.wiki_data_extraction", "wikia_dstk.authority",
           "wikia_dstk.recommendations", "wikia_dstk.loadbalancing", "wikia_dstk.knowledge_graph"],
       install_requires=[
           "nlp_services>=0.0.1", "pyro4", "gensim", "scikit-learn", "requests",

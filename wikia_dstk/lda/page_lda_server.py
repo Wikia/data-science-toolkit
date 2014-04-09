@@ -3,6 +3,7 @@ import warnings
 import os
 import argparse
 import sys
+import requests
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 import gensim
 import traceback
@@ -65,6 +66,9 @@ def get_args():
 def get_data(wid):
     log(wid)
     use_caching(shouldnt_compute=True)
+    details = requests.get(
+        'http://www.wikia.com/api/v1/Wikis/Details/',
+        params={'ids': wid}).json().get('items', {}).get(wid)
     #should be CombinedEntitiesService yo
     doc_ids_to_heads = WikiToPageHeadsService().get_value(wid, {})
     doc_ids_to_entities = WikiPageToEntitiesService().get_value(wid, {})
@@ -73,10 +77,27 @@ def get_data(wid):
         log(wid, "no heads")
     if doc_ids_to_entities == {}:
         log(wid, "no entities")
+    indexed = {}
+    if details is not None:
+        url = details.get('url')
+        lang = details.get('lang')
+        indexer = requests.get(
+            '%swikia.php' % url,
+            params={'controller': 'WikiaSearchIndexer',
+                    'method': 'get',
+                    'service': 'All',
+                    'ids': ','.join(doc_ids_to_heads.keys())}
+            ).json().get('contents', [])
+        if indexer:
+            for doc in indexer:
+                indexed[doc['id']] = (
+                    doc.get('headings_mv_%s' % lang, {}).get('set', []) +
+                    doc.get('categories_mv_%s' % lang, {}).get('set', []))
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})
         doc_ids_combined[doc_id] = map(preprocess,
+                                       indexed.get(doc_id, []) +
                                        entity_response['titles'] +
                                        entity_response['redirects'].keys() +
                                        entity_response['redirects'].values() +

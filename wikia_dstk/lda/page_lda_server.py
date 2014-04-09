@@ -93,6 +93,7 @@ def get_data(wid):
                 indexed[doc['id']] = (
                     doc.get('headings_mv_%s' % lang, {}).get('set', []) +
                     doc.get('categories_mv_%s' % lang, {}).get('set', []))
+    from pprint import pprint; pprint(indexed)  # DEBUG
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})

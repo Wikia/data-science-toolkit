@@ -68,10 +68,10 @@ def get_args():
     return ap.parse_args()
 
 
-def chunks(array, n):
+def chunks(url, lang, array, n):
     """Yield successive n-sized chunks from array"""
     for i in xrange(0, len(array), n):
-        yield array[i:i+n]
+        yield (url, lang, array[i:i+n])
 
 
 def get_fields_star(args):
@@ -124,11 +124,14 @@ def get_data(wid):
     if details is not None:
         url = details.get('url')
         lang = details.get('lang')
-        doc_ids = map(lambda x: (url, lang, x.split('_')[1]),
+        #doc_ids = map(lambda x: (url, lang, x.split('_')[1]),
+        doc_ids = map(lambda x: x.split('_')[1],
                       filter(lambda y: '_' in y,
                              doc_ids_to_heads.keys()))
+
         pprint(doc_ids)  # DEBUG
-        r = Pool(processes=8).map_async(get_fields_star, chunks(doc_ids, STEP))
+        r = Pool(processes=8).map_async(get_fields_star, chunks(
+            url, lang, doc_ids, STEP))
         r.wait()
         m = map(lambda x: fields.extend(x), r.get())
     indexed = dict(fields)

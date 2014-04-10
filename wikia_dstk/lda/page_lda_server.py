@@ -81,7 +81,6 @@ def get_fields(doc_ids):
         params={'controller': 'WikiaSearchIndexer',
                 'method': 'get',
                 'service': 'All',
-                #'ids': doc_ids_subset}
                 'ids': '|'.join(doc_ids)}
         )
     try:
@@ -91,7 +90,6 @@ def get_fields(doc_ids):
     except:
         print traceback.format_exc()
         indexer = []
-    #pprint(indexer)
     if indexer:
         for doc in indexer:
             if doc.get('id') is not None:
@@ -99,44 +97,8 @@ def get_fields(doc_ids):
                     (doc['id'],
                      (doc.get('headings_mv_%s' % lang, {}).get('set', []) +
                       doc.get('categories_mv_%s' % lang, {}).get('set', []))))
-                #indexed[doc['id']] = (
-                #    doc.get('headings_mv_%s' % lang, {}).get('set', []) +
-                #    doc.get('categories_mv_%s' % lang, {}).get('set', []))
     return array
 
-#foo = range(100)
-#print map(lambda x:x, chunks(foo, 9))
-#sys.exit(0)
-
-details = requests.get(
-    'http://www.wikia.com/api/v1/Wikis/Details/',
-    params={'ids': wid}).json().get('items', {}).get(wid)
-#doc_ids_combined = {}
-#indexed = {}
-if details is not None:
-    url = details.get('url')
-    lang = details.get('lang')
-    #print url
-    #doc_ids = ListDocIdsService().get_value(wid)
-    doc_ids = map(lambda x: x.split('_')[1],
-                  filter(lambda y: '_' in y,
-                         #ListDocIdsService().get_value(wid)))[:100]
-                         ListDocIdsService().get_value(wid)))
-    #pprint(doc_ids); sys.exit(0)
-    #for n in range(0, len(doc_ids), step):
-    ##for n in range(0, 20, step):
-    #    print 'n = %d' % n
-    #    doc_ids_subset = doc_ids[n:n+step]
-    r = Pool(processes=8).map_async(get_fields, chunks(doc_ids, step))
-    r.wait()
-    pprint(r.get())
-    print '*'*80
-    #for k in r.get():  # DEBUG
-    #    print k
-    fields = []
-    m = map(lambda x: fields.extend(x), r.get())
-    #pprint(fields)
-    indexed = dict(fields)
 
 
 def get_data(wid):
@@ -153,22 +115,18 @@ def get_data(wid):
         log(wid, "no heads")
     if doc_ids_to_entities == {}:
         log(wid, "no entities")
-    indexed = {}
+    fields = []
     if details is not None:
         url = details.get('url')
         lang = details.get('lang')
-        indexer = requests.get(
-            '%swikia.php' % url,
-            params={'controller': 'WikiaSearchIndexer',
-                    'method': 'get',
-                    'service': 'All',
-                    'ids': ','.join(doc_ids_to_heads.keys())}
-            ).json().get('contents', [])
-        if indexer:
-            for doc in indexer:
-                indexed[doc['id']] = (
-                    doc.get('headings_mv_%s' % lang, {}).get('set', []) +
-                    doc.get('categories_mv_%s' % lang, {}).get('set', []))
+        doc_ids = map(lambda x: x.split('_')[1],
+                      filter(lambda y: '_' in y,
+                             doc_ids_to_heads.keys()))
+        r = Pool(processes=8).map_async(get_fields, chunks(doc_ids, step))
+        r.wait()
+        pprint(r.get())
+        m = map(lambda x: fields.extend(x), r.get())
+    indexed = dict(fields)
     from pprint import pprint; pprint(indexed)  # DEBUG
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(

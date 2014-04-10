@@ -14,6 +14,7 @@ from nlp_services.discourse.entities import WikiPageToEntitiesService
 from boto import connect_s3
 from datetime import datetime
 from multiprocessing import Pool
+from pprint import pprint
 from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 from ..pipeline.event import QueryIterator
@@ -78,7 +79,7 @@ def get_fields_star(args):
 
 
 def get_fields(url, lang, doc_ids):
-    print 'Getting fields for %s' % doc_ids
+    print 'Getting fields for %s' % doc_ids  # DEBUG
     array = []
     r = requests.get(
         '%swikia.php' % url,
@@ -101,6 +102,7 @@ def get_fields(url, lang, doc_ids):
                     (doc['id'],
                      (doc.get('headings_mv_%s' % lang, {}).get('set', []) +
                       doc.get('categories_mv_%s' % lang, {}).get('set', []))))
+    pprint(array)  # DEBUG
     return array
 
 

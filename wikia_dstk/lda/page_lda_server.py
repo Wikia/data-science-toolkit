@@ -73,7 +73,11 @@ def chunks(array, n):
         yield array[i:i+n]
 
 
-def get_fields(doc_ids):
+def get_fields_star(args):
+    return get_fields(*args)
+
+
+def get_fields(url, lang, doc_ids):
     print 'Getting fields for %s' % doc_ids
     array = []
     r = requests.get(
@@ -100,7 +104,6 @@ def get_fields(doc_ids):
     return array
 
 
-
 def get_data(wid):
     log(wid)
     use_caching(shouldnt_compute=True)
@@ -119,15 +122,13 @@ def get_data(wid):
     if details is not None:
         url = details.get('url')
         lang = details.get('lang')
-        doc_ids = map(lambda x: x.split('_')[1],
+        doc_ids = map(lambda x: (url, lang, x.split('_')[1]),
                       filter(lambda y: '_' in y,
                              doc_ids_to_heads.keys()))
-        r = Pool(processes=8).map_async(get_fields, chunks(doc_ids, step))
+        r = Pool(processes=8).map_async(get_fields_star, chunks(doc_ids, STEP))
         r.wait()
-        pprint(r.get())
         m = map(lambda x: fields.extend(x), r.get())
     indexed = dict(fields)
-    from pprint import pprint; pprint(indexed)  # DEBUG
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})

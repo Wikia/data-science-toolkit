@@ -14,10 +14,8 @@ from nlp_services.discourse.entities import WikiPageToEntitiesService
 from boto import connect_s3
 from datetime import datetime
 from multiprocessing import Pool
-from pprint import pprint
 from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
-from ..pipeline.event import QueryIterator
 
 STEP = 50
 
@@ -79,7 +77,7 @@ def get_fields_star(args):
 
 
 def get_fields(url, lang, doc_ids):
-    print 'Getting fields for %s' % doc_ids  # DEBUG
+    log('Getting fields for %s' % doc_ids)
     array = []
     r = requests.get(
         '%swikia.php' % url,
@@ -93,7 +91,7 @@ def get_fields(url, lang, doc_ids):
     except KeyboardInterrupt:
         sys.exit(0)
     except:
-        print traceback.format_exc()
+        log(traceback.format_exc())
         indexer = []
     if indexer:
         for doc in indexer:
@@ -102,7 +100,6 @@ def get_fields(url, lang, doc_ids):
                     (doc['id'],
                      (doc.get('headings_mv_%s' % lang, {}).get('set', []) +
                       doc.get('categories_mv_%s' % lang, {}).get('set', []))))
-    pprint(array)  # DEBUG
     return array
 
 
@@ -124,12 +121,10 @@ def get_data(wid):
     if details is not None:
         url = details.get('url')
         lang = details.get('lang')
-        #doc_ids = map(lambda x: (url, lang, x.split('_')[1]),
         doc_ids = map(lambda x: x.split('_')[1],
                       filter(lambda y: '_' in y,
                              doc_ids_to_heads.keys()))
 
-        pprint(doc_ids)  # DEBUG
         r = Pool(processes=8).map_async(get_fields_star, chunks(
             url, lang, doc_ids, STEP))
         r.wait()

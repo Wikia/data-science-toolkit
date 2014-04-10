@@ -127,6 +127,7 @@ def get_data(wid):
         doc_ids = map(lambda x: (url, lang, x.split('_')[1]),
                       filter(lambda y: '_' in y,
                              doc_ids_to_heads.keys()))
+        pprint(doc_ids)  # DEBUG
         r = Pool(processes=8).map_async(get_fields_star, chunks(doc_ids, STEP))
         r.wait()
         m = map(lambda x: fields.extend(x), r.get())

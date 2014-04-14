@@ -86,6 +86,7 @@ def get_fields(url, lang, doc_ids):
                 'service': 'All',
                 'ids': '|'.join(doc_ids)}
         )
+    print r  # DEBUG
     try:
         indexer = r.json().get('contents', [])
     except KeyboardInterrupt:

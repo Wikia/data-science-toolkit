@@ -8,5 +8,6 @@ config = {
     "type": "m2.4xlarge",
     "tag": "parser",
     "threshold": 10,
-    "max_size": 10
+    "max_size": 10,
+    "git_ref": "master"
     }

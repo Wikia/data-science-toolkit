@@ -204,15 +204,15 @@ def get_model_from_args(args):
                 key.set_contents_from_file(
                     open(args.path_prefix+modelname, 'r'))
                 terminate_lda_nodes()
-            except EC2ResponseError:
-                terminate_lda_nodes()
-                return harakiri()
+            #except EC2ResponseError:
+            #    terminate_lda_nodes()
+            #    return harakiri()
             except Exception as e:
                 log(e)
                 log(traceback.format_exc())
-                #terminate_lda_nodes()
+                #terminate_lda_nodes()  # keep commented out
                 return
-                #return harakiri()
+                #return harakiri()  # keep commented out
     return lda_model
 
 
@@ -222,8 +222,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
-    if args.terminate_on_complete:
-        harakiri()
+    #if args.terminate_on_complete:
+    #    harakiri()
 
 
 if __name__ == '__main__':

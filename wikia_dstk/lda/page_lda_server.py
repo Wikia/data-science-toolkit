@@ -12,6 +12,7 @@ from nlp_services.syntax import WikiToPageHeadsService
 from nlp_services.title_confirmation import preprocess
 from nlp_services.discourse.entities import WikiPageToEntitiesService
 from boto import connect_s3
+from boto.exception import EC2ResponseError
 from datetime import datetime
 from multiprocessing import Pool
 from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
@@ -203,10 +204,13 @@ def get_model_from_args(args):
                 key.set_contents_from_file(
                     open(args.path_prefix+modelname, 'r'))
                 terminate_lda_nodes()
+            except EC2ResponseError:
+                terminate_lda_nodes()
+                return harakiri()
             except Exception as e:
                 log(e)
                 log(traceback.format_exc())
-                terminate_lda_nodes()
+                #terminate_lda_nodes()
                 return
                 #return harakiri()
     return lda_model
@@ -218,8 +222,8 @@ def main():
     args = get_args()
     get_model_from_args(args)
     log("Done")
-    #if args.terminate_on_complete:
-    #    harakiri()
+    if args.terminate_on_complete:
+        harakiri()
 
 
 if __name__ == '__main__':

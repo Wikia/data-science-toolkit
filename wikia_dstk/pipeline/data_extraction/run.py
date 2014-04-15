@@ -38,14 +38,17 @@ def main():
             while len(processes) < args.workers:
                 if len(keys) == 0:
                     break
-                processes.append(
-                    Popen(
-                        '/usr/bin/python -m ' +
-                        'wikia_dstk.pipeline.data_extraction.child ' +
-                        '%s --s3key=%s/%s' % (
-                            argstring_from_namespace(args, extras),
-                            args.queue, keys.pop()),
-                        shell=True))
+            command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, keys.pop())
+            print command
+            processes.append(command, shell=True)
+            #processes.append(
+            #        Popen(
+            #            '/usr/bin/python -m ' +
+            #            'wikia_dstk.pipeline.data_extraction.child ' +
+            #            '%s --s3key=%s/%s' % (
+            #                argstring_from_namespace(args, extras),
+            #                args.queue, keys.pop()),
+            #            shell=True))
             processes = filter(lambda x: x.poll() is None, processes)
             sleep(5)
 

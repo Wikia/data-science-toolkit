@@ -17,7 +17,8 @@ from ... import get_argparser_from_config, argstring_from_namespace
 def get_args():
     ap = get_argparser_from_config(default_config)
     ap.add_argument('--workers', dest='workers', type=int, default=8)
-    ap.add_argument('--no-shutdown', dest='do_shutdown', action='store_false', default=True)
+    ap.add_argument('--no-shutdown', dest='do_shutdown', action='store_false',
+                    default=True)
     return ap.parse_known_args()
 
 
@@ -37,12 +38,13 @@ def main():
             while len(processes) < args.workers:
                 if len(keys) == 0:
                     break
-                processes.append(
-                    Popen(
-                        '/usr/bin/python -m ' +
-                        'wikia_dstk.pipeline.data_extraction.child ' +
-                        '%s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, keys.pop()),
-                        shell=True))
+                k = keys.pop()
+                command = (
+                    '/usr/bin/python -m ' +
+                    'wikia_dstk.pipeline.data_extraction.child %s --s3key=%s' % (
+                        argstring_from_namespace(args, extras), k))
+                processes.append(Popen(command, shell=True))
+                print command
             processes = filter(lambda x: x.poll() is None, processes)
             sleep(5)
 

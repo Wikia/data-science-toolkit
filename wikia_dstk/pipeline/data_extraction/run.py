@@ -39,19 +39,12 @@ def main():
                 if len(keys) == 0:
                     break
                 k = keys.pop()
-                #command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, k)
-                command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s' % (argstring_from_namespace(args, extras), k)
-                #processes.append(Popen(command, shell=True, stdout=open('/var/log/' + k, 'w'), stderr=STDOUT))
+                command = (
+                    '/usr/bin/python -m ' +
+                    'wikia_dstk.pipeline.data_extraction.child %s --s3key=%s' % (
+                        argstring_from_namespace(args, extras), k))
                 processes.append(Popen(command, shell=True))
                 print command
-                #processes.append(
-                #        Popen(
-                #            '/usr/bin/python -m ' +
-                #            'wikia_dstk.pipeline.data_extraction.child ' +
-                #            '%s --s3key=%s/%s' % (
-                #                argstring_from_namespace(args, extras),
-                #                args.queue, keys.pop()),
-                #            shell=True))
             processes = filter(lambda x: x.poll() is None, processes)
             sleep(5)
 

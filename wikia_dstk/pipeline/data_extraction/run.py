@@ -39,7 +39,7 @@ def main():
                 if len(keys) == 0:
                     break
                 command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, keys.pop())
-                processes.append(command, shell=True)
+                processes.append(Popen(command, shell=True))
                 print command
                 #processes.append(
                 #        Popen(

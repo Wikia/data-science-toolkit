@@ -39,8 +39,10 @@ def main():
                 if len(keys) == 0:
                     break
                 k = keys.pop()
-                command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, k)
-                processes.append(Popen(command, shell=True, stdout=open('/var/log/' + k, 'w'), stderr=STDOUT))
+                #command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, k)
+                command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s > /var/log/%s' % (argstring_from_namespace(args, extras), args.queue, k, k)
+                #processes.append(Popen(command, shell=True, stdout=open('/var/log/' + k, 'w'), stderr=STDOUT))
+                processes.append(Popen(command, shell=True))
                 print command
                 #processes.append(
                 #        Popen(

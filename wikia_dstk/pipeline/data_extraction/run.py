@@ -8,7 +8,7 @@ import re
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
-from subprocess import Popen, STDOUT
+from subprocess import Popen
 from time import sleep
 from config import default_config
 from ... import get_argparser_from_config, argstring_from_namespace
@@ -40,7 +40,7 @@ def main():
                     break
                 k = keys.pop()
                 #command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s' % (argstring_from_namespace(args, extras), args.queue, k)
-                command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s/%s > /var/log/%s' % (argstring_from_namespace(args, extras), args.queue, k, k)
+                command = '/usr/bin/python -m wikia_dstk.pipeline.data_extraction.child %s --s3key=%s' % (argstring_from_namespace(args, extras), k)
                 #processes.append(Popen(command, shell=True, stdout=open('/var/log/' + k, 'w'), stderr=STDOUT))
                 processes.append(Popen(command, shell=True))
                 print command

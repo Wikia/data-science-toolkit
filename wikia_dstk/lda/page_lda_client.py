@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import requests
+import time
 from boto import connect_s3
 from datetime import datetime
 from multiprocessing import Pool
@@ -12,6 +13,12 @@ WIKI_ID = None
 
 def get_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--build', dest='build', action='store_true',
+                        default=False,
+                        help="Build new feature set for S3")
+    parser.add_argument('--build-only', dest='build_only', action='store_true',
+                        default=False,
+                        help="Build new feature set for S3")
     parser.add_argument('--wiki-id', dest='wiki_id', type=str,
                         help="The wiki ID for which to generate a topic model")
     parser.add_argument('--ami', dest='ami', type=str,
@@ -123,19 +130,22 @@ def data_to_s3(num_processes):
     log('Uploading to S3')
     b = connect_s3().get_bucket('nlp-data')
     k = b.new_key('feature-data/page-%s.json' % WIKI_ID)
-    k.set_contents_from_string(
-        json.dumps(etl_concurrent(Pool(processes=num_processes)),
-                   ensure_ascii=False))
+    k.set_contents_from_string(json.dumps(
+        etl_concurrent(Pool(processes=num_processes)), ensure_ascii=False))
 
 
 def main():
     global WIKI_ID
     args = get_args()
     WIKI_ID = args.wiki_id
-    data_to_s3(args.num_processes)
-    run_server_from_args(
-        args, 'wikia_dstk.lda.page_lda_server',
-        user_data_extras='export WIKI_ID="%s"' % args.wiki_id)
+    if args.build:
+        start = time.time()
+        data_to_s3(args.num_processes)
+        log('Finished upload to S3 in %d seconds' % (time.time() - start))
+    if not args.build_only:
+        run_server_from_args(
+            args, 'wikia_dstk.lda.page_lda_server',
+            user_data_extras='export WIKI_ID="%s"' % WIKI_ID)
 
 
 if __name__ == '__main__':

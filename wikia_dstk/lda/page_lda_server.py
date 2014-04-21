@@ -2,7 +2,6 @@ import argparse
 import gensim
 import json
 import os
-import requests
 import sys
 import time
 import traceback
@@ -66,44 +65,6 @@ def get_args():
                     default=os.getenv('GIT_REF', 'master'),
                     help="A DSTK repo ref (tag, branch, commit hash) to check out")
     return ap.parse_args()
-
-
-def chunks(url, lang, array, n):
-    """Yield successive n-sized chunks from array"""
-    for i in xrange(0, len(array), n):
-        yield (url, lang, array[i:i+n])
-
-
-def get_fields_star(args):
-    return get_fields(*args)
-
-
-def get_fields(url, lang, doc_ids):
-    log('Getting fields for %s' % doc_ids)
-    array = []
-    r = requests.get(
-        '%swikia.php' % url,
-        params={'controller': 'WikiaSearchIndexer',
-                'method': 'get',
-                'service': 'All',
-                'ids': '|'.join(doc_ids)}
-        )
-    print r  # DEBUG
-    try:
-        indexer = r.json().get('contents', [])
-    except KeyboardInterrupt:
-        sys.exit(0)
-    except:
-        log(traceback.format_exc())
-        indexer = []
-    if indexer:
-        for doc in indexer:
-            if doc.get('id') is not None:
-                array.append(
-                    (doc['id'],
-                     (doc.get('headings_mv_%s' % lang, {}).get('set', []) +
-                      doc.get('categories_mv_%s' % lang, {}).get('set', []))))
-    return array
 
 
 def get_data(wid):

@@ -4,6 +4,8 @@ import requests
 from datetime import datetime
 from . import log, normalize, run_server_from_args
 
+WIKI_ID = None
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -77,10 +79,12 @@ def etl_concurrent(pool):
     log("Extracting data...")
     params = {
         'wt': 'json', 'rows': 0, 'fl': 'id,headings_mv_en,categories_mv_en',
-        'q': 'wid:%s' % args.wiki_id}
-    response = requests.get('http://search-s10:8983/solr/main/select', params=params).json()
-    log(response['response']['numFound'], "videos")
-    r = pool.map_async(get_docs, range(0, response['response']['numFound'], 500))
+        'q': 'wid:%s' % WIKI_ID}
+    response = requests.get(
+        'http://search-s10:8983/solr/main/select', params=params).json()
+    log(response['response']['numFound'], "docs")
+    r = pool.map_async(get_docs,
+                       range(0, response['response']['numFound'], 500))
     r.wait()
     docs = [doc for docset in r.get() for doc in docset]
     log("Got all docs, now building features")
@@ -88,7 +92,8 @@ def etl_concurrent(pool):
     features = {}
     for i in range(0, doclen, 5000):
         log("%.2f%%" % (float(i)/float(doclen) * 100))
-        map(features.update, pool.map_async(doc_to_vectors, docs[i:i+5000]).get())
+        map(features.update,
+            pool.map_async(doc_to_vectors, docs[i:i+5000]).get())
     return features
 
 
@@ -101,12 +106,14 @@ def get_docs(start):
         'http://search-s10:8983/solr/main/select',
         params={'wt': 'json', 'start': start, 'rows': 500,
                 'fl': 'id,headings_mv_en,categories_mv_en',
-                'q': 'wid:%s' % args.wiki_id}
+                'q': 'wid:%s' % WIKI_ID}
         ).json().get('response', {}).get('docs', [])
 
 
 def main():
+    global WIKI_ID
     args = get_args()
+    WIKI_ID = args.wiki_id
     run_server_from_args(
         args, 'wikia_dstk.lda.page_lda_server',
         user_data_extras='export WIKI_ID="%s"' % args.wiki_id)

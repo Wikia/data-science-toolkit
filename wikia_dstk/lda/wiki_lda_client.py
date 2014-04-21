@@ -23,7 +23,7 @@ def get_args():
                         help="Where to save the model")
     parser.add_argument('--max-topic-frequency', dest='max_topic_frequency', type=int,
                         default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
-                        help="Threshold for number of videos a given topic appears in")
+                        help="Threshold for number of wikis a given topic appears in")
     parser.add_argument('--model-prefix', dest='model_prefix', type=str,
                         default=os.getenv('MODEL_PREFIX', datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M')),
                         help="Prefix to uniqueify model")

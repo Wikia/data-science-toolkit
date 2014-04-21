@@ -1,7 +1,7 @@
 import argparse
 import os
 from datetime import datetime
-from . import normalize, run_server_from_args
+from . import log, normalize, run_server_from_args
 
 
 def get_args():

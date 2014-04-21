@@ -4,6 +4,7 @@ import os
 import requests
 from boto import connect_s3
 from datetime import datetime
+from multiprocessing import Pool
 from . import log, normalize, run_server_from_args
 
 WIKI_ID = None

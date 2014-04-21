@@ -20,6 +20,9 @@ def get_args():
     parser.add_argument('--num-nodes', dest='node_count', type=int,
                         default=20,
                         help="Number of worker nodes to launch")
+    parser.add_argument('--num-processes', dest='num_processes', type=int,
+                        default=8,
+                        help="Number of processes to run data extraction on")
     parser.add_argument('--num-topics', dest='num_topics', type=int,
                         action='store', default=os.getenv('NUM_TOPICS', 999),
                         help="The number of topics for the model to use")
@@ -120,13 +123,16 @@ def data_to_s3(num_processes):
     log('Uploading to S3')
     b = connect_s3().get_bucket('nlp-data')
     k = b.new_key('feature-data/page-%s.json' % WIKI_ID)
-    k.set_contents_from_string(json.dumps(etl_concurrent(Pool(processes=num_processes)), ensure_ascii=False))
+    k.set_contents_from_string(
+        json.dumps(etl_concurrent(Pool(processes=num_processes)),
+                   ensure_ascii=False))
 
 
 def main():
     global WIKI_ID
     args = get_args()
     WIKI_ID = args.wiki_id
+    data_to_s3(args.num_processes)
     run_server_from_args(
         args, 'wikia_dstk.lda.page_lda_server',
         user_data_extras='export WIKI_ID="%s"' % args.wiki_id)

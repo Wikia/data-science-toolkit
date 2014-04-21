@@ -19,6 +19,9 @@ def get_args():
     parser.add_argument('--build-only', dest='build_only', action='store_true',
                         default=False,
                         help="Build new feature set for S3")
+    parser.add_argument('--overwrite-existing-model', dest='overwrite',
+                        action='store_true', default=False,
+                        help="Overwrite existing LDA model on S3")
     parser.add_argument('--wiki-id', dest='wiki_id', type=str,
                         help="The wiki ID for which to generate a topic model")
     parser.add_argument('--ami', dest='ami', type=str,

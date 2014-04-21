@@ -1,5 +1,6 @@
 import argparse
 import os
+import requests
 from datetime import datetime
 from . import log, normalize, run_server_from_args
 
@@ -74,7 +75,9 @@ def etl_concurrent(pool):
     Asynchronously handle ETL to reduce wait time due to HTTP request blocking
     """
     log("Extracting data...")
-    params = {'wt': 'json', 'rows': 0, 'fl': '*', 'q': 'wid:298117 AND is_video:true'}
+    params = {
+        'wt': 'json', 'rows': 0, 'fl': 'id,headings_mv_en,categories_mv_en',
+        'q': 'wid:%s' % args.wiki_id}
     response = requests.get('http://search-s10:8983/solr/main/select', params=params).json()
     log(response['response']['numFound'], "videos")
     r = pool.map_async(get_docs, range(0, response['response']['numFound'], 500))
@@ -94,12 +97,14 @@ def get_docs(start):
     Functional core of ETL
     """
     log(start)
-    return requests.get('http://search-s10:8983/solr/main/select',
-                        params={'wt': 'json',
-                        'start': start,
-                        'rows': 500,
-                        'fl': '*',
-                        'q': 'wid:298117 AND is_video:true'}).json().get('response', {}).get('docs', [])
+    return requests.get(
+        'http://search-s10:8983/solr/main/select',
+        params={'wt': 'json', 'start': start, 'rows': 500,
+                'fl': 'id,headings_mv_en,categories_mv_en',
+                'q': 'wid:%s' % args.wiki_id}
+        ).json().get('response', {}).get('docs', [])
+
+
 def main():
     args = get_args()
     run_server_from_args(

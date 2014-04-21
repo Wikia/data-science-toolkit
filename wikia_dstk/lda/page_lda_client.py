@@ -60,17 +60,9 @@ def get_args():
 
 def doc_to_vectors(doc):
     try:
-        data = [d.encode('utf-8') for d in
-                [doc[u'id']]
-                + unis_bis(doc[u'title_en'].replace(u'File:', u''))
-                + map(normalize, doc.get(u'video_actors_txt', []))
-                + map(normalize, doc.get(u'video_tags_txt', []))
-                + map(normalize, doc.get(u'categories_mv_en', []))
-                + map(normalize, doc.get(u'video_tags_txt', []))
-                + map(normalize, doc.get(u'video_genres_txt', []))
-                + [ubt for li in doc.get(u'video_description_txt', []) for ubt in unis_bis(li)]
-                + [ubt for li in doc.get(u'html_media_extras_txt', []) for ubt in unis_bis(li)]
-                ]
+        data = [d.encode('utf-8') for d in [doc[u'id']] +
+                map(normalize, doc.get(u'headings_mv_en', [])) +
+                map(normalize, doc.get(u'categories_mv_en', []))]
         return dict([(data[0], data[1:])])
     except (IndexError, TypeError) as e:
         log(e)

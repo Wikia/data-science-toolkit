@@ -1,6 +1,8 @@
 import argparse
+import json
 import os
 import requests
+from boto import connect_s3
 from datetime import datetime
 from . import log, normalize, run_server_from_args
 
@@ -26,7 +28,7 @@ def get_args():
                         help="Where to save the model")
     parser.add_argument('--max-topic-frequency', dest='max_topic_frequency',
                         type=int, default=os.getenv('MAX_TOPIC_FREQUENCY', 500),
-                        help="Threshold for number of videos a given topic " +
+                        help="Threshold for number of pages a given topic " +
                         "appears in")
     parser.add_argument('--model-prefix', dest='model_prefix', type=str,
                         default=os.getenv(
@@ -76,22 +78,22 @@ def etl_concurrent(pool):
     """
     Asynchronously handle ETL to reduce wait time due to HTTP request blocking
     """
-    log("Extracting data...")
+    log('Extracting data...')
     params = {
         'wt': 'json', 'rows': 0, 'fl': 'id,headings_mv_en,categories_mv_en',
         'q': 'wid:%s' % WIKI_ID}
     response = requests.get(
         'http://search-s10:8983/solr/main/select', params=params).json()
-    log(response['response']['numFound'], "docs")
+    log(response['response']['numFound'], 'docs')
     r = pool.map_async(get_docs,
                        range(0, response['response']['numFound'], 500))
     r.wait()
     docs = [doc for docset in r.get() for doc in docset]
-    log("Got all docs, now building features")
+    log('Got all docs, now building features')
     doclen = len(docs)
     features = {}
     for i in range(0, doclen, 5000):
-        log("%.2f%%" % (float(i)/float(doclen) * 100))
+        log('%.2f%%' % (float(i)/float(doclen) * 100))
         map(features.update,
             pool.map_async(doc_to_vectors, docs[i:i+5000]).get())
     return features
@@ -108,6 +110,16 @@ def get_docs(start):
                 'fl': 'id,headings_mv_en,categories_mv_en',
                 'q': 'wid:%s' % WIKI_ID}
         ).json().get('response', {}).get('docs', [])
+
+
+def data_to_s3(num_processes):
+    """
+    Store page features on S3 -- a prerequisite for running
+    """
+    log('Uploading to S3')
+    b = connect_s3().get_bucket('nlp-data')
+    k = b.new_key('feature-data/page-%s.json' % WIKI_ID)
+    k.set_contents_from_string(json.dumps(etl_concurrent(Pool(processes=num_processes)), ensure_ascii=False))
 
 
 def main():

@@ -18,7 +18,7 @@ from multiprocessing import Pool
 from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
-STEP = 50
+bucket = connect_s3().get_bucket('nlp-data')
 
 
 def get_args():
@@ -108,9 +108,6 @@ def get_fields(url, lang, doc_ids):
 def get_data(wid):
     log(wid)
     use_caching(shouldnt_compute=True)
-    details = requests.get(
-        'http://www.wikia.com/api/v1/Wikis/Details/',
-        params={'ids': wid}).json().get('items', {}).get(wid)
     #should be CombinedEntitiesService yo
     doc_ids_to_heads = WikiToPageHeadsService().get_value(wid, {})
     doc_ids_to_entities = WikiPageToEntitiesService().get_value(wid, {})
@@ -119,24 +116,13 @@ def get_data(wid):
         log(wid, "no heads")
     if doc_ids_to_entities == {}:
         log(wid, "no entities")
-    fields = []
-    if details is not None:
-        url = details.get('url')
-        lang = details.get('lang')
-        doc_ids = map(lambda x: x.split('_')[1],
-                      filter(lambda y: '_' in y,
-                             doc_ids_to_heads.keys()))
-
-        r = Pool(processes=8).map_async(get_fields_star, chunks(
-            url, lang, doc_ids, STEP))
-        r.wait()
-        m = map(lambda x: fields.extend(x), r.get())
-    indexed = dict(fields)
+    from_s3 = json.loads(bucket.get_key(
+        'feature-data/page-%s.json').get_contents_as_string())
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})
         doc_ids_combined[doc_id] = map(preprocess,
-                                       indexed.get(doc_id, []) +
+                                       from_s3.get(doc_id, []) +
                                        entity_response['titles'] +
                                        entity_response['redirects'].keys() +
                                        entity_response['redirects'].values() +
@@ -162,7 +148,6 @@ def get_model_from_args(args):
     log("\n---LDA Model---")
     modelname = '%s-%s-page-lda-wid-%s-%stopics.model' % (
         args.git_ref, args.model_prefix, args.wiki_id, args.num_topics)
-    bucket = connect_s3().get_bucket('nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log("(loading from file)")
         lda_model = gensim.models.LdaModel.load(args.path_prefix+modelname)

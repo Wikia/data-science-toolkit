@@ -14,7 +14,6 @@ from nlp_services.discourse.entities import WikiPageToEntitiesService
 from boto import connect_s3
 from boto.exception import EC2ResponseError
 from datetime import datetime
-from multiprocessing import Pool
 from . import normalize, launch_lda_nodes, terminate_lda_nodes, harakiri
 from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
 
@@ -25,6 +24,9 @@ def get_args():
     ap = argparse.ArgumentParser(
         description="Generate a per-page topic model using latent dirichlet " +
         "analysis.")
+    ap.add_argument('--overwrite-existing-model', dest='overwrite',
+                    action='store_true', default=False,
+                    help="Overwrite existing LDA model on S3")
     ap.add_argument('--wiki-id', dest='wiki_id', type=str,
                     default=os.getenv('WIKI_ID'),
                     help="The source file of wiki IDs sorted by WAM")

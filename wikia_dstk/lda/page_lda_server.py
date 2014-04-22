@@ -85,13 +85,13 @@ def get_data(wid):
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})
-        doc_ids_combined[doc_id] = map(preprocess,
-                                       from_s3.get(doc_id, []) +
-                                       entity_response['titles'] +
-                                       entity_response['redirects'].keys() +
-                                       entity_response['redirects'].values() +
-                                       list(set(doc_ids_to_heads.get(doc_id,
-                                                                     []))))
+        doc_ids_combined[doc_id] = (map(preprocess,
+                                        entity_response['titles'] +
+                                        entity_response['redirects'].keys() +
+                                        entity_response['redirects'].values() +
+                                        list(set(doc_ids_to_heads.get(doc_id,
+                                                                      [])))) +
+                                    from_s3.get(doc_id, []))
     return doc_ids_combined.items()
 
 

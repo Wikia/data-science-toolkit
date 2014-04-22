@@ -100,14 +100,11 @@ def get_feature_data(args):
     log("Working on", wid)
     doc_id_to_terms = {}
     for (pid, list_of_terms) in get_data(wid):
-        log('PAGE', pid)  # debug
-        log(list_of_terms)  # debug
         normalized = []
         for term in list_of_terms:
             tokens = [normalize(token) for token in term.split(' ')]
             normalized.append('_'.join(tokens))
         doc_id_to_terms[pid] = normalized
-        log(normalized)  # debug
     return doc_id_to_terms
 
 

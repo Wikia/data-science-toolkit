@@ -118,7 +118,7 @@ def get_model_from_args(args):
     else:
         log(args.path_prefix+modelname, "does not exist")
         key = bucket.get_key(args.s3_prefix+modelname)
-        if key is not None:
+        if not args.overwrite and key is not None:
             log("(loading from s3)")
             with open('/tmp/%s' % modelname, 'w') as fl:
                 key.get_contents_to_file(fl)

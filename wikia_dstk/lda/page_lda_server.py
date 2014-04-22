@@ -81,7 +81,7 @@ def get_data(wid):
     if doc_ids_to_entities == {}:
         log(wid, "no entities")
     from_s3 = json.loads(bucket.get_key(
-        'feature-data/page-%s.json').get_contents_as_string())
+        'feature-data/page-%s.json' % wid).get_contents_as_string())
     for doc_id in doc_ids_to_heads:
         entity_response = doc_ids_to_entities.get(
             doc_id, {'titles': [], 'redirects': {}})

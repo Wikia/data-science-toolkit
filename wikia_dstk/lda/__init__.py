@@ -98,7 +98,11 @@ def get_my_id():
 
 
 def harakiri():
-    get_ec2_connection().terminate_instances(instance_ids=[get_my_id()])
+    conn = get_ec2_connection()
+    my_id = get_my_id()
+    sirs = conn.get_all_spot_instance_requests(filters={'instance-id': my_id})
+    conn.terminate_instances(instance_ids=[my_id])
+    sirs[0].cancel()
 
 
 def check_lda_node(instance_request):

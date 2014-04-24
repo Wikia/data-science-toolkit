@@ -27,7 +27,8 @@ def get_instance_ids_from_reservation(conn, reservation):
     while True:  # Because the requests are fulfilled independently
         sleep(15)
         requests = conn.get_all_spot_instance_requests(request_ids=r_ids)
-        instance_ids = [request.instance_id for request in requests if request.instance_id]
+        instance_ids = [request.instance_id for request in requests if
+                        request.instance_id]
         if len(instance_ids) == len(r_ids):
             return instance_ids
 
@@ -126,9 +127,10 @@ class EC2Connection(object):
         :rtype: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
         :return: A spot instance request
         """
-        return self.conn.request_spot_instances(price=self.price, image_id=self.ami, count=count,
-                                                key_name=self.key, security_groups=self.sec, user_data=user_data,
-                                                instance_type=self.type)
+        return self.conn.request_spot_instances(
+            price=self.price, image_id=self.ami, count=count,
+            key_name=self.key, security_groups=self.sec, user_data=user_data,
+            instance_type=self.type)
 
     def add_instances(self, count, user_data=None):
         """
@@ -156,7 +158,8 @@ class EC2Connection(object):
         """
         self.conn.create_tags(instance_ids, {'Name': self.tag})
 
-    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2, wait=True):
+    def add_instances_async(self, user_data_scripts, num_instances=1,
+                            processes=2, wait=True):
         """
         Add a specified number of instances asynchronously, each with unique
         user_data.
@@ -166,7 +169,8 @@ class EC2Connection(object):
                                   run on the individual instances
 
         :type num_instances: int
-        :param num_instances: The number of instances to spawn PER USER DATA SCRIPT
+        :param num_instances: The number of instances to spawn PER USER DATA
+                              SCRIPT
 
         :type processes: int
         :param processes: The number of processes to use
@@ -181,7 +185,8 @@ class EC2Connection(object):
         for script in user_data_scripts:
             while True:
                 try:
-                    reservations.append(self.get_reservation(num_instances, script))
+                    reservations.append(self.get_reservation(num_instances,
+                                                             script))
                     break
                 except EC2ResponseError as e:
                     if wait:
@@ -191,7 +196,8 @@ class EC2Connection(object):
                         raise e
 
         paramsets = [(self.conn, reservation) for reservation in reservations]
-        async_result = Pool(processes=processes).map_async(get_ids_from_reso_tuple, paramsets)
+        async_result = Pool(processes=processes).map_async(
+            get_ids_from_reso_tuple, paramsets)
         return async_result
 
     def terminate(self, instance_ids):

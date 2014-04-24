@@ -10,15 +10,15 @@ from uuid import uuid4
 
 def get_instance_ids_from_reservation(conn, reservation):
     """
-
     Get instance IDs from a reservation
 
     :type conn: class:`boto.ec2.ec2connection`
-    :paramm conn: an EC2 connection
+    :param conn: an EC2 connection
 
     :type reservation: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
     :param reservation: a spot instance request reservation
 
+    :rtype: list
     :return: a list of EC2 instance IDs
     """
 
@@ -190,8 +190,8 @@ class EC2Connection(object):
                     break
                 except EC2ResponseError as e:
                     if wait:
-                        print "Sleeping for a minute:", e
-                        sleep(60)
+                        print "Sleeping for 30 seconds:", e
+                        sleep(30)
                     else:
                         raise e
 

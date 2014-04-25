@@ -189,15 +189,26 @@ class EC2Connection(object):
             desired = len(active) + len(map(lambda x: x, user_data_scripts))
             if desired < INSTANCE_LIMIT:
                 break
-            if not wait:
-                print 'Too many active instances (%d)' % len(active)
-                raise EC2ResponseError('Too many active instances')
-            print 'Too many active instances (%d), sleeping 30 seconds' % (
-                len(active))
-            sleep(30)
+            if wait:
+                print 'Too many active instances (%d), sleeping 30 seconds' % (
+                    len(active))
+                sleep(30)
+            print 'Too many active instances (%d)' % len(active)
+            raise Exception('Too many active instances')
+
         reservations = []
         for script in user_data_scripts:
-            reservations.append(self.get_reservation(num_instances, script))
+            while True:
+                try:
+                    reservations.append(
+                        self.get_reservation(num_instances, script))
+                    break
+                except EC2ResponseError as e:
+                    if wait:
+                        print 'Sleeping for 30 seconds:', e
+                        sleep(30)
+                    else:
+                        raise e
 
         paramsets = [(self.conn, reservation) for reservation in reservations]
         async_result = Pool(processes=processes).map_async(

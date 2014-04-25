@@ -54,7 +54,7 @@ def main():
     start = time.time()
     while True:
         time.sleep(30)
-        if r.ready():
+        if r is not None and r.ready():
             print "Ready after", time.time() - start, "seconds"
             break
         print "Been waiting for", time.time() - start, "seconds"

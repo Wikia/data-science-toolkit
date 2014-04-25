@@ -186,7 +186,7 @@ class EC2Connection(object):
         while True:
             active = filter(
                 lambda x: x.state_code < 48, self.conn.get_only_instances())
-            if len(active) < INSTANCE_LIMIT:
+            if (len(active) + len(user_data_scripts)) < INSTANCE_LIMIT:
                 break
             if wait:
                 print 'Too many active instances (%d), sleeping 30 seconds' % (

@@ -51,15 +51,13 @@ def main():
     datestamp = str(datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M'))
 
     r = conn.add_instances_async(get_user_data(args, datestamp))
-    print 'r is %s' % r
     start = time.time()
     while True:
-        #time.sleep(30)
-        if r is not None and r.ready():
+        time.sleep(30)
+        if r.ready():
             print "Ready after", time.time() - start, "seconds"
             break
         print "Been waiting for", time.time() - start, "seconds"
-        time.sleep(30)  # moving here for debugging
     result = r.get()
     print result
     instance_ids = [r for li in result for r in li]

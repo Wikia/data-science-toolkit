@@ -54,11 +54,12 @@ def main():
     print 'r is %s' % r
     start = time.time()
     while True:
-        time.sleep(30)
+        #time.sleep(30)
         if r is not None and r.ready():
             print "Ready after", time.time() - start, "seconds"
             break
         print "Been waiting for", time.time() - start, "seconds"
+        time.sleep(30)  # moving here for debugging
     result = r.get()
     print result
     instance_ids = [r for li in result for r in li]

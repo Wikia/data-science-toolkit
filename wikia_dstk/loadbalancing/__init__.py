@@ -189,13 +189,12 @@ class EC2Connection(object):
             desired = len(active) + len(map(lambda x: x, user_data_scripts))
             if desired < INSTANCE_LIMIT:
                 break
-            if wait:
-                print 'Too many active instances (%d), sleeping 30 seconds' % (
-                    len(active))
-                sleep(30)
-                continue
-            print 'Too many active instances (%d)' % len(active)
-            return
+            if not wait:
+                print 'Too many active instances (%d)' % len(active)
+                raise EC2ResponseError('Too many active instances')
+            print 'Too many active instances (%d), sleeping 30 seconds' % (
+                len(active))
+            sleep(30)
         reservations = []
         for script in user_data_scripts:
             reservations.append(self.get_reservation(num_instances, script))

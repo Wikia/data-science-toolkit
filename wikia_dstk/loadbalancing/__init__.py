@@ -183,10 +183,11 @@ class EC2Connection(object):
         :rtype:
         :return:`multiprocessing.pool.AsyncResult`
         """
+        scripts = map(lambda x: x, user_data_scripts)
         while True:
             active = filter(
                 lambda x: x.state_code < 48, self.conn.get_only_instances())
-            desired = len(active) + len(map(lambda x: x, user_data_scripts))
+            desired = len(active) + len(scripts)
             if desired < INSTANCE_LIMIT:
                 break
             if wait:
@@ -197,7 +198,7 @@ class EC2Connection(object):
             raise Exception('Too many active instances')
 
         reservations = []
-        for script in user_data_scripts:
+        for script in scripts:
             while True:
                 try:
                     reservations.append(

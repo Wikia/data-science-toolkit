@@ -7,6 +7,8 @@ from multiprocessing import Pool
 from time import sleep
 from uuid import uuid4
 
+INSTANCE_LIMIT = 20
+
 
 def get_instance_ids_from_reservation(conn, reservation):
     """
@@ -181,19 +183,21 @@ class EC2Connection(object):
         :rtype:
         :return:`multiprocessing.pool.AsyncResult`
         """
+        while True:
+            active = filter(
+                lambda x: x.state_code < 48, self.conn.get_only_instances())
+            if len(active) < INSTANCE_LIMIT:
+                break
+            if wait:
+                print 'Too many active instances (%d), sleeping 30 seconds' % (
+                    len(active))
+                sleep(30)
+                continue
+            print 'Too many active instances (%d)' % len(active)
+            return
         reservations = []
         for script in user_data_scripts:
-            while True:
-                try:
-                    reservations.append(self.get_reservation(num_instances,
-                                                             script))
-                    break
-                except EC2ResponseError as e:
-                    if wait:
-                        print "Sleeping for 30 seconds:", e
-                        sleep(30)
-                    else:
-                        raise e
+            reservations.append(self.get_reservation(num_instances, script))
 
         paramsets = [(self.conn, reservation) for reservation in reservations]
         async_result = Pool(processes=processes).map_async(

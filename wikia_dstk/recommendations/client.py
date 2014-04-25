@@ -51,6 +51,7 @@ def main():
     datestamp = str(datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M'))
 
     r = conn.add_instances_async(get_user_data(args, datestamp))
+    print 'r is %s' % r
     start = time.time()
     while True:
         time.sleep(30)

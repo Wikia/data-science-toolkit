@@ -186,20 +186,27 @@ class EC2Connection(object):
         scripts = map(lambda x: x, user_data_scripts)
         while True:
             # Find pending, running, shutting-down, stopping instances
-            active = filter(
+            active_instances = filter(
                 lambda x: x.state_code in (0, 16, 32, 64),
                 self.conn.get_only_instances())
-            desired = len(active) + len(scripts)
-            if desired < INSTANCE_LIMIT:
-                print 'After launch, %d instances will be active' % desired
+            desired_instances = len(active_instances) + len(scripts)
+            active_sirs = filter(
+                lambda x: x.status.code != 'instance-terminated-by-user',
+                self.conn.get_all_spot_instance_requests())
+            desired_sirs = len(active_sirs) + len(scripts)
+            if (desired_instances < INSTANCE_LIMIT and
+                    desired_sirs < INSTANCE_LIMIT):
+                print 'Intended totals:, %d instances, %d spot requests' % (
+                    desired_instances, desired_sirs)
                 break
             if wait:
-                print 'Too many active instances (%d), sleeping 30 seconds' % (
-                    len(active))
+                print 'Up: %d instances, %d spot requests. Sleeping 30 sec' % (
+                    len(active_instances), len(active_sirs))
                 sleep(30)
                 continue
-            print 'Too many active instances (%d)' % len(active)
-            raise Exception('Too many active instances')
+            print 'Limit exceeded: %d instances, %d spot requests' % (
+                len(active_instances), len(active_sirs))
+            raise Exception('Too many active instances or spot requests')
 
         reservations = []
         for script in scripts:

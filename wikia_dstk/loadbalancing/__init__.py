@@ -1,7 +1,6 @@
 from boto.ec2 import connect_to_region
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
-from boto.exception import EC2ResponseError
 from collections import defaultdict
 from multiprocessing import Pool
 from time import sleep
@@ -190,6 +189,7 @@ class EC2Connection(object):
                 lambda x: x.state_code in (0, 16, 32, 64),
                 self.conn.get_only_instances())
             desired_instances = len(active_instances) + len(scripts)
+            # Find spot instance requests with associated instances active
             active_sirs = filter(
                 lambda x: x.status.code != 'instance-terminated-by-user',
                 self.conn.get_all_spot_instance_requests())

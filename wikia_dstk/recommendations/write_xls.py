@@ -22,13 +22,13 @@ with open(args.input) as c:
 pids = list(set(pids))
 
 if args.load_json:
-    with open(
-        os.path.join(os.path.dirname(args.input), 'urls-%s.json' % args.input)
-            ) as u:
+    with open(os.path.join(
+        os.path.dirname(args.input),
+            'urls-%s.json' % os.path.basename(args.input))) as u:
         urls = json.loads(u.read())
-    with open(
-        os.path.join(os.path.dirname(args.input), 'titles-%s.json' % args.input),
-            'w') as t:
+    with open(os.path.join(
+        os.path.dirname(args.input),
+            'titles-%s.json' % os.path.basename(args.input))) as t:
         titles = json.loads(t.read())
 else:
     urls = {}
@@ -51,13 +51,13 @@ else:
         titles[pid] = title
 
 if args.dump_json:
-    with open(
-        os.path.join(os.path.dirname(args.input), 'urls-%s.json' % args.input),
-            'w') as u:
+    with open(os.path.join(
+        os.path.dirname(args.input),
+            'urls-%s.json' % os.path.basename(args.input)), 'w') as u:
         u.write(json.dumps(urls))
-    with open(
-        os.path.join(os.path.dirname(args.input), 'titles-%s.json' % args.input),
-            'w') as t:
+    with open(os.path.join(
+        os.path.dirname(args.input),
+            'titles-%s.json' % os.path.basename(args.input)), 'w') as t:
         t.write(json.dumps(titles))
 
 my_workbook = xlwt.Workbook()

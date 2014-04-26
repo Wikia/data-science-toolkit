@@ -1,7 +1,6 @@
 import argparse
 import json
 import requests
-import sys
 import xlwt
 import os.path
 

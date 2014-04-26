@@ -31,10 +31,28 @@ for pid in pids:
     urls[pid] = url
     titles[pid] = title
 
+my_workbook = xlwt.Workbook()
+
+ids_worksheet = my_workbook.add_sheet('Page IDs')
+ids_worksheet.write(0, 0, 'Page')
+ids_worksheet.write(0, 1, 'Recommendations')
+
+urls_worksheet = my_workbook.add_sheet('URLs')
+urls_worksheet.write(0, 0, 'Page')
+urls_worksheet.write(0, 1, 'Recommendations')
+
+titles_worksheet = my_workbook.add_sheet('Titles')
+titles_worksheet.write(0, 0, 'Page')
+titles_worksheet.write(0, 1, 'Recommendations')
+
 with open(csv) as c:
-    with open('urls-%s' % csv, 'w') as u:
-        with open('titles-%s' % csv, 'w') as t:
-            for line in c:
-                pids = line.strip().split(',')
-                u.write(','.join(map(lambda x: urls.get(x, ''), pids)) + '\n')
-                t.write(','.join(map(lambda x: titles.get(x, ''), pids)) + '\n')
+    for counter, line in enumerate(c.readlines()):
+        row = counter + 1
+        for col, pid in enumerate(line.strip().split(',')):
+            #u.write(','.join(map(lambda x: urls.get(x, ''), pid)) + '\n')
+            #t.write(','.join(map(lambda x: titles.get(x, ''), pid)) + '\n')
+            ids_worksheet.write(row, col, pid)
+            urls_worksheet.write(row, col, urls.get(pid, ''))
+            titles_worksheet.write(row, col, titles.get(pid, ''))
+
+my_workbook.save(csv.replace('.csv', '.xls'))

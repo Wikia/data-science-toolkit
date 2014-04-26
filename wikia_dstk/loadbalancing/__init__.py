@@ -185,6 +185,7 @@ class EC2Connection(object):
         """
         scripts = map(lambda x: x, user_data_scripts)
         while True:
+            # Find pending, running, shutting-down, stopping instances
             active = filter(
                 lambda x: x.state_code in (0, 16, 32, 64),
                 self.conn.get_only_instances())

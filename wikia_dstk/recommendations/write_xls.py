@@ -1,6 +1,6 @@
-import json
 import requests
 import sys
+import xlwt
 
 SOLR = 'http://search-s11:8983/solr/main/select'
 
@@ -16,7 +16,8 @@ urls = {}
 titles = {}
 
 for pid in pids:
-    r = requests.get(SOLR, params={'q': 'id:%s' % pid, 'fl': 'url,title_en', 'wt': 'json'})
+    r = requests.get(
+        SOLR, params={'q': 'id:%s' % pid, 'fl': 'url,title_en', 'wt': 'json'})
     url = ''
     title = ''
     #print r.content
@@ -29,11 +30,6 @@ for pid in pids:
     print pid, url, title
     urls[pid] = url
     titles[pid] = title
-
-with open('urls-%s.json' % csv, 'w') as u:
-    u.write(json.dumps(urls))
-with open('titles-%s.json' % csv, 'w') as t:
-    t.write(json.dumps(titles))
 
 with open(csv) as c:
     with open('urls-%s' % csv, 'w') as u:

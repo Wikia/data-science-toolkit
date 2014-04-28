@@ -27,7 +27,7 @@ def process_file(filename, services):
 
     wiki_id = match.group(1)
     doc_id = '%s_%s' % (match.group(1), match.group(2))
-    print 'Calling doc-level services on %s' % wiki_id
+    print 'Calling doc-level services on %s' % doc_id
 
     def get_service(service):
         print wiki_id, service

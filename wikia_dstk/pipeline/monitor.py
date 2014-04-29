@@ -68,7 +68,7 @@ lastInQueue = None
 intervals = []
 while True:
     # Because it lists itself
-    inqueue = len([k for k in bucket.list(config['queue'])]) - 1
+    inqueue = len([k for k in bucket.list('%s/' % config['queue'])]) - 1
     # Sometimes the directory gets deleted when empty
     if inqueue < 0:
         inqueue = 0

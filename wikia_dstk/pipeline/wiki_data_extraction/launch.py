@@ -59,12 +59,15 @@ def main():
     wids = filter(lambda x: d[x] > 0, d.keys())
     callback = lambda x: articles.get(x, 0)
     num_instances = config['max_size']
-    user_data = ("#!/bin/sh\n"
-                 + "/home/ubuntu/venv/bin/python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path=%s "
-                 + argstring_from_namespace(args, extras)
-                 + " > /home/ubuntu/wiki_data_extraction.log")
+    user_data = (
+        "#!/bin/sh\n" +
+        "/home/ubuntu/venv/bin/python -m " +
+        "wikia_dstk.pipeline.wiki_data_extraction.run --s3path=%s " % (
+            argstring_from_namespace(args, extras)) +
+        "> /home/ubuntu/wiki_data_extraction.log")
 
-    instances = run_instances_lb(wids, callback, num_instances, user_data, config)
+    instances = run_instances_lb(
+        wids, callback, num_instances, user_data, config)
     print 'The following instances have been launched: %s' % str(instances)
 
 

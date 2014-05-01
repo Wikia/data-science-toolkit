@@ -46,7 +46,7 @@ def iterate_wids_from_args(args):
                     yield new_key_contents
                 except:
                     continue
-            raise StopIteration()
+            raise StopIteration
         else:
             raise Exception("Please specify either s3path or queue")
 

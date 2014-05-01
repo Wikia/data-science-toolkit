@@ -62,8 +62,8 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
     :type ami: string
     :param ami: The AMI ID of the image to load
 
-    :rtype: list
-    :return: A list of IDs of the instances created
+    :rtype: multiprocessing.pool.AsyncResult
+    :return: multiprocessing.pool.AsyncResult
     """
     # Connect to EC2
     if options is None:

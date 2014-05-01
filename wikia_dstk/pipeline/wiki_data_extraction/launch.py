@@ -68,7 +68,8 @@ def main():
 
     instances = run_instances_lb(
         wids, callback, num_instances, user_data, config)
-    print 'The following instances have been launched: %s' % str(instances)
+    print 'The following instances have been launched: %s' % str(
+        [i for i in instances.get()])
 
 
 if __name__ == '__main__':

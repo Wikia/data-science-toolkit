@@ -85,7 +85,7 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
     for wids in parts.values():
         k.key = 'lb_events/%s' % str(uuid4())
         k.set_contents_from_string(','.join([str(wid) for wid in wids]))
-        scripts.append(user_data % k.key)
+        scripts.append(user_data.format(key=k.key))
 
     # Launch instances
     return conn.add_instances_async(scripts)

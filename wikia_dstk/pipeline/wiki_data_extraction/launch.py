@@ -62,7 +62,7 @@ def main():
     user_data = (
         "#!/bin/sh\n" +
         "/home/ubuntu/venv/bin/python -m " +
-        "wikia_dstk.pipeline.wiki_data_extraction.run --s3path=%s " % (
+        "wikia_dstk.pipeline.wiki_data_extraction.run --s3path={key} " % (
             argstring_from_namespace(args, extras)) +
         "> /home/ubuntu/wiki_data_extraction.log")
 

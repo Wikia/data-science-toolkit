@@ -63,7 +63,7 @@ def main():
         "#!/bin/sh\n" +
         "/home/ubuntu/venv/bin/python -m " +
         "wikia_dstk.pipeline.wiki_data_extraction.run --s3path={key} " +
-        "{argstring} " % (argstring_from_namespace(args, extras)) +
+        "%s " % argstring_from_namespace(args, extras) +
         "> /home/ubuntu/wiki_data_extraction.log")
 
     instances = run_instances_lb(

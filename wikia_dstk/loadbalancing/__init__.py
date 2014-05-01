@@ -52,8 +52,8 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
 
     :type user_data: string
     :param user_data: The script to run on instantiation, i.e. where the logic
-                      goes. Should contain '%s' to pass comma-separated list of
-                      IDs as an argument via a string-formatting operation
+                      goes. Should contain '{key}' to pass an S3 filepath as an
+                      argument via a string-formatting operation
 
     :type options: dict
     :param options: Launch configuration options with which to instantiate an

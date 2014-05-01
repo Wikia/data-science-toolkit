@@ -3,7 +3,6 @@ import sys
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
-from multiprocessing import Pool
 from subprocess import Popen
 from time import sleep
 from wikia_dstk import get_argparser_from_config, argstring_from_namespace

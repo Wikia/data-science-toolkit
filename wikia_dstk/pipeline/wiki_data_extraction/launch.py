@@ -44,6 +44,7 @@ def main():
         break
 
     docs = r['response']['docs']
+    print '%d docs total' % len(docs)
 
     # Populate dict - {wid: number of articles}
     # (Using wikipages to approximate & # avoid multiple queries)

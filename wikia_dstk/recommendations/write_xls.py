@@ -81,7 +81,7 @@ with open(args.input) as c:
             #u.write(','.join(map(lambda x: urls.get(x, ''), pid)) + '\n')
             #t.write(','.join(map(lambda x: titles.get(x, ''), pid)) + '\n')
             ids_worksheet.write(row, col, pid)
-            urls_worksheet.write(row, col, urls.get(pid, ''))
-            titles_worksheet.write(row, col, titles.get(pid, ''))
+            urls_worksheet.write(row, col, urls.get(pid, '').decode('utf-8'))
+            titles_worksheet.write(row, col, titles.get(pid, '').decode('utf-8'))
 
 my_workbook.save(args.input.replace('.csv', '.xls'))

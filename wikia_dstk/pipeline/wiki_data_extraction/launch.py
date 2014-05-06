@@ -12,7 +12,7 @@ def get_args():
 
 
 def main():
-    solr_endpoint = 'http://search-s10:8983/solr/main/select'
+    solr_endpoint = 'http://search-s9:8983/solr/main/select'
 
     args, extras = get_args()
 
@@ -43,7 +43,9 @@ def main():
             continue
         break
 
+    print r
     docs = r['response']['docs']
+    print docs
     print '%d docs total' % len(docs)
 
     # Populate dict - {wid: number of articles}
@@ -60,12 +62,12 @@ def main():
     wids = filter(lambda x: d[x] > 0, d.keys())
     callback = lambda x: articles.get(x, 0)
     num_instances = config['max_size']
-    user_data = (
-        "#!/bin/sh\n" +
-        "/home/ubuntu/venv/bin/python -m " +
-        "wikia_dstk.pipeline.wiki_data_extraction.run --s3path={key} " +
-        "%s " % argstring_from_namespace(args, extras) +
-        "> /home/ubuntu/wiki_data_extraction.log")
+    user_data = """#!/bin/sh
+cd /home/ubuntu/data-science-toolkit
+git fetch origin
+git checkout {git_ref}
+git pull origin {git_ref} && sudo python setup.py install
+python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={key} {argstring} > /home/ubuntu/wiki_data_extraction.log""".format(git_ref=args.git_ref, argstring=argstring_from_namespace(args, extras))
 
     instances = run_instances_lb(
         wids, callback, num_instances, user_data, config)

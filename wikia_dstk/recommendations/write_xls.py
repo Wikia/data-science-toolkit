@@ -54,11 +54,11 @@ if args.dump_json:
     with open(os.path.join(
         os.path.dirname(args.input),
             'urls-%s.json' % os.path.basename(args.input)), 'w') as u:
-        u.write(json.dumps(urls))
+        u.write(json.dumps(urls, ensure_ascii=False))
     with open(os.path.join(
         os.path.dirname(args.input),
             'titles-%s.json' % os.path.basename(args.input)), 'w') as t:
-        t.write(json.dumps(titles))
+        t.write(json.dumps(titles, ensure_ascii=False))
 
 my_workbook = xlwt.Workbook()
 

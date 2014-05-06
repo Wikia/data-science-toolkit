@@ -25,7 +25,7 @@ def main():
     params = {
         'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
         'fl': 'wid,wikipages',
-        'rows': '10000',  # 10000
+        'rows': '9999999',  # 10000
         'facet': 'true',
         'facet.limit': '-1',  # -1
         'facet.field': 'wid',

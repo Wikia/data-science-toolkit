@@ -1,5 +1,6 @@
 from __future__ import division
 import requests
+from boto.ec2 import connect_to_region
 from wikia_dstk import get_argparser_from_config, argstring_from_namespace
 from ...loadbalancing import run_instances_lb
 from config import config
@@ -43,9 +44,7 @@ def main():
             continue
         break
 
-    print r
     docs = r['response']['docs']
-    print docs
     print '%d docs total' % len(docs)
 
     # Populate dict - {wid: number of articles}
@@ -71,8 +70,10 @@ python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstri
 
     instances = run_instances_lb(
         wids, callback, num_instances, user_data, config)
-    print 'The following instances have been launched: %s' % str(
-        [i for i in instances.get()])
+    instance_ids = [i for i in instances.get()]
+    conn = connect_to_region('us-west-2')
+    conn.create_tags(instance_ids, {'Name': args.tag})
+    print 'The following instances have been launched: %s' % str(instance_ids)
 
 
 if __name__ == '__main__':

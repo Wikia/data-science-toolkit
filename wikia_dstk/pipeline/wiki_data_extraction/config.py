@@ -7,7 +7,7 @@ config = {
     "type": "m2.4xlarge",
     "tag": "wiki_data_extraction",
     "threshold": 50,
-    "git_ref": "master",
+    "git_ref": "page-rec",
     "max_size": 5,
     "services": ",".join([
         "TopEntitiesService",

@@ -7,8 +7,8 @@ config = {
     "type": "m2.4xlarge",
     "tag": "wiki_data_extraction",
     "threshold": 50,
-    "git_ref": "page-rec",
-    "max_size": 5,
+    "git_ref": "page-rec",  # master
+    "max_size": 1,  # 5
     "services": ",".join([
         "TopEntitiesService",
         "EntityDocumentCountsService",

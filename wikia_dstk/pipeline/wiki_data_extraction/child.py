@@ -14,8 +14,6 @@ from nlp_services.title_confirmation import *
 from nlp_services.authority import *
 
 
-def get_args():
-    ap = get_argparser_from_config(config)
     ap.add_argument('-w', '--wiki-id', dest='wiki_id', required=True,
                     help="The wiki ID to operate over")
     return ap.parse_known_args()
@@ -40,7 +38,7 @@ def main():
             print e
 
     pool = Pool(processes=8)
-    s = pool.map_async(services, get_service)
+    s = pool.map_async(get_service, services)
     s.wait()
 
 

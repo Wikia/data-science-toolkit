@@ -45,6 +45,4 @@ def main():
 
 
 if __name__ == '__main__':
-    caching_dict[service+'.get'] = {'dont_compute': True}  # DRY!
-    use_caching(per_service_cache=caching_dict)
     main()

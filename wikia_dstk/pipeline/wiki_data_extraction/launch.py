@@ -53,9 +53,9 @@ def main():
                 continue
             break
 
-        if args.dump_json is not None:
-            with open(args.dump_json, 'w') as dump:
-                dump.write(json.dumps(r))
+    if args.dump_json is not None:
+        with open(args.dump_json, 'w') as dump:
+            dump.write(json.dumps(r))
 
     docs = r['response']['docs']
     print '%d docs total' % len(docs)

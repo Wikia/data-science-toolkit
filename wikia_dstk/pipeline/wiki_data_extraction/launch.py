@@ -1,4 +1,5 @@
 from __future__ import division
+import json
 import requests
 from boto.ec2 import connect_to_region
 from wikia_dstk import get_argparser_from_config, argstring_from_namespace
@@ -9,40 +10,52 @@ from config import config
 def get_args():
     ap = get_argparser_from_config(config)
     ap.add_argument('-d', '--date', dest='date', help='The query start date')
+    ap.add_argument('-D', '--dump-json', dest='dump_json',
+                    help='Dump Solr data to JSON')
+    ap.add_argument('-L', '--load-json', dest='load_json',
+                    help='Load Solr data from JSON')
     return ap.parse_known_args()
 
 
 def main():
-    solr_endpoint = 'http://search-s9:8983/solr/main/select'
-
     args, extras = get_args()
 
-    # Read the last indexed date
-    date = args.date
-    if date is None:
-        with open('/data/last_indexed.txt', 'r') as f:
-            date = f.read().strip()
+    if args.load_json is not None:
+        with open(args.load_json) as load:
+            r = json.loads(load.read())
+    else:
+        solr_endpoint = 'http://search-s9:8983/solr/main/select'
 
-    params = {
-        'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
-        'fl': 'wid,wikipages',
-        'rows': '9999999',  # 10000
-        'facet': 'true',
-        'facet.limit': '-1',  # -1
-        'facet.field': 'wid',
-        'wt': 'json'
-    }
+        # Read the last indexed date
+        date = args.date
+        if date is None:
+            with open('/data/last_indexed.txt', 'r') as f:
+                date = f.read().strip()
 
-    # Query Solr
-    print 'Querying Solr...'
-    while True:
-        try:
-            r = requests.get(solr_endpoint, params=params).json()
-        except requests.exceptions.ConnectionError as e:
-            print e
-            print 'Connection error, retrying...'
-            continue
-        break
+        params = {
+            'q': 'lang:en AND iscontent:true AND indexed:[%sZ TO NOW]' % date,
+            'fl': 'wid,wikipages',
+            'rows': '9999999',  # 10000
+            'facet': 'true',
+            'facet.limit': '-1',  # -1
+            'facet.field': 'wid',
+            'wt': 'json'
+        }
+
+        # Query Solr
+        print 'Querying Solr...'
+        while True:
+            try:
+                r = requests.get(solr_endpoint, params=params).json()
+            except requests.exceptions.ConnectionError as e:
+                print e
+                print 'Connection error, retrying...'
+                continue
+            break
+
+        if args.dump_json is not None:
+            with open(args.dump_json, 'w') as dump:
+                dump.write(json.dumps(r))
 
     docs = r['response']['docs']
     print '%d docs total' % len(docs)
@@ -70,7 +83,7 @@ python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstri
 
     instances = run_instances_lb(
         wids, callback, num_instances, user_data, config)
-    instance_ids = [i for i in instances.get()]
+    instance_ids = [i for i in instances.get() for i in i]
     conn = connect_to_region('us-west-2')
     print 'The following instances have been launched: %s' % str(instance_ids)
     conn.create_tags(instance_ids, {'Name': args.tag})

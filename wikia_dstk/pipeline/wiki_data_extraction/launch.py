@@ -79,7 +79,7 @@ cd /home/ubuntu/data-science-toolkit
 git fetch origin
 git checkout {git_ref}
 git pull origin {git_ref} && sudo python setup.py install
-python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstring} > /home/ubuntu/wiki_data_extraction.log""".format(git_ref=args.git_ref, argstring=argstring_from_namespace(args, extras))
+python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstring} &> /home/ubuntu/wiki_data_extraction.log""".format(git_ref=args.git_ref, argstring=argstring_from_namespace(args, extras))
 
     instances = run_instances_lb(
         wids, callback, num_instances, user_data, config)

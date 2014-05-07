@@ -14,6 +14,8 @@ from nlp_services.title_confirmation import *
 from nlp_services.authority import *
 
 
+def get_args():
+    ap = get_argparser_from_config(config)
     ap.add_argument('-w', '--wiki-id', dest='wiki_id', required=True,
                     help="The wiki ID to operate over")
     return ap.parse_known_args()

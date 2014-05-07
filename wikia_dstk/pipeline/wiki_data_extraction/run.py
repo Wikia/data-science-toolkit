@@ -52,8 +52,7 @@ def iterate_wids_from_args(args):
 
 
 def main():
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-    print 'Start logging'
+    #sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args, extras = get_args()
     processes = []
     shutdown_counter = 0
@@ -96,4 +95,5 @@ def main():
 
 
 if __name__ == '__main__':
+    print 'Start logging'
     main()

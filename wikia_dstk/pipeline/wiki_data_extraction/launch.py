@@ -72,8 +72,8 @@ python -m wikia_dstk.pipeline.wiki_data_extraction.run --s3path={{key}} {argstri
         wids, callback, num_instances, user_data, config)
     instance_ids = [i for i in instances.get()]
     conn = connect_to_region('us-west-2')
-    conn.create_tags(instance_ids, {'Name': args.tag})
     print 'The following instances have been launched: %s' % str(instance_ids)
+    conn.create_tags(instance_ids, {'Name': args.tag})
 
 
 if __name__ == '__main__':

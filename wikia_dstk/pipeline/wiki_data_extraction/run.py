@@ -52,7 +52,7 @@ def iterate_wids_from_args(args):
 
 
 def main():
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+    #sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args, extras = get_args()
     processes = []
     shutdown_counter = 0

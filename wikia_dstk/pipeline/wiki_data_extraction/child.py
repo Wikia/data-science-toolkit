@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 from multiprocessing import Pool
 
 from nlp_services.caching import use_caching
@@ -28,8 +29,9 @@ def get_service(service):
     print wiki_id, service
     try:
         getattr(sys.modules[__name__], service)().get(wiki_id)
-    except Exception as e:
-        print e
+    except:
+        print traceback.format_exc()
+
 
 def main():
     global wiki_id

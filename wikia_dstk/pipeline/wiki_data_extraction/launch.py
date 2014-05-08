@@ -75,7 +75,10 @@ def main():
     callback = lambda x: articles.get(x, 0)
     num_instances = config['max_size']
     user_data = """#!/bin/sh
-sudo pip install --exists-action w -e git+https://github.com/tristaneuan/nlp_services#egg=nlp_services | tee -a /home/ubuntu/nlp_services.log
+cd /home/ubuntu/nlp_services
+git fetch origin
+git checkout master
+git pull origin master && sudo python setup.py install
 cd /home/ubuntu/data-science-toolkit
 git fetch origin
 git checkout {git_ref}

@@ -5,8 +5,7 @@ from multiprocessing import Pool
 
 from nlp_services.caching import use_caching
 from config import config
-from .. import log
-from ... import get_argparser_from_config
+from ... import log, get_argparser_from_config
 
 # we dump everything in here to be dynamic
 from nlp_services.discourse import *

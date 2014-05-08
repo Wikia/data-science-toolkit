@@ -6,7 +6,8 @@ import time
 from boto import connect_s3
 from datetime import datetime
 from multiprocessing import Pool
-from . import log, normalize, run_server_from_args
+from . import normalize, run_server_from_args
+from .. import log
 
 WIKI_ID = None
 

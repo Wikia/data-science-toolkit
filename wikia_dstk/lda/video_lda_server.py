@@ -5,9 +5,10 @@ import os
 import gensim
 import time
 import json
-from . import launch_lda_nodes, terminate_lda_nodes, log, harakiri
-from . import video_json_key, get_dct_and_bow_from_features, write_csv_and_text_data
 from boto import connect_s3
+from . import launch_lda_nodes, terminate_lda_nodes, harakiri, video_json_key
+from . import get_dct_and_bow_from_features, write_csv_and_text_data
+from .. import log
 
 
 def get_args():

@@ -15,7 +15,8 @@ from boto import connect_s3
 from collections import defaultdict
 from datetime import datetime
 from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
-from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
+from . import get_dct_and_bow_from_features, write_csv_and_text_data
+from .. import log
 
 
 def get_args():

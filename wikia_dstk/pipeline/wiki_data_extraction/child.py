@@ -13,6 +13,8 @@ from nlp_services.syntax import *
 from nlp_services.title_confirmation import *
 from nlp_services.authority import *
 
+wiki_id = None
+
 
 def get_args():
     ap = get_argparser_from_config(config)
@@ -21,9 +23,18 @@ def get_args():
     return ap.parse_known_args()
 
 
+def get_service(service):
+    print wiki_id, service
+    try:
+        getattr(sys.modules[__name__], service)().get(args.wiki_id)
+    except Exception as e:
+        print e
+
 def main():
+    global wiki_id
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
     args, _ = get_args()
+    wiki_id = args.wiki_id
     services = args.services.split(',')
 
     caching_dict = dict([(service+'.get', {'write_only': True}) for service in
@@ -31,13 +42,6 @@ def main():
     use_caching(per_service_cache=caching_dict)
 
     print 'Calling wiki-level services on %s' % args.wiki_id
-
-    def get_service(service):
-        print args.wiki_id, service
-        try:
-            getattr(sys.modules[__name__], service)().get(args.wiki_id)
-        except Exception as e:
-            print e
 
     pool = Pool(processes=8)
     s = pool.map_async(get_service, services)

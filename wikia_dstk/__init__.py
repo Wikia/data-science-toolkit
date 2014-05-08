@@ -2,9 +2,9 @@ import logging
 import os
 from argparse import ArgumentParser
 
-logfile = u'/var/log/wikia_dstk.lda.log'
+logfile = u'/var/log/wikia_dstk.log'
 log_level = logging.INFO
-logger = logging.getLogger(u'wikia_dstk.lda')
+logger = logging.getLogger(u'wikia_dstk')
 logger.setLevel(log_level)
 ch = logging.StreamHandler()
 ch.setLevel(log_level)

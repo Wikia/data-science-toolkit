@@ -7,6 +7,7 @@ from config import config
 from ... import get_argparser_from_config
 
 # we dump everything in here to be dynamic
+from nlp_services.discourse import *
 from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
 from nlp_services.syntax import *

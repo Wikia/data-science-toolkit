@@ -5,6 +5,7 @@ from multiprocessing import Pool
 
 from nlp_services.caching import use_caching
 from config import config
+from .. import log
 from ... import get_argparser_from_config
 
 # we dump everything in here to be dynamic
@@ -26,11 +27,11 @@ def get_args():
 
 
 def get_service(service):
-    print wiki_id, service
+    log(wiki_id, service)
     try:
         getattr(sys.modules[__name__], service)().get(wiki_id)
     except:
-        print traceback.format_exc()
+        log(traceback.format_exc())
 
 
 def main():
@@ -44,7 +45,7 @@ def main():
                          services])
     use_caching(per_service_cache=caching_dict)
 
-    print 'Calling wiki-level services on %s' % args.wiki_id
+    log('Calling wiki-level services on %s' % args.wiki_id)
 
     pool = Pool(processes=8)
     s = pool.map_async(get_service, services)

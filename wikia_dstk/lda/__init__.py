@@ -163,14 +163,6 @@ def terminate_lda_nodes():
             conn.cancel_spot_instance_requests([r.id for r in instances_requested])
 
 
-def log(*args):
-    """
-    TODO: use a real logger
-    """
-    print ' '.join([str(arg) for arg in args])
-    sys.stdout.flush()
-
-
 def get_dct_and_bow_from_features(id_to_features):
     log("Extracting to dictionary...")
     documents = id_to_features.values()

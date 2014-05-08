@@ -26,7 +26,7 @@ def get_args():
 def get_service(service):
     print wiki_id, service
     try:
-        getattr(sys.modules[__name__], service)().get(args.wiki_id)
+        getattr(sys.modules[__name__], service)().get(wiki_id)
     except Exception as e:
         print e
 

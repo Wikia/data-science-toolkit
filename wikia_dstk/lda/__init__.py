@@ -8,7 +8,6 @@ import time
 import re
 import random
 import hashlib
-import sys
 from multiprocessing import Pool
 from gensim.corpora import Dictionary
 from gensim.matutils import corpus2dense
@@ -19,6 +18,7 @@ from boto.utils import get_instance_metadata
 from boto.ec2 import connect_to_region
 from boto.exception import EC2ResponseError
 from boto.ec2 import networkinterface
+from .. import log
 
 
 alphanumeric_unicode_pattern = re.compile(ur'[^\w\s]', re.U)

@@ -15,16 +15,16 @@ from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
 from nlp_services.syntax import *
 
-wiki_id = None
+doc_id = None
 
 
 def get_service(service):
-    print wiki_id, service
+    print doc_id, service
     return getattr(sys.modules[__name__], service)().get(doc_id)
 
 
 def process_file(filename, services):
-    global wiki_id
+    global doc_id
 
     if filename.strip() == '':
         return  # newline at end of file

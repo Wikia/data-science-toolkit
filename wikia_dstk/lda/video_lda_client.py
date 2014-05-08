@@ -5,7 +5,7 @@ import os
 import time
 from multiprocessing import Pool
 from boto import connect_s3
-from . import normalize, unis_bis, video_json_key, run_server_from_args
+from . import normalize, unis_bis, video_json_key, run_server_from_args, ami
 from .. import log
 
 

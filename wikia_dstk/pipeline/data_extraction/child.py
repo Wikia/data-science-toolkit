@@ -15,8 +15,17 @@ from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
 from nlp_services.syntax import *
 
+wiki_id = None
+
+
+def get_service(service):
+    print wiki_id, service
+    return getattr(sys.modules[__name__], service)().get(doc_id)
+
 
 def process_file(filename, services):
+    global wiki_id
+
     if filename.strip() == '':
         return  # newline at end of file
 
@@ -29,12 +38,8 @@ def process_file(filename, services):
     doc_id = '%s_%s' % (match.group(1), match.group(2))
     print 'Calling doc-level services on %s' % doc_id
 
-    def get_service(service):
-        print wiki_id, service
-        return getattr(sys.modules[__name__], service)().get(doc_id)
-
     pool = Pool(processes=8)
-    s = pool.map_async(services, get_service)
+    s = pool.map_async(get_service, services)
     s.wait()
 
 

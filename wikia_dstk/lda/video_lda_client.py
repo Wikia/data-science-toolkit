@@ -3,9 +3,10 @@ import json
 import argparse
 import os
 import time
-from . import normalize, unis_bis, video_json_key, log, run_server_from_args
 from multiprocessing import Pool
 from boto import connect_s3
+from . import normalize, unis_bis, video_json_key, run_server_from_args
+from .. import log
 
 
 def get_args():

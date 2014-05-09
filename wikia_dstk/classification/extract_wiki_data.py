@@ -23,7 +23,6 @@ def get_wiki_data():
     data = []
     while True:
         response = requests.get(u'http://search-s10:8983/solr/xwiki/select', params=params).json()
-        print response
         data += response[u'response'][u'docs']
         if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start']:
             return OrderedDict([(d[u'id'], d) for d in data])
@@ -39,10 +38,11 @@ def get_mainpage_text(wikis):
     :rtype:class:`collections.OrderedDict`
     """
     for i in range(0, len(wikis), 100):
+        query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%i" % wid for wid in wikis[i:i+100]])
         params = {u'wt': u'json',
                   u'start': i,
                   u'limit': 100,
-                  u'q': u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%i" % wid for wid in wikis[i:i+100]]),
+                  u'q': query,
                   u'fl': u'wid,html_en'}
         for result in requests.get(u'http://search-s10:8983/solr/main/select', params=params).json():
             wikis[result[u'wid']][u'main_page_text'] = result[u'html_en']

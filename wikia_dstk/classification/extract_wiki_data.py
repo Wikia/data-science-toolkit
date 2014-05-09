@@ -41,7 +41,7 @@ def get_mainpage_text(wikis):
         query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+100]])
         params = {u'wt': u'json',
                   u'start': i,
-                  u'limit': 100,
+                  u'rows': 100,
                   u'q': query,
                   u'fl': u'wid,html_en'}
         response = requests.get(u'http://search-s10:8983/solr/main/select', params=params).json()

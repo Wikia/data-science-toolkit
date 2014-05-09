@@ -74,8 +74,7 @@ def wiki_to_feature(wiki):
         desc_ngrams = [u"_".join(n) for grouping in
                        [bigrams(np.lower().split(u' '))
                        for np in TextBlob(wiki.get(u'description_txt', [u''])[0]).noun_phrases]
-                       for bigram in grouping
-                       for n in bigram]
+                       for n in grouping]
         bow += desc_ngrams
         features += [u'DESC:%s' % d for d in desc_ngrams]
         bow += bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))

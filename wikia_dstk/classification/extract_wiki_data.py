@@ -46,7 +46,7 @@ def get_mainpage_text(wikis):
                   u'fl': u'wid,html_en'}
         response = requests.get(u'http://search-s10:8983/solr/main/select', params=params).json()
         for result in response[u'response'][u'docs']:
-            wikis[result[u'wid']][u'main_page_text'] = result[u'html_en']
+            wikis[str(result[u'wid'])][u'main_page_text'] = result[u'html_en']
 
     return wikis
 

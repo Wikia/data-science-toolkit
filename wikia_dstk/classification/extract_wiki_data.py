@@ -1,5 +1,8 @@
 from argparse import ArgumentParser
 from collections import OrderedDict
+from textblob import TextBlob
+from nltk.util import bigrams
+from multiprocessing import Pool
 import requests
 
 
@@ -39,7 +42,6 @@ def get_mainpage_text(wikis):
     """
     for i in range(0, len(wikis), 100):
         query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+100]])
-        print query
         params = {u'wt': u'json',
                   u'start': 0,
                   u'rows': 100,
@@ -52,11 +54,53 @@ def get_mainpage_text(wikis):
     return wikis
 
 
+def wiki_to_feature(wiki):
+    """
+    Specifically handles a single wiki document
+    :param wiki: dict for wiki fields
+    :type wiki: dict
+    :return: tuple with wiki id and list of feature strings
+    :rtype: tuple
+    """
+    features = []
+    bow = []
+    features += [u'ORIGINAL_HUB:%s' % wiki.get(u'hub_s', u'')]
+    features += [u'TOP_CAT:%s' % c.replace(u' ', u'_').lower() for c in wiki.get(u'top_categories_mv_en', [])]
+    bow += [c.replace(u' ', u'_').lower() for c in wiki.get(u'top_categories_mv_en', [])]
+    features += [u'TOP_ART:%s' % a.lower().replace(u' ', u'_') for a in wiki.get(u'top_articles_mv_en', u'')]
+    bow += [a.replace(u' ', u'_').lower() for a in wiki.get(u'top_articles_mv_en', u'')]
+    desc_ngrams = [n.join(u"_") for grouping in
+                   [bigrams(np.lower().split(u' ')) for np in TextBlob(wiki.get(u'description_txt', u'')).noun_phrases]
+                   for bigram in grouping
+                   for n in bigram]
+    bow += desc_ngrams
+    features += [u'DESC:%s' % d for d in desc_ngrams]
+    bow += bigrams(wiki[u'sitename_txt'].lower().split(u' '))
+    mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
+    bow += [bg.join(u"_").lower() for bg in [bigrams(n.split(u" ") for n in mp_nps)]]
+    bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]
+    print wiki[u'id']
+    return wiki[u'id'], bow + features
+
+
+def wikis_to_features(args, wikis):
+    """
+    Turns wikis into a set of features
+    :param args:argparse namespace
+    :type args:class:`argparse.Namespace`
+    :param wikis: our wiki data set
+    :type wikis:class:`collections.OrderedDict`
+    :return: OrderedDict of features, id to featureset
+    :rtype:class:`collections.OrderedDict`
+    """
+    p = Pool(processes=args.num_processes)
+    return OrderedDict(p.map_async(wiki_to_feature, wikis.values()).get())
+
+
 def main():
     args = get_args()
     wikis = get_mainpage_text(get_wiki_data())
-    count = len(wikis)
-    print len([w for w in wikis.values() if u'main_page_text' in w]), count
+
 
 
 if __name__ == u'__main__':

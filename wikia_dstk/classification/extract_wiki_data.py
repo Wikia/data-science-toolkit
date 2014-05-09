@@ -38,7 +38,7 @@ def get_mainpage_text(wikis):
     :rtype:class:`collections.OrderedDict`
     """
     for i in range(0, len(wikis), 100):
-        query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%i" % wid for wid in wikis.keys()[i:i+100]])
+        query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+100]])
         params = {u'wt': u'json',
                   u'start': i,
                   u'limit': 100,

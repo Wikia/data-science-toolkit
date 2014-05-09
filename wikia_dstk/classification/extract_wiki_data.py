@@ -28,7 +28,7 @@ def get_wiki_data():
     while True:
         response = requests.get(u'http://search-s10:8983/solr/xwiki/select', params=params).json()
         data += response[u'response'][u'docs']
-        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start'] or True:
+        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start']:
             return OrderedDict([(d[u'id'], d) for d in data])
         params[u'start'] += params[u'rows']
 
@@ -106,9 +106,7 @@ def main():
     features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
     with open(u'wiki_data.csv', u'w') as fl:
         for wid, features in features.items():
-            print features
             fl.write(u"%s,%s\n" % (wid, u",".join(features)))
-
 
 
 if __name__ == u'__main__':

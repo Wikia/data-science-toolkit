@@ -104,8 +104,9 @@ def wikis_to_features(args, wikis):
 
 def main():
     args = get_args()
-    with open(u'wiki_data.csv', u'r') as fl:
-        fl.write([u"%s,%s\n" % tup for tup in wikis_to_features(args, get_mainpage_text(get_wiki_data())).items()])
+    features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
+    with open(u'wiki_data.csv', u'w') as fl:
+        fl.write([u"%s,%s\n" % tup for tup in features.items()])
 
 
 if __name__ == u'__main__':

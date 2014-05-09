@@ -30,7 +30,7 @@ def get_service(service):
     try:
         getattr(sys.modules[__name__], service)().get(wiki_id)
     except:
-        log(traceback.format_exc())
+        log(wiki_id, traceback.format_exc())
 
 
 def main():
@@ -46,9 +46,11 @@ def main():
 
     log('Calling wiki-level services on %s' % args.wiki_id)
 
-    pool = Pool(processes=8)
-    s = pool.map_async(get_service, services)
-    s.wait()
+    #pool = Pool(processes=8)
+    #s = pool.map_async(get_service, services)
+    #s.wait()
+    for service in services:
+        get_service(service)
 
 
 if __name__ == '__main__':

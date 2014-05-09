@@ -30,7 +30,7 @@ def get_service(service):
     try:
         getattr(sys.modules[__name__], service)().get(wiki_id)
     except:
-        log(wiki_id, traceback.format_exc())
+        log(wiki_id, service, traceback.format_exc())
 
 
 def main():

@@ -15,8 +15,6 @@ config = {
         "TopHeadsService",
         "WpTopEntitiesService",
         "WpEntityDocumentCountsService",
-        "WikiEntitySentimentService",
-        "WpWikiEntitySentimentService",
-        "AllEntitiesSentimentAndCountsService"
+        "AllNounPhrasesService"
     ])
 }

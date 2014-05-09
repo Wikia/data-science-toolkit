@@ -80,7 +80,7 @@ def wiki_to_feature(wiki):
         features += [u'DESC:%s' % d for d in desc_ngrams]
         bow += bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))
         mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
-        bow += [u"_".join(bg).lower() for bg in [bigrams([n.split(u" ") for n in mp_nps])]]
+        bow += [u"_".join(bg).lower() for bg in [bigrams(n.split(u" ")) for n in mp_nps]]
         bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]
         print wiki[u'id']
         return wiki[u'id'], bow + features

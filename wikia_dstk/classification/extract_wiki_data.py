@@ -107,6 +107,7 @@ def main():
     features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
     with open(u'wiki_data.csv', u'w') as fl:
         for wid, features in features.items():
+            print features
             fl.write(u"%s,%s\n" % (wid, u",".join(features)))
 
 

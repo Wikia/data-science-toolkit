@@ -106,7 +106,9 @@ def main():
     args = get_args()
     features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
     with open(u'wiki_data.csv', u'w') as fl:
-        fl.write([u"%s,%s\n" % (tup[0], u",".join(tup[1])) for tup in features.items()])
+        for wid, features in features.items():
+            fl.write(u"%s,%s\n" % (wid, u",".join(features)))
+
 
 
 if __name__ == u'__main__':

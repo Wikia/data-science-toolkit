@@ -18,7 +18,7 @@ def get_wiki_data():
     params = {u'fl': u'id,top_categories_mv_en,hub_s,top_articles_mv_en,description_txt,sitename_txt',
               u'start': 0,
               u'wt': u'json',
-              u'q': u'lang_s:en AND articles_i[50 TO *]',
+              u'q': u'lang_s:en AND articles_i:[50 TO *]',
               u'rows': 500}
     data = []
     while True:

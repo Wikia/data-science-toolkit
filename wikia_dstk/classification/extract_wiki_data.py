@@ -99,8 +99,7 @@ def wikis_to_features(args, wikis):
 
 def main():
     args = get_args()
-    wikis = get_mainpage_text(get_wiki_data())
-
+    features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
 
 
 if __name__ == u'__main__':

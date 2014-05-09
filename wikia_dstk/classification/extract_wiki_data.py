@@ -55,7 +55,7 @@ def main():
     args = get_args()
     wikis = get_mainpage_text(get_wiki_data())
     count = len(wikis)
-    print len([w for w in wikis if u'main_page_text' in w]), count
+    print len([w for w in wikis.values() if u'main_page_text' in w]), count
 
 
 if __name__ == u'__main__':

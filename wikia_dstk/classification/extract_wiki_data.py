@@ -39,6 +39,7 @@ def get_mainpage_text(wikis):
     """
     for i in range(0, len(wikis), 100):
         query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+100]])
+        print query
         params = {u'wt': u'json',
                   u'start': i,
                   u'rows': 100,

@@ -82,7 +82,6 @@ def wiki_to_feature(wiki):
         mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
         bow += [u"_".join(bg).lower() for grouping in [bigrams(n.split(u" ")) for n in mp_nps] for bg in grouping]
         bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]
-        print wiki[u'id']
         return wiki[u'id'], bow + features
     except Exception as e:
         print e, format_exc()
@@ -105,7 +104,8 @@ def wikis_to_features(args, wikis):
 
 def main():
     args = get_args()
-    features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
+    with open(u'wiki_data.csv', u'r') as fl:
+        fl.write([u"%s,%s\n" % tup for tup in wikis_to_features(args, get_mainpage_text(get_wiki_data())).items()])
 
 
 if __name__ == u'__main__':

@@ -37,15 +37,15 @@ def get_mainpage_text(wikis):
     :return: OrderedDict of search docs, id to doc, with mainpage raw text added
     :rtype:class:`collections.OrderedDict`
     """
-    for i in range(0, len(wikis), 20):
-        query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+20]])
+    for i in range(0, len(wikis), 100):
+        query = u'(%s) AND is_main_page:true' % u' OR ' .join([u"wid:%s" % wid for wid in wikis.keys()[i:i+100]])
+        print query
         params = {u'wt': u'json',
-                  u'start': i,
+                  u'start': 0,
                   u'rows': 100,
                   u'q': query,
                   u'fl': u'wid,html_en'}
         response = requests.get(u'http://search-s10:8983/solr/main/select', params=params).json()
-        print len(response[u'response'][u'docs'])
         for result in response[u'response'][u'docs']:
             wikis[str(result[u'wid'])][u'main_page_text'] = result[u'html_en']
 

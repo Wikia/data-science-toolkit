@@ -69,7 +69,7 @@ def wiki_to_feature(wiki):
     bow += [c.replace(u' ', u'_').lower() for c in wiki.get(u'top_categories_mv_en', [])]
     features += [u'TOP_ART:%s' % a.lower().replace(u' ', u'_') for a in wiki.get(u'top_articles_mv_en', [])]
     bow += [a.replace(u' ', u'_').lower() for a in wiki.get(u'top_articles_mv_en', [])]
-    desc_ngrams = [n.join(u"_") for grouping in
+    desc_ngrams = [u"_".join(n) for grouping in
                    [bigrams(np.lower().split(u' '))
                    for np in TextBlob(wiki.get(u'description_txt', [u''])[0]).noun_phrases]
                    for bigram in grouping
@@ -78,7 +78,7 @@ def wiki_to_feature(wiki):
     features += [u'DESC:%s' % d for d in desc_ngrams]
     bow += bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))
     mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
-    bow += [bg.join(u"_").lower() for bg in [bigrams(n.split(u" ") for n in mp_nps)]]
+    bow += [u"_".join(bg).lower() for bg in [bigrams(n.split(u" ") for n in mp_nps)]]
     bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]
     print wiki[u'id']
     return wiki[u'id'], bow + features

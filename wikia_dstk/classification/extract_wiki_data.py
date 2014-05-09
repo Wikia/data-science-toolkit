@@ -77,7 +77,7 @@ def wiki_to_feature(wiki):
                        for n in grouping]
         bow += desc_ngrams
         features += [u'DESC:%s' % d for d in desc_ngrams]
-        bow += bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))
+        bow += [u"_".join(b) for b in bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))]
         mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
         bow += [u"_".join(bg).lower() for grouping in [bigrams(n.split(u" ")) for n in mp_nps] for bg in grouping]
         bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]

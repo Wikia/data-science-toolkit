@@ -10,7 +10,7 @@ from argparse import ArgumentParser, FileType
 def get_args():
     ap = ArgumentParser()
     ap.add_argument(u'--num-processes', dest=u'num_processes', default=8)
-    ap.add_argument(u'--classifiers', dest=u'classifiers', default=u'naive_bayes', action=u"append")
+    ap.add_argument(u'--classifiers', dest=u'classifiers', default=[], action=u"append")
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
     ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout)
     return ap.parse_args()

@@ -69,18 +69,18 @@ def main():
     for j in range(0, len(classifiers)):
         try:
             clf = classifiers[j]
+            print j, len(names)
             print names[j]
             predictions = []
 
             for i in range(0, len(data)):
                 try:
-                    training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
+                    training, classes = zip(*[(wid_to_features[str(wid)], cls)
                                               for wid, cls in data[:i] + data[i+1:]])
                 except IndexError:
-                    training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
+                    training, classes = zip(*[(wid_to_features[str(wid)], cls)
                                               for wid, cls in data[:i]])
-                print len(training)
-                clf.fit(training, classes)
+                clf.fit(vectorizer.transform(training), classes)
                 predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
             print predictions
             successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])

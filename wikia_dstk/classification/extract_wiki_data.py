@@ -13,7 +13,7 @@ import codecs
 
 stemmer = EnglishStemmer()
 tokenizer = WhitespaceTokenizer()
-stops = stopwords.words(u'English')
+stops = stopwords.words(u'english')
 
 
 def get_args():

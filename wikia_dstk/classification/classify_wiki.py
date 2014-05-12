@@ -51,7 +51,7 @@ def main():
         del feature_keys_loo[i]
         loo_args.append(
             (vectorizer.transform(feature_rows),                # train
-             [wid_to_class[str(wid)] for wid in feature_rows],  # classes for training set
+             [wid_to_class[str(wid)] for wid in feature_keys],  # classes for training set
              [vectorizer.transform([loo_row])],                 # predict
              [loo_class]                                        # expected class
              )

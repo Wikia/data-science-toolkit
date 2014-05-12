@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.lda import LDA
 from sklearn.qda import QDA
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 from multiprocessing import Pool
 
@@ -68,7 +69,8 @@ def main():
         #u"AdaBoost": AdaBoostClassifier(),
         u"Naive Bayes": GaussianNB(),
         #u"LDA": LDA(),
-        #u"QDA": QDA()
+        #u"QDA": QDA(),
+        u"Maximum Entropy": LogisticRegression(),
     }
 
     print u"Running leave-one-out cross-validation..."

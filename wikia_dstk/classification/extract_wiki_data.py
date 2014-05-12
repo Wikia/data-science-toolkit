@@ -38,7 +38,7 @@ def get_wiki_data(args):
     while True:
         response = requests.get(u'%s/solr/xwiki/select' % args.solr_host, params=params).json()
         data += response[u'response'][u'docs']
-        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start'] or True:
+        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start']:
             return OrderedDict([(d[u'id'], d) for d in data])
         params[u'start'] += params[u'rows']
 

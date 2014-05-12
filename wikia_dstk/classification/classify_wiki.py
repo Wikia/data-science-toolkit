@@ -46,7 +46,7 @@ def main():
         feature_keys_loo = [k for k in feature_keys]
         feature_rows_loo = [f for f in feature_rows]
         loo_row = feature_rows[i]
-        loo_class = feature_keys[i]
+        loo_class = wid_to_class[str(feature_keys[i])]
         del feature_rows_loo[i]
         del feature_keys_loo[i]
         loo_args.append(
@@ -85,8 +85,6 @@ def classify(arg_tup):
             clf.fit(training.toarray(), classes)
             predictions.append(clf.predict(predict.toarray()))
             expectations.append(expected)
-            print predictions
-            print expectations
         score = len([i for i in range(0, len(predictions)) if predictions[i] == expectations[i]])
         print name, score
         return name, score

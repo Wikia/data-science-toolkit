@@ -75,9 +75,9 @@ def main():
     print p.map_async(classify, [(i, loo_args) for i in classifiers.items()]).get()
 
 
-def classify(clf_tup, loo):
+def classify(arg_tup):
     try:
-        name, clf = clf_tup
+        (name, clf), loo = arg_tup
         predictions = []
         expectations = []
         for i, (training, classes, predict, expected) in enumerate(loo):

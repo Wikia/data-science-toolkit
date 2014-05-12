@@ -27,69 +27,70 @@ def main():
 
     print u"Loading CSV..."
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                                   [line.decode(u'utf8').strip().split(u',') for line in fl]])
+                                   [line.decode(u'utf8').strip().split(u',') for line in fl]
+                                   if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
+                                   ])
 
     print u"Vectorizing..."
     vectorizer = TfidfVectorizer()
-    rows_transformed = vectorizer.fit_transform(wid_to_features.values())
-    wid_to_features_transformed = OrderedDict(zip(*[wid_to_features.keys(), rows_transformed]))
+    feature_rows = wid_to_features.values()
+    feature_keys = wid_to_features.keys()
+    vectorizer.fit_transform(feature_rows)
 
-    names = [
-        u"Nearest Neighbors",
-        u"Linear SVM",
-        u"RBF_SVM",
-        u"Decision Tree",
-        u"Random_Forest",
-        u"AdaBoost",
-        u"Naive Bayes",
-        u"LDA",
-        u"QDA"
-    ]
-    classifiers = [
-        KNeighborsClassifier(3),
-        SVC(kernel=u"linear", C=0.025),
-        SVC(gamma=2, C=1),
-        DecisionTreeClassifier(max_depth=999),
-        RandomForestClassifier(max_depth=999, n_estimators=100, max_features=2),
-        AdaBoostClassifier(),
-        GaussianNB(),
-        LDA(),
-        QDA()
-    ]
+    loo_args = []
 
-    #ints_to_classes = dict([(i, group[0]) for i, group in enumerate(groups.items())])
-
+    print u"Prepping leave-one-out data set..."
     data = [(str(wid), i) for i, (key, wids) in enumerate(groups.items()) for wid in wids]
+    wid_to_class = dict(data)
+    for i in range(0, len(feature_rows)):
+        feature_keys_loo = [k for k in feature_keys]
+        feature_rows_loo = [f for f in feature_rows]
+        loo_row = feature_rows[i]
+        loo_class = feature_keys[i]
+        del feature_rows_loo[i]
+        del feature_keys_loo[i]
+        loo_args.append(
+            (vectorizer.transform(feature_rows),                # train
+             [wid_to_class[str(wid)] for wid in feature_rows],  # classes for training set
+             [vectorizer.transform([loo_row])],                 # predict
+             [loo_class]                                        # expected class
+             )
+        )
+
+    classifiers = {
+        u"Nearest Neighbors": KNeighborsClassifier(3),
+        u"Linear SVM": SVC(kernel="linear", C=0.025),
+        u"RBF_SVM": SVC(gamma=2, C=1),
+        u"Decision Tree": DecisionTreeClassifier(max_depth=999),
+        u"Random_Forest": RandomForestClassifier(max_depth=999, n_estimators=100, max_features=2),
+        u"AdaBoost": AdaBoostClassifier(),
+        u"Naive Bayes": GaussianNB(),
+        u"LDA": LDA(),
+        u"QDA": QDA()
+    }
 
     print u"Running leave-one-out cross-validation..."
-    perf = {}
-    for j in range(0, len(classifiers)):
-        try:
-            clf = classifiers[j]
-            print j, len(names)
-            print names[j]
-            predictions = []
 
-            for i in range(0, len(data)):
-                print i, u'/', len(data)
-                try:
-                    training, classes = zip(*[(wid_to_features[str(wid)], cls)
-                                              for wid, cls in data[:i] + data[i+1:]])
-                except IndexError:
-                    training, classes = zip(*[(wid_to_features[str(wid)], cls)
-                                              for wid, cls in data[:i]])
-                clf.fit(vectorizer.transform(training).toarray(), classes)
-                to_predict = wid_to_features[str(data[i][0])]
-                predictions.append(clf.predict(vectorizer.transform([to_predict]).toarray()))
-            print predictions
-            successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])
-            print successes
-            perf[names[j]] = successes
-        except Exception as e:
+    p = Pool(processes=8)
+    print p.map_async(classify, [(i, loo_args) for i in classifiers.items()]).get()
+
+
+def classify(clf_tup, loo):
+    try:
+        name, clf = clf_tup
+        predictions = []
+        expectations = []
+        for i, (training, classes, predict, expected) in enumerate(loo):
+            print name, i
+            clf.fit(training, classes)
+            predictions.append(clf.predict())
+            expectations.append(expected)
+        score = len([i for i in range(0, len(predictions)) if predictions[i] == expectations[i]])
+        print name, score
+        return name, score
+    except Exception as e:
             print e
             print traceback.format_exc()
-
-    print perf
 
 
 if __name__ == u'__main__':

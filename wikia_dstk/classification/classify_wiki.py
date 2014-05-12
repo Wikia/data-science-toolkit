@@ -27,8 +27,11 @@ def main():
         movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
     )
 
+    print u"Loading CSV..."
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
                                    [line.decode(u'utf8').strip().split(u',') for line in fl]])
+
+    print u"Vectorizing..."
     vectorizer = TfidfVectorizer()
     rows_transformed = vectorizer.fit_transform(wid_to_features.values())
     wid_to_features_transformed = OrderedDict(zip(*[wid_to_features.keys(), rows_transformed]))
@@ -60,6 +63,8 @@ def main():
 
     data = [(str(wid), i) for i, (key, wids) in enumerate(groups.items()) for wid in wids]
 
+
+    print u"Running leave-one-out cross-validation..."
     perf = {}
     for j in range(0, len(classifiers)):
         clf = classifiers[j]
@@ -73,9 +78,7 @@ def main():
             except IndexError:
                 training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
                                           for wid, cls in data[:i]])
-            print training
-            print classes
-            clf.fit(training, classes)
+            clf.fit(map(list, training), classes)
             predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
         print predictions
         successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])

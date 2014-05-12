@@ -77,7 +77,9 @@ def main():
             except IndexError:
                 training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
                                           for wid, cls in data[:i]])
-            clf.fit(training.toarray(), classes)
+            training = training.toarray()
+            print training
+            clf.fit(training, classes)
             predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
         print predictions
         successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])

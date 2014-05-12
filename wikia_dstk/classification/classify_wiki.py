@@ -81,7 +81,8 @@ def main():
                     training, classes = zip(*[(wid_to_features[str(wid)], cls)
                                               for wid, cls in data[:i]])
                 clf.fit(vectorizer.transform(training).toarray(), classes)
-                predictions.append(clf.predict([vectorizer.transform(wid_to_features[str(data[i][0])].toarray()[0])]))
+                to_predict = wid_to_features[str(data[i][0])]
+                predictions.append(clf.predict(vectorizer.transform([to_predict]).toarray()))
             print predictions
             successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])
             print successes

@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import traceback
 from collections import OrderedDict
 from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -66,24 +67,27 @@ def main():
     print u"Running leave-one-out cross-validation..."
     perf = {}
     for j in range(0, len(classifiers)):
-        clf = classifiers[j]
-        print names[j]
-        predictions = []
+        try:
+            clf = classifiers[j]
+            print names[j]
+            predictions = []
 
-        for i in range(0, len(data)):
-            try:
-                training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
-                                          for wid, cls in data[:i] + data[i+1:]])
-            except IndexError:
-                training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
-                                          for wid, cls in data[:i]])
-            print training[0]
-            clf.fit(training, classes)
-            predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
-        print predictions
-        successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])
-        print successes
-        perf[names[j]] = successes
+            for i in range(0, len(data)):
+                try:
+                    training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
+                                              for wid, cls in data[:i] + data[i+1:]])
+                except IndexError:
+                    training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
+                                              for wid, cls in data[:i]])
+                clf.fit(training, classes)
+                predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
+            print predictions
+            successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])
+            print successes
+            perf[names[j]] = successes
+        except Exception as e:
+            print e
+            print traceback.format_exc()
 
     print perf
 

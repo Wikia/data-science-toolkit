@@ -6,10 +6,10 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.linear_model import LogisticRegression
-from sklearn.feature_extraction.text import TfidfVectorizer
+from collections import OrderedDict
 
 
-vertical_labels = dict(
+vertical_labels = OrderedDict(
     comics=[2233, 631, 330278, 2446, 405961, 47003, 566447, 198946, 4385, 2237],
     tv=[130814, 18733, 1228, 26337, 1581, 971, 4095, 831, 684, 13346, 3200],
     games=[304, 3125, 300851, 208733, 490, 14764, 3035, 3510, 462, 3646, 147],
@@ -18,6 +18,9 @@ vertical_labels = dict(
     books=[1575, 7045, 935, 114341, 15738, 694030, 12244, 265480, 12331, 379, 509, 35171, 147, 159],
     movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
 )
+
+wid_to_class = dict([(i, wid) for i, (label, wids) in enumerate(vertical_labels.items()) for wid in wids])
+class_to_label = dict([(i, label) for i, (label, wids) in enumerate(vertical_labels.items())])
 
 
 class Classifiers():

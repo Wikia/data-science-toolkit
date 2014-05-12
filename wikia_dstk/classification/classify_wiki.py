@@ -43,7 +43,7 @@ def main():
         u"RBF_SVM",
         u"Decision Tree",
         u"Random_Forest",
-        u"AdaBoost"
+        u"AdaBoost",
         u"Naive Bayes",
         u"LDA",
         u"QDA"
@@ -80,8 +80,8 @@ def main():
                 except IndexError:
                     training, classes = zip(*[(wid_to_features[str(wid)], cls)
                                               for wid, cls in data[:i]])
-                clf.fit(vectorizer.transform(training), classes)
-                predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
+                clf.fit(vectorizer.transform(training).toarray(), classes)
+                predictions.append(clf.predict([vectorizer.transform(wid_to_features[str(data[i][0])].toarray()[0])]))
             print predictions
             successes = len([i for i in range(0, len(data)) if data[i][1] == predictions[i]])
             print successes

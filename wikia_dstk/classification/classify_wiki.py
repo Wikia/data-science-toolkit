@@ -13,6 +13,7 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+
 def main():
     fl = open(sys.argv[1], u'r')
 
@@ -29,7 +30,6 @@ def main():
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
                                    [line.decode(u'utf8').strip().split(u',') for line in fl]])
     vectorizer = TfidfVectorizer()
-    print list(set([type(w) for doc in wid_to_features.values() for w in doc]))
     rows_transformed = vectorizer.fit_transform(wid_to_features.values())
     wid_to_features_transformed = OrderedDict(zip(*[wid_to_features.keys(), rows_transformed]))
 
@@ -71,6 +71,8 @@ def main():
             except IndexError:
                 training, classes = zip(*[(wid_to_features_transformed[str(wid)], cls)
                                           for wid, cls in data[:i]])
+            print training
+            print classes
             clf.fit(training, classes)
             predictions.append(clf.predict([wid_to_features_transformed[str(data[i][0])]])[0])
         print predictions

@@ -43,7 +43,7 @@ def main():
     print u"Training", len(args.classifiers), u"classifiers"
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)
-        classifier_name = Classifiers.classifier_keys_to_names[args.classifier]
+        classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)

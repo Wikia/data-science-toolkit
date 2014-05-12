@@ -4,7 +4,16 @@ from textblob import TextBlob
 from nltk.util import bigrams
 from multiprocessing import Pool
 from traceback import format_exc
+from nltk.stem.snowball import EnglishStemmer
+from nltk.tokenize.regexp import WhitespaceTokenizer
+from nltk.corpus import stopwords
 import requests
+import codecs
+
+
+stemmer = EnglishStemmer()
+tokenizer = WhitespaceTokenizer()
+stops = stopwords.words(u'English')
 
 
 def get_args():
@@ -28,7 +37,7 @@ def get_wiki_data():
     while True:
         response = requests.get(u'http://search-s10:8983/solr/xwiki/select', params=params).json()
         data += response[u'response'][u'docs']
-        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start']:
+        if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start'] or True:
             return OrderedDict([(d[u'id'], d) for d in data])
         params[u'start'] += params[u'rows']
 
@@ -55,6 +64,11 @@ def get_mainpage_text(wikis):
     return wikis
 
 
+def normalize(wordstring):
+    global stemmer, tokenizer, stops
+    return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower()) if word not in stops]
+
+
 def wiki_to_feature(wiki):
     """
     Specifically handles a single wiki document
@@ -67,20 +81,20 @@ def wiki_to_feature(wiki):
         features = []
         bow = []
         features += [u'ORIGINAL_HUB:%s' % wiki.get(u'hub_s', u'')]
-        features += [u'TOP_CAT:%s' % c.replace(u' ', u'_').lower() for c in wiki.get(u'top_categories_mv_en', [])]
-        bow += [c.replace(u' ', u'_').lower() for c in wiki.get(u'top_categories_mv_en', [])]
-        features += [u'TOP_ART:%s' % a.lower().replace(u' ', u'_') for a in wiki.get(u'top_articles_mv_en', [])]
-        bow += [a.replace(u' ', u'_').lower() for a in wiki.get(u'top_articles_mv_en', [])]
+        features += [u'TOP_CAT:%s' % u'_'.join(normalize(c)) for c in wiki.get(u'top_categories_mv_en', [])]
+        bow += [u"_".join(normalize(c)) for c in wiki.get(u'top_categories_mv_en', [])]
+        features += [u'TOP_ART:%s' % u"_".join(normalize(a)) for a in wiki.get(u'top_articles_mv_en', [])]
+        bow += [u"_".join(normalize(a)) for a in wiki.get(u'top_articles_mv_en', [])]
         desc_ngrams = [u"_".join(n) for grouping in
-                       [bigrams(np.lower().split(u' '))
+                       [bigrams(normalize(np))
                        for np in TextBlob(wiki.get(u'description_txt', [u''])[0]).noun_phrases]
                        for n in grouping]
         bow += desc_ngrams
         features += [u'DESC:%s' % d for d in desc_ngrams]
-        bow += [u"_".join(b) for b in bigrams(wiki[u'sitename_txt'][0].lower().split(u' '))]
+        bow += [u"_".join(b) for b in bigrams(normalize(wiki[u'sitename_txt'][0]))]
         mp_nps = TextBlob(wiki.get(u'main_page_text', u'')).noun_phrases
-        bow += [u"_".join(bg).lower() for grouping in [bigrams(n.split(u" ")) for n in mp_nps] for bg in grouping]
-        bow += [w.lower() for words in [np.split(u" ") for np in mp_nps] for w in words]
+        bow += [u"_".join(bg) for grouping in [bigrams(normalize(n)) for n in mp_nps] for bg in grouping]
+        bow += [u''.join(normalize(w)) for words in [np.split(u" ") for np in mp_nps] for w in words]
         return wiki[u'id'], bow + features
     except Exception as e:
         print e, format_exc()
@@ -104,9 +118,9 @@ def wikis_to_features(args, wikis):
 def main():
     args = get_args()
     features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
-    with open(u'wiki_data.csv', u'w') as fl:
+    with codecs.open(u'wiki_data.csv', u'w', encoding=u'utf-8') as fl:
         for wid, features in features.items():
-            fl.write(u"%s,%s\n" % (wid, u",".join(features)))
+            fl.write(u"%s,%s\n" % (wid.encode(u'utf-8'), u",".join(features).encode(u'utf-8')))
 
 
 if __name__ == u'__main__':

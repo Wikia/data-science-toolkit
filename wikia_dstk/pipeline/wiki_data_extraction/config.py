@@ -14,9 +14,6 @@ config = {
         "EntityDocumentCountsService",
         "TopHeadsService",
         "WpTopEntitiesService",
-        "WpEntityDocumentCountsService",
-        # This is doc-level and locally-cached; wiki-level requires additional
-        # service
-        #"AllNounPhrasesService"
+        "WpEntityDocumentCountsService"
     ])
 }

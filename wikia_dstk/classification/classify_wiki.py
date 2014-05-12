@@ -39,7 +39,7 @@ def main():
     vectorizer.fit_transform(feature_rows)
 
     clf = Classifiers.get(args.classifier)
-    clf.train(vectorizer.transform(feature_rows).toarray(), feature_keys)
+    clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
     predictions = clf.predict(vectorizer.transform(unknowns.values()).toarray())
 
     prediction_counts = defaultdict(int)

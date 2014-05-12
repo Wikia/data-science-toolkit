@@ -18,11 +18,12 @@ stops = stopwords.words(u'english')
 
 def get_args():
     ap = ArgumentParser()
-    ap.add_argument(u'--num-processes', default=8)
+    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8)
+    ap.add_argument(u'--solr-host', dest=u"solr_host", default=u"http://search-s10:8983")
     return ap.parse_args()
 
 
-def get_wiki_data():
+def get_wiki_data(args):
     """
     Gets wiki data as JSON docs
     :return: OrderedDict of search docs, id to doc
@@ -35,14 +36,14 @@ def get_wiki_data():
               u'rows': 500}
     data = []
     while True:
-        response = requests.get(u'http://search-s10:8983/solr/xwiki/select', params=params).json()
+        response = requests.get(u'%s/solr/xwiki/select' % args.solr_host, params=params).json()
         data += response[u'response'][u'docs']
         if response[u'response'][u'numFound'] < params[u'rows'] + params[u'start'] or True:
             return OrderedDict([(d[u'id'], d) for d in data])
         params[u'start'] += params[u'rows']
 
 
-def get_mainpage_text(wikis):
+def get_mainpage_text(args, wikis):
     """
     Get mainpage text for each wiki
     :param wikis: our wiki data set
@@ -57,7 +58,7 @@ def get_mainpage_text(wikis):
                   u'rows': 100,
                   u'q': query,
                   u'fl': u'wid,html_en'}
-        response = requests.get(u'http://search-s10:8983/solr/main/select', params=params).json()
+        response = requests.get(u'%s/solr/main/select' % args.solr_host, params=params).json()
         for result in response[u'response'][u'docs']:
             wikis[str(result[u'wid'])][u'main_page_text'] = result[u'html_en']
 

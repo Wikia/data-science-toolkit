@@ -1,5 +1,6 @@
 import sys
 import traceback
+import time
 from collections import OrderedDict
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -10,6 +11,7 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from multiprocessing import Pool
+
 
 
 def main():
@@ -58,15 +60,15 @@ def main():
         )
 
     classifiers = {
-        u"Nearest Neighbors": KNeighborsClassifier(3),
-        u"Linear SVM": SVC(kernel="linear", C=0.025),
+        #u"Nearest Neighbors": KNeighborsClassifier(3),
+        #u"Linear SVM": SVC(kernel="linear", C=0.025),
         u"RBF_SVM": SVC(gamma=2, C=1),
         u"Decision Tree": DecisionTreeClassifier(max_depth=999),
         u"Random_Forest": RandomForestClassifier(max_depth=999, n_estimators=100, max_features=2),
-        u"AdaBoost": AdaBoostClassifier(),
+        #u"AdaBoost": AdaBoostClassifier(),
         u"Naive Bayes": GaussianNB(),
-        u"LDA": LDA(),
-        u"QDA": QDA()
+        #u"LDA": LDA(),
+        #u"QDA": QDA()
     }
 
     print u"Running leave-one-out cross-validation..."
@@ -76,6 +78,7 @@ def main():
 
 
 def classify(arg_tup):
+    start = time.time()
     try:
         (name, clf), loo = arg_tup
         predictions = []
@@ -86,8 +89,8 @@ def classify(arg_tup):
             predictions.append(clf.predict(predict.toarray()))
             expectations.append(expected)
         score = len([i for i in range(0, len(predictions)) if predictions[i] == expectations[i]])
-        print name, score
-        return name, score
+        print name, score, time.time() - start
+        return name, score, time.time() - start
     except Exception as e:
             print e
             print traceback.format_exc()

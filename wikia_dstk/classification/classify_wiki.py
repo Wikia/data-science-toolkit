@@ -22,13 +22,14 @@ def main():
 
     groups = vertical_labels
     print u"Loading CSV..."
+    lines = [line.decode(u'utf8').strip() for line in args.infile]
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                                   [line.decode(u'utf8').strip().split(u',') for line in args.infile]
+                                   [line.split(u',') for line in lines]
                                    if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
                                    ])
 
     unknowns = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                            [line.decode(u'utf8').strip().split(u',') for line in args.infile]
+                            [line.split(u',') for line in lines]
                             if int(splt[0]) not in [v for g in groups.values() for v in g]
                             ])
 

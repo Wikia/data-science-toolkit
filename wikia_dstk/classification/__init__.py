@@ -55,8 +55,7 @@ class Classifiers():
         if val not in cls.classifier_keys_to_names:
             raise KeyError(u"Classifier not configured for %s" % val)
 
-        print cls.classifier_keys_to_names[val]
-        return apply(apply, cls.classifier_keys_to_names[val])
+        return apply(apply, cls.classifiers[cls.classifier_keys_to_names[val]])
 
     def __getattr__(self, item):
         return self.get(item)

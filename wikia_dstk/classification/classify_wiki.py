@@ -40,7 +40,8 @@ def main():
     vectorizer.fit_transform(feature_rows)
 
     clf = Classifiers.get(args.classifier)
-    print u"Training on %d instances..." % len(feature_rows)
+    classifier_name = Classifiers.classifier_keys_to_names[args.classifier]
+    print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
     clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
     print u"Predicting for %d unknowns..." % len(unknowns)
     predictions = clf.predict(vectorizer.transform(unknowns.values()).toarray())

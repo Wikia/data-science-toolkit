@@ -16,8 +16,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 def main():
     fl = open(sys.argv[1], u'r')
 
-    ids_to_rows = OrderedDict()
-
     groups = dict(
         comics=[2233, 631, 330278, 2446, 405961, 47003, 566447, 198946, 4385, 2237],
         tv=[130814, 18733, 1228, 26337, 1581, 971, 4095, 831, 684, 13346, 3200],
@@ -28,7 +26,7 @@ def main():
         movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
     )
 
-    wid_to_features = OrderedDict([(splt[0], splt[1:]) for splt in
+    wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
                                    [line.decode(u'utf8').strip().split(u',') for line in fl]])
     vectorizer = TfidfVectorizer()
     print list(set([type(w) for doc in wid_to_features.values() for w in doc]))

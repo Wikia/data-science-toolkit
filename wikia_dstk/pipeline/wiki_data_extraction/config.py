@@ -8,7 +8,7 @@ config = {
     "tag": "wiki_data_extraction",
     "threshold": 50,
     "git_ref": "page-rec",  # master
-    "max_size": 1,  # 5
+    "max_size": 5,  # 5
     "services": ",".join([
         "TopEntitiesService",
         "EntityDocumentCountsService",

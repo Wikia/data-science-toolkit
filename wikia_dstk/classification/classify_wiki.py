@@ -1,10 +1,6 @@
 import sys
-import numpy as np
 import traceback
 from collections import OrderedDict
-from sklearn.cross_validation import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.datasets import make_moons, make_circles, make_classification
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -13,6 +9,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.feature_extraction.text import TfidfVectorizer
+from multiprocessing import Pool
 
 
 def main():
@@ -64,6 +61,8 @@ def main():
 
     data = [(str(wid), i) for i, (key, wids) in enumerate(groups.items()) for wid in wids]
 
+    p = Pool(num_processes=8)
+
     print u"Running leave-one-out cross-validation..."
     perf = {}
     for j in range(0, len(classifiers)):
@@ -74,6 +73,7 @@ def main():
             predictions = []
 
             for i in range(0, len(data)):
+                print i, u'/', len(data)
                 try:
                     training, classes = zip(*[(wid_to_features[str(wid)], cls)
                                               for wid, cls in data[:i] + data[i+1:]])

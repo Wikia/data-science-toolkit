@@ -31,6 +31,7 @@ def main():
     wid_to_features = OrderedDict([(splt[0], splt[1:]) for splt in
                                    [line.decode(u'utf8').strip().split(u',') for line in fl]])
     vectorizer = TfidfVectorizer()
+    print wid_to_features.values()
     rows_transformed = vectorizer.fit_transform(wid_to_features.values())
     wid_to_features_transformed = OrderedDict(zip(*[wid_to_features.keys(), rows_transformed]))
 

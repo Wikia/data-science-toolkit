@@ -19,7 +19,7 @@ vertical_labels = OrderedDict(
     movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
 )
 
-wid_to_class = dict([(i, wid) for i, (label, wids) in enumerate(vertical_labels.items()) for wid in wids])
+wid_to_class = dict([(wid, i) for i, (label, wids) in enumerate(vertical_labels.items()) for wid in wids])
 class_to_label = dict([(i, label) for i, (label, wids) in enumerate(vertical_labels.items())])
 
 

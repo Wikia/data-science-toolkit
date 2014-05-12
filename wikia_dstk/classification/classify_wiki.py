@@ -52,7 +52,7 @@ def main():
         loo_args.append(
             (vectorizer.transform(feature_rows),                # train
              [wid_to_class[str(wid)] for wid in feature_keys],  # classes for training set
-             [vectorizer.transform([loo_row])],                 # predict
+             vectorizer.transform([loo_row]),                   # predict
              [loo_class]                                        # expected class
              )
         )
@@ -83,7 +83,7 @@ def classify(arg_tup):
         for i, (training, classes, predict, expected) in enumerate(loo):
             print name, i
             clf.fit(training.toarray(), classes)
-            predictions.append(clf.predict(predict))
+            predictions.append(clf.predict([predict]))
             expectations.append(expected)
         score = len([i for i in range(0, len(predictions)) if predictions[i] == expectations[i]])
         print name, score

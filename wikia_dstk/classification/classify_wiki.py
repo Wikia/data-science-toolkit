@@ -28,7 +28,8 @@ def main():
         movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
     )
 
-    wid_to_features = OrderedDict([(splt[0], splt[1:]) for splt in [line.strip().split(u',') for line in fl]])
+    wid_to_features = OrderedDict([(splt[0], splt[1:]) for splt in
+                                   [line.decode(u'utf8').strip().split(u',') for line in fl]])
     vectorizer = TfidfVectorizer()
     rows_transformed = vectorizer.fit_transform(wid_to_features.values())
     wid_to_features_transformed = OrderedDict(zip(*[wid_to_features.keys(), rows_transformed]))
@@ -57,7 +58,6 @@ def main():
     ]
 
     data = [(str(wid), key) for key, wids in groups.items() for wid in wids]
-
 
     perf = {}
     for j in range(0, len(classifiers)):

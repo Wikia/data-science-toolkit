@@ -14,7 +14,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from multiprocessing import Pool
 
 
-
 def main():
     fl = open(sys.argv[1], u'r')
 

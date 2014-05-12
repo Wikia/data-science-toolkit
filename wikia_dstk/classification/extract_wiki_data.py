@@ -118,7 +118,7 @@ def wikis_to_features(args, wikis):
 
 def main():
     args = get_args()
-    features = wikis_to_features(args, get_mainpage_text(get_wiki_data()))
+    features = wikis_to_features(args, get_mainpage_text(args, get_wiki_data(args)))
     with codecs.open(u'wiki_data.csv', u'w', encoding=u'utf8') as fl:
         for wid, features in features.items():
             fl.write(u"%s,%s\n" % (wid.encode(u'utf8'), u",".join(features).encode(u'utf8')))

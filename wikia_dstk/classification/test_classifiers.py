@@ -45,11 +45,8 @@ def main():
 
     print u"Running leave-one-out cross-validation..."
 
-    for cl in Classifiers.each():
-        print cl
-
     p = Pool(processes=8)
-    print p.map_async(classify, [(i, loo_args) for i in Classifiers.each()]).get()
+    print p.map_async(classify, [((name, clf), loo_args) for name, clf in Classifiers.each()]).get()
 
 
 def classify(arg_tup):

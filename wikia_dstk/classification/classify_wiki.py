@@ -56,7 +56,9 @@ def main():
         QDA()
     ]
 
-    data = [(str(wid), key) for key, wids in groups.items() for wid in wids]
+    #ints_to_classes = dict([(i, group[0]) for i, group in enumerate(groups.items())])
+
+    data = [(str(wid), i) for i, (key, wids) in enumerate(groups.items()) for wid in wids]
 
     perf = {}
     for j in range(0, len(classifiers)):

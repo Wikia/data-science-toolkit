@@ -61,8 +61,6 @@ def main():
 
     data = [(str(wid), i) for i, (key, wids) in enumerate(groups.items()) for wid in wids]
 
-    p = Pool(num_processes=8)
-
     print u"Running leave-one-out cross-validation..."
     perf = {}
     for j in range(0, len(classifiers)):

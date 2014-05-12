@@ -82,8 +82,8 @@ def classify(arg_tup):
         expectations = []
         for i, (training, classes, predict, expected) in enumerate(loo):
             print name, i
-            clf.fit(training, classes)
-            predictions.append(clf.predict())
+            clf.fit(training.toarray(), classes)
+            predictions.append(clf.predict(predict.toarray()))
             expectations.append(expected)
         score = len([i for i in range(0, len(predictions)) if predictions[i] == expectations[i]])
         print name, score

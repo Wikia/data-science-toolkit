@@ -17,7 +17,6 @@ def get_args():
     return ap.parse_args()
 
 
-
 def main():
     start = time.time()
     args = get_args()
@@ -49,6 +48,7 @@ def main():
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
         predictions = clf.predict_proba(vectorizer.transform(unknowns.values()).toarray())
+        print predictions
         prediction_counts = defaultdict(int)
         for i, p in enumerate(predictions):
             prediction_counts[class_to_label[p.index(max(p))]] += 1

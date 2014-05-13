@@ -48,7 +48,9 @@ def main():
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
+
         vectors = vectorizer.transform(unknowns.values()).toarray()
+        print u"I have vectors"
         for i, v in enumerate(vectors):
             print u"Predicting probability for", v
             try:

@@ -53,7 +53,7 @@ def main():
         prediction_probabilities = clf.predict_proba(test_vectors)
         prediction_counts = defaultdict(int)
         for i, p in enumerate(prediction_probabilities):
-            prediction_counts[class_to_label[p.index(max(p))]] += 1
+            prediction_counts[class_to_label[list(p).index(max(p))]] += 1
             scores[i][classifier_string].append(p)
         print classifier_string, prediction_counts
 

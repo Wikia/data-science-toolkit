@@ -1,6 +1,7 @@
 import sys
 import time
 import numpy as np
+import traceback
 from collections import defaultdict
 from . import vertical_labels, wid_to_class, class_to_label, Classifiers
 from collections import OrderedDict
@@ -48,6 +49,14 @@ def main():
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
         vectors = vectorizer.transform(unknowns.values()).toarray()
+        for i, v in enumerate(vectors):
+            print u"Predicting probability for", v
+            try:
+                clf.predict_proba(v)
+            except (SystemExit, SystemError, Exception) as e:
+                print e
+                print traceback.format_exc()
+
         prediction_probabilities = [clf.predict_proba(v) for v in vectors]
         print u"I got here"
         print prediction_probabilities

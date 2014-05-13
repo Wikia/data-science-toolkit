@@ -12,7 +12,7 @@ from collections import OrderedDict, defaultdict
 
 
 log_level = logging.INFO
-logger = logging.getLogger(u'solr_backend')
+logger = logging.getLogger(u'wikia_dstk.classification')
 logger.setLevel(log_level)
 ch = logging.StreamHandler()
 ch.setLevel(log_level)

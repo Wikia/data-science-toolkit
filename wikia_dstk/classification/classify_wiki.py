@@ -40,18 +40,18 @@ def main():
     feature_rows = wid_to_features.values()
     feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
     vectorizer.fit_transform(feature_rows)
+    training_vectors = vectorizer.transform(feature_rows).toarray()
+    test_vectors = vectorizer.transform(unknowns.values()).toarray()
     scores = defaultdict(defaultdict(list))
     print u"Training", len(args.classifiers), u"classifiers"
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)
         classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
-        clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
+        clf.fit(training_vectors, feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
 
-        vectors = vectorizer.transform(unknowns.values()).toarray()
-        print u"I have vectors"
-        for i, v in enumerate(vectors):
+        for i, v in enumerate(test_vectors):
             print u"Predicting probability for", v
             try:
                 clf.predict_proba(v)

@@ -47,12 +47,13 @@ def main():
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
-        predictions = clf.predict_proba(vectorizer.transform(unknowns.values()).toarray())
+        vectors = vectorizer.transform(unknowns.values()).toarray()
+        prediction_probabilities = [clf.predict_proba(v) for v in vectors]
         print u"I got here"
-        print predictions
+        print prediction_probabilities
         print u"And I got here"
         prediction_counts = defaultdict(int)
-        for i, p in enumerate(predictions):
+        for i, p in enumerate(prediction_probabilities):
             prediction_counts[class_to_label[p.index(max(p))]] += 1
             scores[i][classifier_string].append(p)
         print u"And I also got here"

@@ -48,11 +48,14 @@ def main():
         clf.fit(vectorizer.transform(feature_rows).toarray(), feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
         predictions = clf.predict_proba(vectorizer.transform(unknowns.values()).toarray())
+        print u"I got here"
         print predictions
+        print u"And I got here"
         prediction_counts = defaultdict(int)
         for i, p in enumerate(predictions):
             prediction_counts[class_to_label[p.index(max(p))]] += 1
             scores[i][classifier_string].append(p)
+        print u"And I also got here"
         print classifier_string, prediction_counts
 
     print u"Interpolating Predictions"

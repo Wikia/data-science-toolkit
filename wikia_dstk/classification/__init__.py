@@ -29,7 +29,7 @@ class Classifiers():
         u"Linear SVM": (SVC, [], dict(kernel="linear", C=0.025)),
         u"RBF_SVM": (SVC, [], dict(gamma=2, C=1)),
         u"Decision Tree": (DecisionTreeClassifier, [], dict(max_depth=999)),
-        u"Random_Forest": (RandomForestClassifier, [], dict(max_depth=999, n_estimators=100, max_features=2)),
+        u"Random_Forest": (RandomForestClassifier, [], dict(max_depth=999, n_estimators=100, max_features=7)),
         u"AdaBoost": (AdaBoostClassifier, [], {}),
         u"Naive Bayes": (GaussianNB, [], {}),
         u"LDA": (LDA, [], {}),

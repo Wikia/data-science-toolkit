@@ -1,3 +1,5 @@
+import logging
+import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -6,8 +8,17 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.linear_model import LogisticRegression
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
+
+log_level = logging.INFO
+logger = logging.getLogger(u'solr_backend')
+logger.setLevel(log_level)
+ch = logging.StreamHandler()
+ch.setLevel(log_level)
+formatter = logging.Formatter(u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 vertical_labels = OrderedDict(
     comics=[2233, 631, 330278, 2446, 405961, 47003, 566447, 198946, 4385, 2237],
@@ -19,8 +30,35 @@ vertical_labels = OrderedDict(
     movies=[509, 35171, 147, 6294, 559, 177996, 9231, 1668, 159, 277726, 613758, 6954]
 )
 
-wid_to_class = dict([(wid, i) for i, (label, wids) in enumerate(vertical_labels.items()) for wid in wids])
-class_to_label = dict([(i, label) for i, (label, wids) in enumerate(vertical_labels.items())])
+wid_to_class = dict([(wid, idx) for idx, (label, wids) in enumerate(vertical_labels.items()) for wid in wids])
+class_to_label = dict([(idx, label) for idx, (label, wids) in enumerate(vertical_labels.items())])
+
+
+def predict_ensemble(classifier_strings, training_vectors, feature_keys, test_vectors):
+    scores = defaultdict(lambda: defaultdict(list))
+    for classifier_string in classifier_strings:
+        clf = Classifiers.get(classifier_string)
+        classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
+
+        logger.log(u"Training a %s classifier on %d instances..." % (classifier_name, len(training_vectors)))
+        clf.fit(training_vectors, feature_keys)
+        logger.log(u"Predicting with %s for %d unknowns..." % (classifier_name, len(test_vectors)))
+        prediction_probabilities = clf.predict_proba(test_vectors)
+        prediction_counts = defaultdict(int)
+        for i, p in enumerate(prediction_probabilities):
+            prediction_counts[class_to_label[list(p).index(max(p))]] += 1
+            scores[i][classifier_string].append(p)
+        logger.log((classifier_string, prediction_counts))
+
+    logger.log(u"%s Predictions" % (u"Finalizing" if len(classifier_strings) == 1 else u"Interpolating"))
+    prediction_counts = defaultdict(int)
+    predictions = []
+    for i in scores:
+        combined = (np.sum(scores[i].values(), axis=0) / float(len(scores[i])))[0]
+        predictions.append(list(combined).index(max(combined)))
+        prediction_counts[class_to_label[predictions[-1]]] += 1
+    logger.log(prediction_counts)
+    return predictions
 
 
 class Classifiers():

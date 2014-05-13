@@ -42,14 +42,14 @@ def main():
     vectorizer.fit_transform(feature_rows)
     training_vectors = vectorizer.transform(feature_rows).toarray()
     test_vectors = vectorizer.transform(unknowns.values()).toarray()
-    scores = defaultdict(defaultdict(list))
+    scores = defaultdict(lambda x: defaultdict(list))
     print u"Training", len(args.classifiers), u"classifiers"
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)
         classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(training_vectors, feature_keys)
-        print u"Predicting for %d unknowns..." % len(unknowns)
+        #print u"Predicting for %d unknowns..." % len(unknowns)
         print test_vectors
 
         for i, v in enumerate(test_vectors):

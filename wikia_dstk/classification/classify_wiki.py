@@ -62,7 +62,7 @@ def main():
     predictions = []
     for i in scores:
         summed = np.sum(scores[i].values(), axis=0) / float(len(scores[i]))
-        predictions.append(summed.index(max(summed)))
+        predictions.append(list(summed).index(max(summed)))
         prediction_counts[class_to_label[predictions[-1]]] += 1
     print prediction_counts
 

@@ -49,18 +49,10 @@ def main():
         classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(training_vectors, feature_keys)
-        #print u"Predicting for %d unknowns..." % len(unknowns)
-        print test_vectors
-
-        for i, v in enumerate(test_vectors):
-            print u"Predicting probability for", v
-            try:
-                clf.predict_proba(v)
-            except (SystemExit, SystemError, Exception) as e:
-                print e
-                print traceback.format_exc()
-
-        prediction_probabilities = [clf.predict_proba(v) for v in vectors]
+        print u"Predicting for %d unknowns..." % len(unknowns)
+        print clf.predict_proba(test_vectors)
+        sys.exit()
+        prediction_probabilities = [clf.predict_proba(v) for v in test_vectors]
         print u"I got here"
         print prediction_probabilities
         print u"And I got here"

@@ -42,7 +42,7 @@ def main():
     vectorizer.fit_transform(feature_rows)
     training_vectors = vectorizer.transform(feature_rows).toarray()
     test_vectors = vectorizer.transform(unknowns.values()).toarray()
-    scores = defaultdict(lambda x: defaultdict(list))
+    scores = defaultdict(lambda: defaultdict(list))
     print u"Training", len(args.classifiers), u"classifiers"
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)

@@ -49,21 +49,15 @@ def main():
         classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(training_vectors, feature_keys)
-        print u"Predicting for %d unknowns..." % len(unknowns)
-        print clf.predict_proba(test_vectors)
-        sys.exit()
-        prediction_probabilities = [clf.predict_proba(v) for v in test_vectors]
-        print u"I got here"
-        print prediction_probabilities
-        print u"And I got here"
+        print u"Predicting with %s for %d unknowns..." % (classifier_name, len(unknowns))
+        prediction_probabilities = clf.predict_proba(test_vectors)
         prediction_counts = defaultdict(int)
         for i, p in enumerate(prediction_probabilities):
             prediction_counts[class_to_label[p.index(max(p))]] += 1
             scores[i][classifier_string].append(p)
-        print u"And I also got here"
         print classifier_string, prediction_counts
 
-    print u"Interpolating Predictions"
+    print u"%s Predictions" % (u"Finalizing" if len(args.classifiers) == 1 else u"Interpolating")
     prediction_counts = defaultdict(int)
     predictions = []
     for i in scores:

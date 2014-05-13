@@ -50,6 +50,7 @@ def main():
         print u"Training a %s classifier on %d instances..." % (classifier_name, len(feature_rows))
         clf.fit(training_vectors, feature_keys)
         print u"Predicting for %d unknowns..." % len(unknowns)
+        print test_vectors
 
         for i, v in enumerate(test_vectors):
             print u"Predicting probability for", v

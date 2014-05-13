@@ -1,5 +1,6 @@
 import sys
 import time
+import numpy as np
 from collections import defaultdict
 from . import vertical_labels, wid_to_class, class_to_label, Classifiers
 from collections import OrderedDict
@@ -39,7 +40,7 @@ def main():
     feature_rows = wid_to_features.values()
     feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
     vectorizer.fit_transform(feature_rows)
-    scores = defaultdict(list)
+    scores = defaultdict(defaultdict(list))
     print u"Training", len(args.classifiers), u"classifiers"
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)
@@ -50,10 +51,18 @@ def main():
         predictions = clf.predict_proba(vectorizer.transform(unknowns.values()).toarray())
         prediction_counts = defaultdict(int)
         for i, p in enumerate(predictions):
-            print p
-            sys.exit()
-            prediction_counts[class_to_label[p]] += 1
-        print prediction_counts
+            prediction_counts[class_to_label[p.index(max(p))]] += 1
+            scores[i][classifier_string].append(p)
+        print classifier_string, prediction_counts
+
+    print u"Interpolating Predictions"
+    prediction_counts = defaultdict(int)
+    predictions = []
+    for i in scores:
+        summed = np.sum(scores[i].values(), axis=0) / float(len(scores[i]))
+        predictions.append(summed.index(max(summed)))
+        prediction_counts[class_to_label[predictions[-1]]] += 1
+    print prediction_counts
 
     print u"Writing to file"
     for i, wid in enumerate(unknowns.keys()):

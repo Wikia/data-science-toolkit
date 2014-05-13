@@ -23,7 +23,7 @@ def main():
     args = get_args()
 
     groups = vertical_labels
-    logger.log(u"Loading CSV...")
+    logger.info(u"Loading CSV...")
     lines = [line.decode(u'utf8').strip() for line in args.infile]
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
                                    [line.split(u',') for line in lines]
@@ -35,20 +35,20 @@ def main():
                             if int(splt[0]) not in [v for g in groups.values() for v in g]
                             ])
 
-    logger.log(u"Vectorizing...")
+    logger.info(u"Vectorizing...")
     vectorizer = TfidfVectorizer()
     feature_rows = wid_to_features.values()
     feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
     vectorizer.fit_transform(feature_rows)
     training_vectors = vectorizer.transform(feature_rows).toarray()
     test_vectors = vectorizer.transform(unknowns.values()).toarray()
-    logger.log(u"Training %d classifiers" % len(args.classifiers))
+    logger.info(u"Training %d classifiers" % len(args.classifiers))
     predictions = predict_ensemble(args.classifiers, training_vectors, feature_keys, test_vectors)
-    logger.log(u"Writing to file")
+    logger.info(u"Writing to file")
     for i, wid in enumerate(unknowns.keys()):
         args.outfile.write(u",".join([wid, class_to_label[predictions[i]]])+u"\n")
 
-    logger.log(u"Finished in %.2f seconds" % (time.time() - start))
+    logger.info(u"Finished in %.2f seconds" % (time.time() - start))
 
 
 if __name__ == u'__main__':

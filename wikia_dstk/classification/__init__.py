@@ -34,34 +34,50 @@ wid_to_class = dict([(wid, idx) for idx, (label, wids) in enumerate(vertical_lab
 class_to_label = dict([(idx, label) for idx, (label, wids) in enumerate(vertical_labels.items())])
 
 
-def predict_ensemble(classifier_strings, training_vectors, feature_keys, test_vectors):
+def predict_ensemble(classifier_strings, training_vectors, vector_classes, test_vectors):
+    """
+    Performs ensemble prediction for a set of classifiers listed by key name in Classifiers class
+    :param classifier_strings: a non-empty list of classifier keys
+    :type classifier_strings: list
+    :param training_vectors: a numpy array of training vectors
+    :type training_vectors:class:`numpy.array`
+    :param vector_classes: a list of numeric class ids for each vector, in order
+    :type vector_classes: list
+    :param test_vectors: a numpy array of vectors to predict class for
+    :type test_vectors:class:`numpy.array`
+    :return: an ordered list of classes for each test vector row
+    :rtype: list
+    """
     scores = defaultdict(lambda: defaultdict(list))
     for classifier_string in classifier_strings:
         clf = Classifiers.get(classifier_string)
         classifier_name = Classifiers.classifier_keys_to_names[classifier_string]
 
-        logger.log(u"Training a %s classifier on %d instances..." % (classifier_name, len(training_vectors)))
-        clf.fit(training_vectors, feature_keys)
-        logger.log(u"Predicting with %s for %d unknowns..." % (classifier_name, len(test_vectors)))
+        logger.info(u"Training a %s classifier on %d instances..." % (classifier_name, len(training_vectors)))
+        clf.fit(training_vectors, vector_classes)
+        logger.info(u"Predicting with %s for %d unknowns..." % (classifier_name, len(test_vectors)))
         prediction_probabilities = clf.predict_proba(test_vectors)
         prediction_counts = defaultdict(int)
         for i, p in enumerate(prediction_probabilities):
             prediction_counts[class_to_label[list(p).index(max(p))]] += 1
             scores[i][classifier_string].append(p)
-        logger.log((classifier_string, prediction_counts))
+        logger.info((classifier_string, prediction_counts))
 
-    logger.log(u"%s Predictions" % (u"Finalizing" if len(classifier_strings) == 1 else u"Interpolating"))
+    logger.info(u"%s Predictions" % (u"Finalizing" if len(classifier_strings) == 1 else u"Interpolating"))
     prediction_counts = defaultdict(int)
     predictions = []
     for i in scores:
         combined = (np.sum(scores[i].values(), axis=0) / float(len(scores[i])))[0]
         predictions.append(list(combined).index(max(combined)))
         prediction_counts[class_to_label[predictions[-1]]] += 1
-    logger.log(prediction_counts)
+    logger.info(prediction_counts)
     return predictions
 
 
 class Classifiers():
+    """
+    Let's us be dynamic from the command line on which classifer we want to use
+    """
     classifiers = {
         u"Nearest Neighbors": (KNeighborsClassifier, [3], dict()),
         u"Linear SVM": (SVC, [], dict(kernel="linear", C=0.025)),

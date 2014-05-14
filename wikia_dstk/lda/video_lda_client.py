@@ -5,7 +5,7 @@ import os
 import time
 from multiprocessing import Pool
 from boto import connect_s3
-from . import normalize, unis_bis, video_json_key, run_server_from_args
+from . import normalize, unis_bis, video_json_key, run_server_from_args, ami
 from .. import log
 
 
@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--build-only', dest='build_only', action='store_true', default=False,
                         help="Build new feature set for S3")
     parser.add_argument('--ami', dest='ami', type=str,
-                        default="ami-f4d0bfc4",
+                        default=ami,
                         help='The AMI to launch')
     parser.add_argument('--num-nodes', dest='node_count', type=int,
                         default=20,

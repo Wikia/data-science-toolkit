@@ -1,12 +1,9 @@
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
-import requests
 import argparse
 import os
 import gensim
-from sklearn.svm import SVC
 from multiprocessing import Pool
-from nlp_services.document_access import ListDocIdsService
 from nlp_services.caching import use_caching
 from nlp_services.syntax import HeadsService
 from nlp_services.title_confirmation import preprocess

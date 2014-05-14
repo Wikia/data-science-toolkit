@@ -2,13 +2,13 @@ import argparse
 import os
 from boto import connect_s3
 from datetime import datetime
-from . import run_server_from_args
+from . import run_server_from_args, ami
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(u'--ami', dest=u'ami', type=str,
-                        default=u"ami-d6e785e6",
+                        default=ami,
                         help=u'The AMI to launch')
     parser.add_argument(u'--num-nodes', dest=u'node_count', type=int,
                         default=20,
@@ -35,7 +35,7 @@ def get_args():
                         default=os.getenv(u'NODE_INSTANCES', 20),
                         help=u"Number of node instances to launch")
     parser.add_argument(u'--node-ami', dest=u'node_ami', type=str,
-                        default=os.getenv(u'NODE_AMI', u"ami-d6e785e6"),
+                        default=os.getenv(u'NODE_AMI', ami),
                         help=u"AMI of the node machines")
     parser.add_argument(u'--dont-terminate-on-complete', dest=u'terminate_on_complete', action=u'store_false',
                         default=os.getenv(u'TERMINATE_ON_COMPLETE', True),

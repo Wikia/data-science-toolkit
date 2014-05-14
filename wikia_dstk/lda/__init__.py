@@ -179,6 +179,8 @@ def terminate_lda_nodes():
             conn.terminate_instances(instance_ids=[instance.id
                                                    for reservation in instances_launched
                                                    for instance in reservation.instances])
+        if len(instances_requested):
+            conn.cancel_spot_instance_requests([r.id for r in instances_requested])
     except EC2ResponseError as e:
         log(e)
         if len(instances_requested):

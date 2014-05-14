@@ -187,7 +187,7 @@ def terminate_lda_nodes():
 
 
 def log(*args):
-    logger.info(u" ".join(args))
+    logger.info(u" ".join([unicode(a) for a in args]))
 
 
 def get_dct_and_bow_from_features(id_to_features):

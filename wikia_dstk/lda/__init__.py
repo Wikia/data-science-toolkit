@@ -120,7 +120,7 @@ def harakiri():
     """
     if os.path.exists(logfile):
         b = connect_s3().get_bucket(u'nlp-data')
-        k = b.get_key(u'logs/lda/%s-%s.log' % (datetime.strftime(datetime.now(), u'%Y-%m-%d-%H-%M'), get_my_hostname()))
+        k = b.new_key(u'logs/lda/%s-%s.log' % (datetime.strftime(datetime.now(), u'%Y-%m-%d-%H-%M'), get_my_hostname()))
         k.set_contents_from_filename(logfile)
     conn = get_ec2_connection()
     my_id = get_my_id()

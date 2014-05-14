@@ -9,7 +9,7 @@ from multiprocessing import Pool
 def get_args():
     ap = ArgumentParser()
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
-    ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout)
+    ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w', encoding=u'utf8'), default=sys.stdout)
     return ap.parse_args()
 
 
@@ -25,7 +25,7 @@ def main():
     p = Pool(processes=8)
     wiki_data = {}
     wids = wid_to_class.keys()
-    wid_groups = [wids[i:i+20] for i in range(0, len(wids), 20)]
+    wid_groups = [wids[i:i+25] for i in range(0, len(wids), 25)]
     map(wiki_data.update, p.map_async(get_wiki_data, wid_groups).get())
     output_lines = []
     for wid, cls in wid_to_class.items():

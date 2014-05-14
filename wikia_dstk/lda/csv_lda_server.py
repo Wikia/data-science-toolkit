@@ -65,7 +65,8 @@ def get_feature_data(args):
 
 def get_model_from_args(args):
     log(u"\n---LDA Model---")
-    modelname = u'%s-%s-lda-%s-csv-%stopics.model' % (args.git_ref, args.model_prefix, args.s3file, args.num_topics)
+    modelname = (u'%s-%s-lda-%s-csv-%stopics.model'
+                 % (args.git_ref, args.model_prefix, args.s3file.replace(u'/', u'_'), args.num_topics))
     bucket = connect_s3().get_bucket(u'nlp-data')
     if os.path.exists(args.path_prefix+modelname):
         log(u"(loading from file)")

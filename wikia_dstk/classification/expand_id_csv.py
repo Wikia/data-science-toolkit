@@ -33,8 +33,7 @@ def main():
     output_lines = []
     for wid, cls in wid_to_class.items():
         wiki_datum = wiki_data.get(wid, {})
-        print wiki_datum
-        output_lines.append(u",".join([wid, cls, wiki_datum.get(u'url', u''), wiki_datum.get(u'title', u''), ]))
+        output_lines.append(u",".join([wiki_datum.get(u'title', u''), cls, wid, wiki_datum.get(u'url', u''), ]))
     args.outfile.write(u"\n".join(output_lines))
 
 

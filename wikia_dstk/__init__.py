@@ -1,16 +1,25 @@
+import logging
 import os
-import sys
 from argparse import ArgumentParser
-from datetime import datetime
+
+logfile = u'/var/log/wikia_dstk.lda.log'
+log_level = logging.INFO
+logger = logging.getLogger(u'wikia_dstk.lda')
+logger.setLevel(log_level)
+ch = logging.StreamHandler()
+ch.setLevel(log_level)
+formatter = logging.Formatter(
+    u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+ch = logging.FileHandler(logfile)
+ch.setLevel(log_level)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def log(*args):
-    """
-    TODO: use a real logger
-    """
-    print '[%s] %s' % (
-        str(datetime.utcnow()), ' '.join([str(arg) for arg in args]))
-    sys.stdout.flush()
+    logger.info(u" ".join([unicode(a) for a in args]))
 
 
 def chrono_sort(directory):

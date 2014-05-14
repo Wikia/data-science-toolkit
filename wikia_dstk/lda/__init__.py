@@ -21,7 +21,7 @@ from boto.utils import get_instance_metadata
 from boto.ec2 import connect_to_region
 from boto.exception import EC2ResponseError
 from boto.ec2 import networkinterface
-from .. import log
+from .. import log, logfile
 
 ami = u"ami-13156323"
 
@@ -35,20 +35,6 @@ instances_launched = []
 instances_requested = []
 connection = None
 video_json_key = u'feature-data/video.json'
-
-logfile = u'/var/log/wikia_dstk.lda.log'
-log_level = logging.INFO
-logger = logging.getLogger(u'wikia_dstk.lda')
-logger.setLevel(log_level)
-ch = logging.StreamHandler()
-ch.setLevel(log_level)
-formatter = logging.Formatter(u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-ch = logging.FileHandler(logfile)
-ch.setLevel(log_level)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 
 def get_ec2_connection():

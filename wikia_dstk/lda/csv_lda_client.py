@@ -56,7 +56,7 @@ def main():
         b = connect_s3().get_bucket(u'nlp-data')
         keyname = u'lda_csvs/'+args.infile
         k = b.get_key(keyname)
-        k.set_contents_from_filname(keyname)
+        k.set_contents_from_filname(args.infile)
         args.s3file = keyname
 
     run_server_from_args(args, u'wikia_dstk.lda.wiki_csv_server',

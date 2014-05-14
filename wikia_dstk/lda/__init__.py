@@ -366,7 +366,7 @@ class WikiaDSTKDictionary(Dictionary):
         token_to_sat = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[0]])
         token_to_entropy = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[1]])
 
-        dtype = [(u'token_id', u'i'), (u'value', u'f')]
+        dtype = [('token_id', 'i'), ('value', 'f')]
         log(u"Sorting SAT")
         sorted_token_sat = np.sort(np.array(token_to_sat, dtype=dtype), order='value')
         log(u"Sorting Entropy")

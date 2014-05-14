@@ -62,7 +62,7 @@ def main():
         k.set_contents_from_filename(args.infile)
         args.s3file = keyname
 
-    run_server_from_args(args, u'wikia_dstk.lda.wiki_csv_server',
+    run_server_from_args(args, u'wikia_dstk.lda.csv_lda_server',
                          user_data_extras=u"export S3FILE=%s" % args.s3file)
 
 

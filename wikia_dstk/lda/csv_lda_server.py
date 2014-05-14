@@ -19,7 +19,7 @@ def get_args():
                     default=os.getenv(u'NUM_TOPICS', 999),
                     help=u"Number of topics you want from the LDA process")
     ap.add_argument(u'--max-topic-frequency', dest=u'max_topic_frequency', type=int,
-                    default=os.getenv(u'MAX_TOPIC_FREQUENCY', default=None),
+                    default=os.getenv(u'MAX_TOPIC_FREQUENCY', default=20000),
                     help=u"Threshold for number of intances a given topic appears in")
     ap.add_argument(u'--num-processes', dest=u"num_processes", type=int,
                     default=os.getenv(u'NUM_PROCESSES', 8),

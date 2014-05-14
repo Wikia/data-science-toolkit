@@ -15,7 +15,7 @@ from boto import connect_s3
 from collections import defaultdict
 from datetime import datetime
 from . import normalize, unis_bis, launch_lda_nodes, terminate_lda_nodes, harakiri
-from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
+from . import log, get_dct_and_bow_from_features, write_csv_and_text_data, ami
 
 
 def get_args():
@@ -48,7 +48,7 @@ def get_args():
                     default=os.getenv('NODE_INSTANCES', 20),
                     help="Number of node instances to launch")
     ap.add_argument('--node-ami', dest='ami', type=str,
-                    default=os.getenv('NODE_AMI', "ami-40701570"),
+                    default=os.getenv('NODE_AMI', ami),
                     help="AMI of the node machines")
     ap.add_argument('--dont-terminate-on-complete', dest='terminate_on_complete', action='store_false',
                     default=os.getenv('TERMINATE_ON_COMPLETE', True),

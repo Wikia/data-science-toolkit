@@ -284,7 +284,6 @@ def run_server_from_args(args, server_model_name, user_data_extras=""):
         interfaces = networkinterface.NetworkInterfaceCollection(interface)
 
         user_data = server_user_data_from_args(args, server_model_name, user_data_extras)
-        print user_data
         reservation = conn.run_instances(args.ami,
                                          instance_type='m2.4xlarge',
                                          user_data=user_data,

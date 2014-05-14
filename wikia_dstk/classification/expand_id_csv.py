@@ -1,5 +1,6 @@
 import sys
 import requests
+import codecs
 from argparse import ArgumentParser, FileType
 from . import logger
 from collections import OrderedDict
@@ -9,8 +10,10 @@ from multiprocessing import Pool
 def get_args():
     ap = ArgumentParser()
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
-    ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w', encoding=u'utf8'), default=sys.stdout)
-    return ap.parse_args()
+    ap.add_argument(u'--outfile', dest=u'outfile_string', type=FileType(u'w'), default=sys.stdout)
+    args = ap.parse_args()
+    args.outfile = codecs.getwriter(u'utf8')(args.outfile)
+    return args
 
 
 def get_wiki_data(wid_group):

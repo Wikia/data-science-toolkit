@@ -58,7 +58,7 @@ def get_feature_data(args):
     lines = bucket.get_key(args.s3file).get_contents_as_string().decode(u'utf8').split(u"\n")
     id_to_features = OrderedDict()
     for line in lines:
-        splt = line.split(u',')[0]
+        splt = line.split(u',')
         id_to_features[splt[0]] = splt[1:]
     return id_to_features
 

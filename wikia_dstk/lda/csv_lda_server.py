@@ -104,8 +104,8 @@ def get_model_from_args(args):
                 key.set_contents_from_file(open(args.path_prefix+modelname, u'r'))
                 terminate_lda_nodes()
             except Exception as e:
-                print e
-                print traceback.format_exc()
+                log(str(e))
+                log(str(traceback.format_exc()))
                 terminate_lda_nodes()
                 return harakiri()
     return lda_model

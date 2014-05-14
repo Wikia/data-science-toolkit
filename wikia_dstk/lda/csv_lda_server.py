@@ -55,7 +55,7 @@ def get_args():
 
 def get_feature_data(args):
     bucket = connect_s3().get_bucket(u'nlp-data')
-    lines = bucket.get_key(args.s3file).get_contents_as_string().split(u"\n")
+    lines = bucket.get_key(args.s3file).get_contents_as_string().encode(u'utf8').split(u"\n")
     id_to_features = OrderedDict()
     for line in lines:
         splt = line.split(u',')[0]

@@ -23,6 +23,8 @@ from boto.exception import EC2ResponseError
 from boto.ec2 import networkinterface
 from .. import log
 
+ami = u"ami-13156323"
+
 
 alphanumeric_unicode_pattern = re.compile(ur'[^\w\s]', re.U)
 splitter_pattern = ur"[\u200b\s]+"

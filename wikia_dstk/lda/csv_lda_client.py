@@ -19,6 +19,9 @@ def get_args():
     parser.add_argument(u'--path-prefix', dest=u'path_prefix', type=str, action=u'store',
                         default=os.getenv(u'PATH_PREFIX', u'/mnt/'),
                         help=u"Where to save the model")
+    parser.add_argument(u'--max-topic-frequency', dest=u'max_topic_frequency', type=int,
+                        default=os.getenv(u'MAX_TOPIC_FREQUENCY', 20000),
+                        help=u"Threshold for number of instances a given topic appears in")
     parser.add_argument(u'--model-prefix', dest=u'model_prefix', type=str,
                         default=os.getenv(u'MODEL_PREFIX', datetime.strftime(datetime.now(), u'%Y-%m-%d-%H-%M')),
                         help=u"Prefix to uniqueify model")

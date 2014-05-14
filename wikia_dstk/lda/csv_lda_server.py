@@ -48,7 +48,7 @@ def get_args():
     ap.add_argument(u'--git-ref', dest=u'git_ref',
                     default=os.getenv(u'GIT_REF', u'master'),
                     help=u"A DSTK repo ref (tag, branch, commit hash) to check out")
-    ap.add_argument(u'--s3file', dest=u's3file', default=os.getenv(U'S3FILE', None), required=True,
+    ap.add_argument(u'--s3file', dest=u's3file', default=os.getenv(U'S3FILE', None),
                     help=u'The location of the data file on S3')
     return ap.parse_args()
 

@@ -8,12 +8,15 @@ import time
 import re
 import random
 import hashlib
+import os
+from datetime import datetime
 from multiprocessing import Pool
 from gensim.corpora import Dictionary
 from gensim.matutils import corpus2dense
 from nltk import PorterStemmer, bigrams, trigrams
 from nltk.corpus import stopwords
 from collections import defaultdict
+from boto import connect_s3
 from boto.utils import get_instance_metadata
 from boto.ec2 import connect_to_region
 from boto.exception import EC2ResponseError
@@ -23,19 +26,33 @@ from .. import log
 
 alphanumeric_unicode_pattern = re.compile(ur'[^\w\s]', re.U)
 splitter_pattern = ur"[\u200b\s]+"
-dictlogger = logging.getLogger('gensim.corpora.dictionary')
+dictlogger = logging.getLogger(u'gensim.corpora.dictionary')
 stemmer = PorterStemmer()
-english_stopwords = stopwords.words('english')
+english_stopwords = stopwords.words(u'english')
 instances_launched = []
 instances_requested = []
 connection = None
-video_json_key = 'feature-data/video.json'
+video_json_key = u'feature-data/video.json'
+
+logfile = u'/var/log/wikia_dstk.lda.log'
+log_level = logging.INFO
+logger = logging.getLogger(u'wikia_dstk.lda')
+logger.setLevel(log_level)
+ch = logging.StreamHandler()
+ch.setLevel(log_level)
+formatter = logging.Formatter(u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+ch = logging.FileHandler(logfile)
+ch.setLevel(log_level)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def get_ec2_connection():
     global connection
     if not connection:
-        connection = connect_to_region('us-west-2')
+        connection = connect_to_region(u'us-west-2')
     return connection
 
 
@@ -86,23 +103,26 @@ def unis_bis_tris(string_or_list, prefix=u''):
 
 
 def get_my_hostname():
-    return get_instance_metadata()['local-hostname'].split('.')[1]
+    return get_instance_metadata()[u'local-hostname'].split('.')[1]
 
 
 def get_my_ip():
-    return get_instance_metadata()['local-ipv4']
+    return get_instance_metadata()[u'local-ipv4']
 
 
 def get_my_id():
-    return get_instance_metadata()['instance-id']
+    return get_instance_metadata()[u'instance-id']
 
 
 def harakiri():
-    conn = get_ec2_connection()
-    my_id = get_my_id()
-    sirs = conn.get_all_spot_instance_requests(filters={'instance-id': my_id})
-    sirs[0].cancel()
-    conn.terminate_instances(instance_ids=[my_id])
+    """
+    Terminate the current instance. Will upload a logfile to s3 if it exists.
+    """
+    if os.path.exists(logfile):
+        b = connect_s3().get_bucket(u'nlp-data')
+        k = b.get_key(u'logs/lda/%s-%s.log' % (datetime.strftime(datetime.now(), u'%Y-%m-%d-%H-%M'), get_my_hostname()))
+        k.set_contents_from_filename(logfile)
+    get_ec2_connection().terminate_instances(instance_ids=[get_my_id()])
 
 
 def check_lda_node(instance_request):
@@ -111,9 +131,9 @@ def check_lda_node(instance_request):
     while not fulfilled:
         time.sleep(random.randint(10, 20))
         requests = conn.get_all_spot_instance_requests(request_ids=[instance_request.id])
-        if len(filter(lambda x: x.status == 'price-too-low', requests)) > 0:
-            raise StandardError("Bid price too low -- try again later")
-        fulfilled = len(filter(lambda x: x.status.code == 'fulfilled', requests)) > 0
+        if len(filter(lambda x: x.status == u'price-too-low', requests)) > 0:
+            raise StandardError(u"Bid price too low -- try again later")
+        fulfilled = len(filter(lambda x: x.status.code == u'fulfilled', requests)) > 0
     return requests[0].instance_id
 
 
@@ -121,13 +141,13 @@ def load_instance_ids(instance_ids):
     global instances_launched
     c = get_ec2_connection()
     instances_launched = c.get_all_reservations(instance_ids=instance_ids)
-    c.create_tags(instance_ids, {"Name": "LDA Worker Node"})
+    c.create_tags(instance_ids, {u"Name": u"LDA Worker Node"})
 
 
-def launch_lda_nodes(instance_count=20, ami="ami-f4d0bfc4"):
+def launch_lda_nodes(instance_count=20, ami=u"ami-f4d0bfc4"):
     global instances_launched, instances_requested
     conn = get_ec2_connection()
-    user_data = """#!/bin/sh
+    user_data = u"""#!/bin/sh
 
 echo `date` `hostname -i ` "Configuring Environment" >> /var/log/my_startup.log
 export PYRO_SERIALIZERS_ACCEPTED=pickle
@@ -138,10 +158,10 @@ python -m gensim.models.lda_worker > /var/log/lda_worker 2>&1 &
 echo `date` `hostname -i ` "User Data Script Complete" >> /var/log/my_startup.log
 """ % get_my_ip()
 
-    instances_requested = conn.request_spot_instances('0.80', ami,
+    instances_requested = conn.request_spot_instances(0.80, ami,
                                                       count=instance_count,
-                                                      instance_type='m2.4xlarge',
-                                                      subnet_id='subnet-e4d087a2',
+                                                      instance_type=u'm2.4xlarge',
+                                                      subnet_id=u'subnet-e4d087a2',
                                                       security_group_ids=['sg-72190a10'],
                                                       user_data=user_data
                                                       )
@@ -164,17 +184,17 @@ def terminate_lda_nodes():
 
 
 def get_dct_and_bow_from_features(id_to_features):
-    log("Extracting to dictionary...")
+    log(u"Extracting to dictionary...")
     documents = id_to_features.values()
     dct = WikiaDSTKDictionary(documents)
 
-    log("Filtering stopwords")
+    log(u"Filtering stopwords")
     dct.filter_stops()
 
-    log("Filtering extremes")
+    log(u"Filtering extremes")
     dct.filter_extremes()
 
-    log("---Bag of Words Corpus---")
+    log(u"---Bag of Words Corpus---")
     bow_docs = {}
     for name in id_to_features.keys():
         sparse = dct.doc2bow(id_to_features[name])
@@ -192,11 +212,11 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
             tally[feature] += 1
 
     # Write to sparse_csv here, excluding anything exceding our max frequency
-    log("Writing output and uploading to s3")
-    sparse_csv_filename = modelname.replace('.model', '-sparse-topics.csv')
-    text_filename = modelname.replace('.model', '-topic-features.csv')
-    csv_key = bucket.new_key('%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, sparse_csv_filename))
-    text_key = bucket.new_key('%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, text_filename))
+    log(u"Writing output and uploading to s3")
+    sparse_csv_filename = modelname.replace(u'.model', u'-sparse-topics.csv')
+    text_filename = modelname.replace(u'.model', u'-topic-features.csv')
+    csv_key = bucket.new_key(u'%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, sparse_csv_filename))
+    text_key = bucket.new_key(u'%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, text_filename))
     with open(args.path_prefix+sparse_csv_filename, 'w') as sparse_csv:
         for name in id_to_features:
             vec = bow_docs[name]
@@ -207,16 +227,16 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
                                          if sparse.get(n, 0) and tally[n] <= args.max_topic_frequency])
                              + "\n")
 
-    csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, 'r'))
+    csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, u'r'))
 
-    with open(args.path_prefix+text_filename, 'w') as text_output:
-        text_output.write("\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
+    with open(args.path_prefix+text_filename, u'w') as text_output:
+        text_output.write(u"\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
 
-    text_key.set_contents_from_file(open(args.path_prefix+text_filename, 'r'))
+    text_key.set_contents_from_file(open(args.path_prefix+text_filename, u'r'))
 
 
-def server_user_data_from_args(args, server_model_name, extras=""):
-    return ("""#!/bin/sh
+def server_user_data_from_args(args, server_model_name, extras=u""):
+    return (u"""#!/bin/sh
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 mkdir -p /mnt/
 cd /home/ubuntu/data-science-toolkit
@@ -256,7 +276,7 @@ echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (
 def run_server_from_args(args, server_model_name, user_data_extras=""):
     conn = get_ec2_connection()
     try:
-        log("Running LDA, which will auto-terminate upon completion")
+        log(u"Running LDA, which will auto-terminate upon completion")
 
         interface = networkinterface.NetworkInterfaceSpecification(subnet_id='subnet-e4d087a2',
                                                                    groups=['sg-72190a10'],
@@ -270,7 +290,7 @@ def run_server_from_args(args, server_model_name, user_data_extras=""):
                                          user_data=user_data,
                                          network_interfaces=interfaces)
         reso = reservation.instances[0]
-        conn.create_tags([reso.id], {"Name": "LDA Master Node"})
+        conn.create_tags([reso.id], {u"Name": u"LDA Master Node"})
         while True:
             reso.update()
             print reso.id, reso.state, reso.public_dns_name, reso.private_dns_name
@@ -279,7 +299,7 @@ def run_server_from_args(args, server_model_name, user_data_extras=""):
         print e
         if reso:
             conn.terminate_instances([reso.id])
-            print "TERMINATED MASTER"
+            log(u"TERMINATED MASTER")
     except KeyboardInterrupt:
         if args.killable:
             conn.terminate_instances([reso.id])
@@ -307,7 +327,7 @@ class WikiaDSTKDictionary(Dictionary):
         super(WikiaDSTKDictionary, self).__init__(documents=documents)
 
     def document2hash(self, document):
-        return hashlib.sha1(u' '.join(document).encode('utf-8')).hexdigest()
+        return hashlib.sha1(u' '.join(document).encode(u'utf-8')).hexdigest()
 
     def doc2bow(self, document, allow_update=False, return_missing=False):
         parent = super(WikiaDSTKDictionary, self)
@@ -326,29 +346,29 @@ class WikiaDSTKDictionary(Dictionary):
         documents = self.d2bmemo.values()
         num_documents = len(documents)
 
-        log("Getting probabilities")
+        log(u"Getting probabilities")
         for tupleset in pool.map(get_doc_bow_probs, documents):
             for token_id, prob in tupleset:
                 word_probabilities_list[token_id].append(prob)
 
-        log("Calculating borda ranking between SAT and entropy")
+        log(u"Calculating borda ranking between SAT and entropy")
         wpl_items = word_probabilities_list.items()
         token_ids, probabilities = zip(*wpl_items)
         # padding with zeroes for numpy
-        log("At probabilities, initializing zero matrix for", len(probabilities), "tokens")
+        log(u"At probabilities, initializing zero matrix for", len(probabilities), u"tokens")
         sats_and_hs = pool.map(get_sat_h,
                                [(probabilities[i:i+1000], num_documents)
                                for i in range(0, len(probabilities), 10000)])
-        log('fully calculated')
+        log(u'fully calculated')
         token_to_sat = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[0]])
         token_to_entropy = zip(token_ids, [sat for sat_and_h in sats_and_hs for sat in sat_and_h[1]])
 
-        dtype = [('token_id', 'i'), ('value', 'f')]
-        log("Sorting SAT")
+        dtype = [(u'token_id', u'i'), (u'value', u'f')]
+        log(u"Sorting SAT")
         sorted_token_sat = np.sort(np.array(token_to_sat, dtype=dtype), order='value')
-        log("Sorting Entropy")
+        log(u"Sorting Entropy")
         sorted_token_entropy = np.sort(np.array(token_to_entropy, dtype=dtype), order='value')
-        log("Finally calculating Borda")
+        log(u"Finally calculating Borda")
         token_to_borda = defaultdict(int)
         for order, tup in enumerate(sorted_token_entropy):
             token_to_borda[tup[0]] += order
@@ -356,7 +376,7 @@ class WikiaDSTKDictionary(Dictionary):
             token_to_borda[tup[0]] += order
         borda_ranking = sorted(token_to_borda.items(), key=lambda x: x[1])
 
-        dictlogger.info("keeping %i tokens, removing %i 'stopwords'" %
+        dictlogger.info(u"keeping %i tokens, removing %i 'stopwords'" %
                         (len(borda_ranking) - num_stops, num_stops))
 
         # do the actual filtering, then rebuild dictionary to remove gaps in ids
@@ -365,7 +385,7 @@ class WikiaDSTKDictionary(Dictionary):
         # we also need to filter the memoized bag of words
         self.d2bmemo = {}
         self.compactify()
-        dictlogger.info("resulting dictionary: %s" % self)
+        dictlogger.info(u"resulting dictionary: %s" % self)
 
     def filter_extremes(self, no_below=5, no_above=0.5, keep_n=100000):
         parent = super(WikiaDSTKDictionary, self)

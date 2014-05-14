@@ -7,6 +7,7 @@ from traceback import format_exc
 from nltk.stem.snowball import EnglishStemmer
 from nltk.tokenize.regexp import WhitespaceTokenizer
 from nltk.corpus import stopwords
+from boto import connect_s3
 import requests
 import codecs
 
@@ -20,6 +21,8 @@ def get_args():
     ap = ArgumentParser()
     ap.add_argument(u'--num-processes', dest=u"num_processes", default=8)
     ap.add_argument(u'--solr-host', dest=u"solr_host", default=u"http://search-s10:8983")
+    ap.add_argument(u'--outfile', dest=u'outfile', default=u'wiki_data.csv')
+    ap.add_argument(u'--s3dest', dest=u's3dest')
     return ap.parse_args()
 
 
@@ -119,10 +122,14 @@ def wikis_to_features(args, wikis):
 def main():
     args = get_args()
     features = wikis_to_features(args, get_mainpage_text(args, get_wiki_data(args)))
-    with codecs.open(u'wiki_data.csv', u'w', encoding=u'utf8') as fl:
+    with codecs.open(args.s3dest, u'w', encoding=u'utf8') as fl:
         for wid, features in features.items():
             line_for_writing = u",".join([wid, u",".join(features)]) + u"\n"
             fl.write(line_for_writing)
+    if args.s3dest:
+        b = connect_s3().get_bucket(u'nlp-data')
+        k = b.get_key(args.s3dest)
+        k.set_contents_from_filename(args.s3dest)
 
 
 if __name__ == u'__main__':

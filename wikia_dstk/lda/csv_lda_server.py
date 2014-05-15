@@ -99,10 +99,10 @@ def get_model_from_args(args):
                                                    distributed=True)
                 log(u"Done, saving model.")
                 lda_model.save(args.path_prefix+modelname)
-                write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, lda_model)
                 log(u"uploading model to s3")
                 key = bucket.new_key(u'%s%s/%s/%s' % (args.s3_prefix, args.git_ref, args.model_prefix, modelname))
                 key.set_contents_from_file(open(args.path_prefix+modelname, u'r'))
+                write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, lda_model)
                 terminate_lda_nodes()
             except Exception as e:
                 log(str(e))

@@ -235,7 +235,9 @@ def write_csv_and_text_data(args, bucket, modelname, id_to_features, bow_docs, l
     csv_key.set_contents_from_file(open(args.path_prefix+sparse_csv_filename, u'r'))
 
     with codecs.open(args.path_prefix+text_filename, u'w', encoding=u'utf8') as text_output:
-        text_output.write(u"\n".join(lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True)))
+        text_output.write(u"\n".join(
+            map(lambda x: x.encode(u'utf8', lda_model.show_topics(topics=args.num_topics, topn=15, formatted=True))))
+        )
 
     text_key.set_contents_from_file(open(args.path_prefix+text_filename, u'r'))
 

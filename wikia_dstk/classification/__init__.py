@@ -81,7 +81,7 @@ class Classifiers():
     classifiers = {
         u"Nearest Neighbors": (KNeighborsClassifier, [3], dict()),
         u"Linear SVM": (SVC, [], dict(kernel="linear", C=0.025, probability=True)),
-        u"RBF_SVM": (SVC, [], dict(gamma=2, C=1)),
+        u"RBF_SVM": (SVC, [], dict(gamma=2, C=1, probability=True)),
         u"Decision Tree": (DecisionTreeClassifier, [], dict(max_depth=999)),
         u"Random_Forest": (RandomForestClassifier, [], dict(max_depth=999, n_estimators=100, max_features=7)),
         u"AdaBoost": (AdaBoostClassifier, [], {}),

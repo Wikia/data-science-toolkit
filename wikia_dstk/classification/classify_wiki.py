@@ -14,6 +14,8 @@ def get_args():
     ap.add_argument(u'--num-processes', dest=u'num_processes', default=8)
     ap.add_argument(u'--classifiers', dest=u'classifiers', default=[], action=u"append")
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
+    ap.add_argument(u'--as-sparse', dest=u'as_sparse', default=False, action=u'store_true')
+    ap.add_argument(u'--num-topicss', dest=u'num_topics', default=999)
     ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout)
     return ap.parse_args()
 
@@ -25,23 +27,44 @@ def main():
     groups = vertical_labels
     logger.info(u"Loading CSV...")
     lines = [line.decode(u'utf8').strip() for line in args.infile]
-    wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                                   [line.split(u',') for line in lines]
-                                   if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
-                                   ])
+    if not args.as_sparse:
+        wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
+                                       [line.split(u',') for line in lines]
+                                       if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group
+                                       ])
 
-    unknowns = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                            [line.split(u',') for line in lines]
-                            if int(splt[0]) not in [v for g in groups.values() for v in g]
-                            ])
+        unknowns = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
+                                [line.split(u',') for line in lines]
+                                if int(splt[0]) not in [v for g in groups.values() for v in g]
+                                ])
+        logger.info(u"Vectorizing...")
+        vectorizer = TfidfVectorizer()
+        feature_rows = wid_to_features.values()
+        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
+        vectorizer.fit_transform(feature_rows)
+        training_vectors = vectorizer.transform(feature_rows).toarray()
+        test_vectors = vectorizer.transform(unknowns.values()).toarray()
+    else:
+        training_ids = [v for g in groups.values() for v in g]
+        wid_to_features = OrderedDict()
+        unknowns = OrderedDict()
+        for line in lines:
+            splt = line.split(u',')
+            wid = splt[0]
+            features = [0 for _ in range(0, args.num_topics)]
+            for group in splt[1:]:
+                topic, feature = group.split(u'-')
+                features[int(topic)] = float(feature)
+            if int(wid) in training_ids:
+                wid_to_features[wid] = features
+            else:
+                unknowns[wid] = features
 
-    logger.info(u"Vectorizing...")
-    vectorizer = TfidfVectorizer()
-    feature_rows = wid_to_features.values()
-    feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
-    vectorizer.fit_transform(feature_rows)
-    training_vectors = vectorizer.transform(feature_rows).toarray()
-    test_vectors = vectorizer.transform(unknowns.values()).toarray()
+        feature_rows = wid_to_features.values()
+        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
+        training_vectors = np.array(feature_rows)
+        test_vectors = np.array(unknowns.values())
+
     logger.info(u"Training %d classifiers" % len(args.classifiers))
     predictions = predict_ensemble(args.classifiers, training_vectors, feature_keys, test_vectors)
     logger.info(u"Writing to file")

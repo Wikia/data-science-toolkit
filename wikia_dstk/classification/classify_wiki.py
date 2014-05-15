@@ -26,7 +26,7 @@ def main():
 
     groups = vertical_labels
     logger.info(u"Loading CSV...")
-    lines = [line.decode(u'utf8').strip() for line in args.infile]
+    lines = [line.decode(u'utf8').strip() for line in args.infile if line.strip()]
     if not args.as_sparse:
         wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
                                        [line.split(u',') for line in lines]

@@ -88,7 +88,7 @@ def write_for_all_wikis():
     """
     params = {'q': 'lang_s:en AND articles_i:[50 TO *]', 'wt': 'json', 'rows': 500, 'fl': 'id', 'start': 0}
     while True:
-        response = requests.get('http://search:8983/solr/xwiki/select', params=params).json()
+        response = requests.get('http://search-s10:8983/solr/xwiki/select', params=params).json()
         map(lambda x: write_for_wid(x['id']), response['response']['docs'])
         if params['start'] + params['rows'] >= response['response']['numFound']:
             return

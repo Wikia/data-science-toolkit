@@ -1,7 +1,9 @@
+import requests
 from __future__ import division
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from ... import ensure_dir_exists
+
 
 EVENT_DIR = ensure_dir_exists('/data/events/')
 LAST_INDEXED = '/data/last_indexed.txt'
@@ -25,6 +27,9 @@ def get_args():
         '-l', '--last-indexed', dest='last_indexed', action='store_true',
         default=False,
         help='Write a query for all documents indexed since last time')
+    parser.add_argument(
+        '-a', '--all-wikis', dest='all_wikis', default=False, action='store_true',
+        help="Use this script to write events for all English wikis with 50 or more articles.")
     return parser.parse_args()
 
 
@@ -77,6 +82,19 @@ def write_since_last_indexed():
             f.write(query)
 
 
+def write_for_all_wikis():
+    """
+    Writes queries for all English wikis with 50 or more articles
+    """
+    params = {'q': 'lang_s:en AND articles_i:[50 TO *]', 'wt': 'json', 'rows': 500, 'fl': 'id', 'start': 0}
+    while True:
+        response = requests.get('http://search:8983/solr/xwiki/select', params=params).json()
+        map(lambda x: write_for_wid(x['id']), response['response']['docs'])
+        if params['start'] + params['rows'] >= response['response']['numFound']:
+            return
+        params['start'] += params['rows']
+
+
 def write_wids(wids):
     """
     Write queries for all wiki IDs in a given file.
@@ -85,11 +103,21 @@ def write_wids(wids):
     :param wids: Path to a file containing wiki IDs separated by newlines
     """
     with open(wids) as wids_list:
-        for wid in wids_list:
-            wid = wid.strip()
-            query = 'iscontent:true AND wid:%s' % wid
-            with open(EVENT_DIR + wid, 'w') as f:
-                f.write(query)
+        [write_for_wid(wid) for wid in wids_list]
+
+
+def write_for_wid(wid):
+    """
+    Writes an event file for each wiki ID
+
+    :type wid: int
+    :param wid: wiki ID
+    """
+    wid = wid.strip()
+    query = 'iscontent:true AND wid:%s' % wid
+    with open(EVENT_DIR + wid, 'w') as f:
+        f.write(query)
+
 
 
 def write_query(query):
@@ -108,6 +136,8 @@ def main():
     args = get_args()
     if args.query is not None:
         write_query(args.query)
+    elif args.all_wikis is not None:
+        write_for_all_wikis()
     elif args.wids is not None:
         write_wids(args.wids)
     elif args.last_indexed:

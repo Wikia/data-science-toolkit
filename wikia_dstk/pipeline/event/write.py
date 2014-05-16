@@ -1,8 +1,8 @@
-import requests
 from __future__ import division
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from ... import ensure_dir_exists
+import requests
 
 
 EVENT_DIR = ensure_dir_exists('/data/events/')

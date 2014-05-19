@@ -132,7 +132,7 @@ while True:
         call(
             ("sudo java -Xmx55G -jar " +
              "/home/ubuntu/ParserDaemon/ParserDaemon.jar -threads 6 >> " +
-             "/var/log/parser_daemon.log"),
+             "/var/log/pdaemon.log"),
             shell=True)
         print "Done with that. Now get to work!"
 

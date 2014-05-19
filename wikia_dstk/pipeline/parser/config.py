@@ -9,5 +9,5 @@ default_config = {
     "tag": "parser",
     "threshold": 10,
     "max_size": 10,
-    "git_ref": "page-rec"  # TODO: change to master
+    "git_ref": "master"
     }

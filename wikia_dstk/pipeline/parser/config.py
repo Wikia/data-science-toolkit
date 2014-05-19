@@ -1,4 +1,4 @@
-config = {
+default_config = {
     "queue": "text_events",
     "region": "us-west-2",
     "price": "0.300",

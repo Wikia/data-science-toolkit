@@ -21,13 +21,13 @@ user_data = """#!/bin/sh
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 mkdir -p /mnt/
 cd /home/ubuntu/ParserDaemon
-sudo java -Xmx55G -jar ParserDaemon.jar -threads 6 > /var/log/pdaemon.log
+sudo java -Xmx55G -jar ParserDaemon.jar -threads 6 | tee -a /var/log/pdaemon.log
 cd /home/ubuntu/data-science-toolkit
 echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
 git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
-sudo python -m wikia_dstk.pipeline.parser.run > /var/log/parser.log
+sudo python -m wikia_dstk.pipeline.parser.run | tee -a /var/log/parser.log
 """ % (args.git_ref, args.git_ref)
 
 s3_conn = connect_s3()

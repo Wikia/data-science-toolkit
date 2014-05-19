@@ -25,7 +25,7 @@ echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
 git fetch origin
 git checkout %s
 git pull origin %s && sudo python setup.py install
-python -m wikia_dstk.pipeline.data_extraction.run > /var/log/data_extraction.log
+python -m wikia_dstk.pipeline.data_extraction.run 2>&1 | tee -a /var/log/data_extraction.log
 """ % (args.git_ref, args.git_ref)
 
 s3_conn = connect_s3()

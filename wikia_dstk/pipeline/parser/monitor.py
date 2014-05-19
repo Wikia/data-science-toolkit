@@ -20,6 +20,8 @@ args, _ = ap.parse_known_args()
 user_data = """#!/bin/sh
 echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
 mkdir -p /mnt/
+cd /home/ubuntu/ParserDaemon
+sudo java -Xmx55G -jar ParserDaemon.jar -threads 6 > /var/log/pdaemon.log
 cd /home/ubuntu/data-science-toolkit
 echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
 git fetch origin

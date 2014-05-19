@@ -131,7 +131,8 @@ while True:
         call("killall java", shell=True)
         call(
             ("sudo java -Xmx55G -jar " +
-             "/home/ubuntu/ParserDaemon/ParserDaemon.jar -threads 6"),
+             "/home/ubuntu/ParserDaemon/ParserDaemon.jar -threads 6 >> " +
+             "/var/log/parser_daemon.log"),
             shell=True)
         print "Done with that. Now get to work!"
 

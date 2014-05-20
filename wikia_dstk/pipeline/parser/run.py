@@ -138,12 +138,13 @@ while True:
 
     for xmlfile in xmlfiles:
         key = Key(bucket)
-        new_key = '/xml/%s/%s.xml' % tuple(xmlfile.replace('.xml',
-                                                           '').split('_'))
-        key.key = new_key
-        data_events.append(new_key)
+        id_data = tuple(xmlfile.replace('.xml', '').split('_'))
         xmlfilename = XML_DIR+xmlfile
-        key.set_contents_from_filename(xmlfilename)
+        if len(id_data) == 2:
+            new_key = '/xml/%s/%s.xml' % id_data
+            key.key = new_key
+            data_events.append(new_key)
+            key.set_contents_from_filename(xmlfilename)
         os.remove(xmlfilename)
 
     print "[%s] Uploaded %d files (rate of %.2f docs/sec)" % (

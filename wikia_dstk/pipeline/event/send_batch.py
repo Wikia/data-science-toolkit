@@ -53,7 +53,8 @@ if __name__ == '__main__':
                 sleep(60)
                 continue
             if num_text_files < BATCHSIZE:
-                logger.warning('Current batch does not meet %i file minimum, waiting for 60 seconds...' % BATCHSIZE)
+                logger.warning('Current batch does not meet %i file minimum,' +
+                               ' waiting for 60 seconds...' % BATCHSIZE)
                 bypass_minimum = True
                 sleep(60)
             logger.info('Sorting text files chronologically.')

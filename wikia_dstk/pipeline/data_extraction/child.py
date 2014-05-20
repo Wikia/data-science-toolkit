@@ -5,6 +5,7 @@ import time
 from boto import connect_s3
 from boto.s3.key import Key
 from boto.utils import get_instance_metadata
+from multiprocessing import Pool
 
 from nlp_services.caching import use_caching
 from wikia_dstk import get_argparser_from_config
@@ -14,8 +15,17 @@ from nlp_services.discourse.entities import *
 from nlp_services.discourse.sentiment import *
 from nlp_services.syntax import *
 
+doc_id = None
+
+
+def get_service(service):
+    print doc_id, service
+    return getattr(sys.modules[__name__], service)().get(doc_id)
+
 
 def process_file(filename, services):
+    global doc_id
+
     if filename.strip() == '':
         return  # newline at end of file
 
@@ -26,10 +36,11 @@ def process_file(filename, services):
 
     wiki_id = match.group(1)
     doc_id = '%s_%s' % (match.group(1), match.group(2))
-    print 'Calling doc-level services on %s' % wiki_id
-    for service in services:
-        print wiki_id, service
-        getattr(sys.modules[__name__], service)().get(doc_id)
+    print 'Calling doc-level services on %s' % doc_id
+
+    pool = Pool(processes=8)
+    s = pool.map_async(get_service, services)
+    s.wait()
 
 
 def call_services(args):
@@ -40,8 +51,9 @@ def call_services(args):
 
     folder = args.s3key.split('/')[0]
 
-    eventfile = "%s_processing/%s_%s_%s" % (folder, get_instance_metadata()['local-hostname'],
-                                            str(time.time()), str(int(random.randint(0, 100))))
+    eventfile = "%s_processing/%s_%s_%s" % (
+        folder, get_instance_metadata()['local-hostname'], str(time.time()),
+        str(int(random.randint(0, 100))))
 
     key.copy('nlp-data', eventfile)
     key.delete()
@@ -64,8 +76,9 @@ def get_args():
 
 def main():
     args, _ = get_args()
-    use_caching(per_service_cache=dict([(service+'.get', {'write_only': True}) for
-                                        service in args.services.split(',')]))
+    use_caching(per_service_cache=dict(
+        [(service+'.get', {'write_only': True}) for service in
+         args.services.split(',')]))
     call_services(args)
 
 

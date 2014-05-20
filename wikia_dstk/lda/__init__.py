@@ -22,6 +22,9 @@ from boto.utils import get_instance_metadata
 from boto.ec2 import connect_to_region
 from boto.exception import EC2ResponseError
 from boto.ec2 import networkinterface
+from .. import log, logfile
+
+ami = u"ami-13156323"
 
 ami = u"ami-13156323"
 
@@ -124,7 +127,11 @@ def harakiri():
         b = connect_s3().get_bucket(u'nlp-data')
         k = b.new_key(u'logs/lda/%s-%s.log' % (datetime.strftime(datetime.now(), u'%Y-%m-%d-%H-%M'), get_my_hostname()))
         k.set_contents_from_filename(logfile)
-    get_ec2_connection().terminate_instances(instance_ids=[get_my_id()])
+    conn = get_ec2_connection()
+    my_id = get_my_id()
+    sirs = conn.get_all_spot_instance_requests(filters={'instance-id': my_id})
+    sirs[0].cancel()
+    conn.terminate_instances(instance_ids=[my_id])
 
 
 def check_lda_node(instance_request):
@@ -277,11 +284,10 @@ echo `date` `hostname -i ` "Starting Dispatcher" >> /var/log/my_startup.log
 python -m gensim.models.lda_dispatcher > /var/log/lda_dispatcher 2>&1 &
 echo `date` `hostname -i ` "Running LDA Server Script" >> /var/log/my_startup.log
 python -u -m %s > /var/log/lda_server 2>&1 &
-echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (args.git_ref, args.git_ref, args.git_ref,
-                                                                            args.num_topics, args.max_topic_frequency,
-                                                                            args.model_prefix, args.s3_prefix,
-                                                                            args.node_count, args.ami, args.master_ip,
-                                                                            extras, server_model_name))
+echo `date` `hostname -i ` "User Data End" >> /var/log/my_startup.log""" % (
+        args.git_ref, args.git_ref, args.git_ref, args.num_topics,
+        args.max_topic_frequency, args.model_prefix, args.s3_prefix,
+        args.node_count, args.ami, args.master_ip, extras, server_model_name))
 
 
 def run_server_from_args(args, server_model_name, user_data_extras=""):

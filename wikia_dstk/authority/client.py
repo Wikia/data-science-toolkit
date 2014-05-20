@@ -1,11 +1,12 @@
 import random
 import time
 import sys
-from . import filter_wids
+from argparse import ArgumentParser, FileType
 from boto import connect_s3
 from math import floor
+from . import filter_wids
+from .. import log
 from ..loadbalancing import EC2Connection
-from argparse import ArgumentParser, FileType
 
 
 def get_args():
@@ -27,11 +28,6 @@ def get_args():
                     help="Whether to overwrite existing cached responses")
     ap.add_argument('--refresh', dest='refresh', action='store_true', default=False)
     return ap.parse_known_args()
-
-
-def log(string):
-    # todo: real logging
-    print string
 
 
 def authority_user_data(args, s3_batch):

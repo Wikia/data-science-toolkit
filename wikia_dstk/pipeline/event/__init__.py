@@ -37,7 +37,7 @@ class QueryIterator(object):
 
     def configure(self, config, options):
         self.query = options.get('query')
-        self.start = int(options.get('start', 0 ))
+        self.start = int(options.get('start', 0))
         self.firstStart = self.start
         self.rows = options.get('rows', 100)
         self.limit = options.get('limit', None)
@@ -58,12 +58,12 @@ class QueryIterator(object):
 
     def getParams(self):
         params = {
-             'q': self.query,
+            'q': self.query,
             'wt': 'json',
-         'start': self.start,
-          'rows': self.rows,
+            'start': self.start,
+            'rows': self.rows,
             'fl': self.fields
-        }
+            }
         if self.filterquery:
             params['fq'] = self.filterquery
         if self.sort:

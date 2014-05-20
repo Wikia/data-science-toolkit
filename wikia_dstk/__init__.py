@@ -1,5 +1,25 @@
+import logging
 import os
 from argparse import ArgumentParser
+
+logfile = u'/var/log/wikia_dstk.log'
+log_level = logging.INFO
+logger = logging.getLogger(u'wikia_dstk')
+logger.setLevel(log_level)
+ch = logging.StreamHandler()
+ch.setLevel(log_level)
+formatter = logging.Formatter(
+    u'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+ch = logging.FileHandler(logfile)
+ch.setLevel(log_level)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+
+def log(*args):
+    logger.info(u" ".join([unicode(a) for a in args]))
 
 
 def chrono_sort(directory):
@@ -43,8 +63,9 @@ def get_argparser_from_config(default_config):
     """
     ap = ArgumentParser()
     for key in default_config:
-        ap.add_argument('--%s' % key, type=type(default_config[key]), dest=key.replace('-', '_'),
-                        default=default_config[key])
+        ap.add_argument(
+            '--%s' % key, type=type(default_config[key]),
+            dest=key.replace('-', '_'), default=default_config[key])
     ap.set_defaults(**default_config)
     return ap
 

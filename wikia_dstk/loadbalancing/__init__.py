@@ -1,24 +1,25 @@
 from boto.ec2 import connect_to_region
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
-from boto.exception import EC2ResponseError
 from collections import defaultdict
 from multiprocessing import Pool
 from time import sleep
 from uuid import uuid4
 
+INSTANCE_LIMIT = 20
+
 
 def get_instance_ids_from_reservation(conn, reservation):
     """
-
     Get instance IDs from a reservation
 
     :type conn: class:`boto.ec2.ec2connection`
-    :paramm conn: an EC2 connection
+    :param conn: an EC2 connection
 
     :type reservation: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
     :param reservation: a spot instance request reservation
 
+    :rtype: list
     :return: a list of EC2 instance IDs
     """
 
@@ -27,7 +28,8 @@ def get_instance_ids_from_reservation(conn, reservation):
     while True:  # Because the requests are fulfilled independently
         sleep(15)
         requests = conn.get_all_spot_instance_requests(request_ids=r_ids)
-        instance_ids = [request.instance_id for request in requests if request.instance_id]
+        instance_ids = [request.instance_id for request in requests if
+                        request.instance_id]
         if len(instance_ids) == len(r_ids):
             return instance_ids
 
@@ -50,8 +52,8 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
 
     :type user_data: string
     :param user_data: The script to run on instantiation, i.e. where the logic
-                      goes. Should contain '%s' to pass comma-separated list of
-                      IDs as an argument via a string-formatting operation
+                      goes. Should contain '{key}' to pass an S3 filepath as an
+                      argument via a string-formatting operation
 
     :type options: dict
     :param options: Launch configuration options with which to instantiate an
@@ -60,8 +62,8 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
     :type ami: string
     :param ami: The AMI ID of the image to load
 
-    :rtype: list
-    :return: A list of IDs of the instances created
+    :rtype: multiprocessing.pool.AsyncResult
+    :return: multiprocessing.pool.AsyncResult
     """
     # Connect to EC2
     if options is None:
@@ -83,7 +85,8 @@ def run_instances_lb(ids, callback, num_instances, user_data, options=None,
     for wids in parts.values():
         k.key = 'lb_events/%s' % str(uuid4())
         k.set_contents_from_string(','.join([str(wid) for wid in wids]))
-        scripts.append(user_data % k.key)
+        formatted = user_data.format(key=k.key)
+        scripts.append(formatted)
 
     # Launch instances
     return conn.add_instances_async(scripts)
@@ -126,9 +129,10 @@ class EC2Connection(object):
         :rtype: class:`boto.ec2.spotinstancerequest.SpotInstanceRequest`
         :return: A spot instance request
         """
-        return self.conn.request_spot_instances(price=self.price, image_id=self.ami, count=count,
-                                                key_name=self.key, security_groups=self.sec, user_data=user_data,
-                                                instance_type=self.type)
+        return self.conn.request_spot_instances(
+            price=self.price, image_id=self.ami, count=count,
+            key_name=self.key, security_groups=self.sec, user_data=user_data,
+            instance_type=self.type)
 
     def add_instances(self, count, user_data=None):
         """
@@ -156,7 +160,8 @@ class EC2Connection(object):
         """
         self.conn.create_tags(instance_ids, {'Name': self.tag})
 
-    def add_instances_async(self, user_data_scripts, num_instances=1,  processes=2, wait=True):
+    def add_instances_async(self, user_data_scripts, num_instances=1,
+                            processes=2, wait=True):
         """
         Add a specified number of instances asynchronously, each with unique
         user_data.
@@ -166,7 +171,8 @@ class EC2Connection(object):
                                   run on the individual instances
 
         :type num_instances: int
-        :param num_instances: The number of instances to spawn PER USER DATA SCRIPT
+        :param num_instances: The number of instances to spawn PER USER DATA
+                              SCRIPT
 
         :type processes: int
         :param processes: The number of processes to use
@@ -177,21 +183,39 @@ class EC2Connection(object):
         :rtype:
         :return:`multiprocessing.pool.AsyncResult`
         """
+        scripts = map(lambda x: x, user_data_scripts)
+        while True:
+            # Find pending, running, shutting-down, stopping instances
+            active_instances = filter(
+                lambda x: x.state_code in (0, 16, 32, 64),
+                self.conn.get_only_instances())
+            desired_instances = len(active_instances) + len(scripts)
+            # Find spot instance requests with associated instances active
+            active_sirs = filter(
+                lambda x: x.status.code != 'instance-terminated-by-user',
+                self.conn.get_all_spot_instance_requests())
+            desired_sirs = len(active_sirs) + len(scripts)
+            if (desired_instances < INSTANCE_LIMIT and
+                    desired_sirs < INSTANCE_LIMIT):
+                print 'Intended totals:, %d instances, %d spot requests' % (
+                    desired_instances, desired_sirs)
+                break
+            if wait:
+                print 'Up: %d instances, %d spot requests. Sleeping 30 sec' % (
+                    len(active_instances), len(active_sirs))
+                sleep(30)
+                continue
+            print 'Limit exceeded: %d instances, %d spot requests' % (
+                len(active_instances), len(active_sirs))
+            raise Exception('Too many active instances or spot requests')
+
         reservations = []
-        for script in user_data_scripts:
-            while True:
-                try:
-                    reservations.append(self.get_reservation(num_instances, script))
-                    break
-                except EC2ResponseError as e:
-                    if wait:
-                        print "Sleeping for a minute:", e
-                        sleep(60)
-                    else:
-                        raise e
+        for script in scripts:
+            reservations.append(self.get_reservation(num_instances, script))
 
         paramsets = [(self.conn, reservation) for reservation in reservations]
-        async_result = Pool(processes=processes).map_async(get_ids_from_reso_tuple, paramsets)
+        async_result = Pool(processes=processes).map_async(
+            get_ids_from_reso_tuple, paramsets)
         return async_result
 
     def terminate(self, instance_ids):

@@ -10,7 +10,8 @@ from boto import connect_s3
 from collections import OrderedDict
 from datetime import datetime
 from . import launch_lda_nodes, terminate_lda_nodes, harakiri, ami
-from . import log, get_dct_and_bow_from_features, write_csv_and_text_data
+from . import get_dct_and_bow_from_features, write_csv_and_text_data
+from .. import log
 
 
 def get_args():

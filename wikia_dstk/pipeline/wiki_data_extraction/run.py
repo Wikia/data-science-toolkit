@@ -1,5 +1,3 @@
-import os
-import sys
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
@@ -95,5 +93,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print 'Start logging'
     main()

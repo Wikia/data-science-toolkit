@@ -9,7 +9,7 @@ def log(*args):
     TODO: use a real logger
     """
     print '[%s] %s' % (
-        str(datetime.utcnow()), ' '.join([str(arg) for arg in args]))
+        unicode(datetime.utcnow()), ' '.join([unicode(arg) for arg in args]))
     sys.stdout.flush()
 
 

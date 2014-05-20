@@ -51,10 +51,13 @@ def write_text(event_file):
             query = line.strip()
             logger.info('Writing query: "%s"' % query)
             qi = QueryIterator(
-                'http://search-s10.prod.wikia.net:8983/solr/main/',
+                'http://search-9.prod.wikia.net:8983/solr/main/',
                 {'query': query, 'fields': 'id,wid,html_en,indexed',
                  'sort': 'id asc'})
             for doc in qi:
+                if doc['id'].count('_') > 1:
+                    # i love adding logic to my scripts just to avoid garbage, thanks guys
+                    continue
                 # Sanitize and write text
                 text = '\n'.join(clean_list(doc.get('html_en', '')))
                 localpath = os.path.join(TEXT_DIR, doc['id'])

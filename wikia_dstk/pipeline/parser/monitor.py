@@ -17,18 +17,7 @@ ap = get_argparser_from_config(default_config)
 args, _ = ap.parse_known_args()
 
 # Specific to parser
-user_data = """#!/bin/sh
-echo `date` `hostname -i ` "User Data Start" >> /var/log/my_startup.log
-mkdir -p /mnt/
-cd /home/ubuntu/ParserDaemon
-sudo java -Xmx55G -jar ParserDaemon.jar -threads 6 | tee -a /var/log/pdaemon.log
-cd /home/ubuntu/data-science-toolkit
-echo `date` `hostname -i ` "Updating DSTK" >> /var/log/my_startup.log
-git fetch origin
-git checkout %s
-git pull origin %s && sudo python setup.py install
-sudo python -m wikia_dstk.pipeline.parser.run 2>&1 | tee -a /var/log/parser.log
-""" % (args.git_ref, args.git_ref)
+user_data = None
 
 s3_conn = connect_s3()
 bucket = s3_conn.get_bucket('nlp-data')

@@ -128,12 +128,9 @@ while True:
         stalling_increments = 0
         print("Restarting daemon and adding more files since it's being a " +
               "slow douche.")
+        call("sv stop parser_daemon", shell=True)
         call("killall java", shell=True)
-        call(
-            ("sudo java -Xmx55G -jar " +
-             "/home/ubuntu/ParserDaemon/ParserDaemon.jar -threads 6 2>&1 | " +
-             "tee -a /var/log/pdaemon.log"),
-            shell=True)
+        call("sv start parser_daemon", shell=True)
         print "Done with that. Now get to work!"
 
     for xmlfile in xmlfiles:

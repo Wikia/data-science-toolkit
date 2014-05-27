@@ -16,4 +16,4 @@ def xml_to_exist(args, xml, wiki_id, page_id):
     r = requests.put('%s/exist/nlp/%s/%s.xml' % (args.url, wiki_id, page_id),
                      data=str(xml),
                      headers={'Content-Type': 'application/xml', 'Content-Length': len(xml), 'Charset': 'utf-8'})
-    print r.status_code, r.content, r.url
+    print r.status_code, r.headers, r.content, r.url

@@ -18,6 +18,6 @@ def xml_to_exist(args, xml, wiki_id, page_id):
                      data=str(xml),
                      headers={'Content-Type': 'application/xml', 'Content-Length': len(xml), 'Charset': 'utf-8'},
                      auth=HTTPBasicAuth(args.user, args.password))
-    if r.status_code != 200:
+    if r.status_code > 299:
         print r.content, r.url, r.status_code
 

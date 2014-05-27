@@ -11,6 +11,8 @@ def get_args():
     ap.add_argument(u'--wid', dest=u'wid', help=u'Control for a single wiki ID')
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), help=u'Control for multiple wiki IDs')
     ap.add_argument(u'--url', dest=u'url', default=u'http://localhost:8080', help=u'The exist DB URL')
+    ap.add_argument(u'--user', dest=u'user', default='admin', help=u'Username to pass to exist')
+    ap.add_argument(u'--password', dest=u'password', default='admin', help=u'Password to pass to exist')
     return ap.parse_args()
 
 

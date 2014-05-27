@@ -1,4 +1,4 @@
-import httplib
+import requests
 
 
 def xml_to_exist(args, xml, wiki_id, page_id):
@@ -13,18 +13,9 @@ def xml_to_exist(args, xml, wiki_id, page_id):
     :param page_id: the id of the page this is a parse of
     :type page_id: str
     """
+    r = requests.put('%s/exist/rest/%s/%s.xml' % (args.url, wiki_id, page_id),
+                     data=str(xml),
+                     headers={'Content-Type': 'application/xml', 'Content-Length': len(xml), 'Charset': 'utf-8'})
+    if r.status_code != 200:
+        print r.content, r.url, r.status_code
 
-    print args.url.replace('http://', '')
-    con = httplib.HTTP(args.url.replace('http://', ''))
-    con.putrequest('PUT', '/exist/nlp/%s/%s' % (wiki_id, page_id))
-    con.putheader('Content-Type', 'application/xml')
-    con.putheader('Content-Length', '%d' % len(xml))
-    con.endheaders()
-    con.send(xml)
-    errcode, errmsg, headers = con.getreply()
-    if errcode != 200:
-        f = con.getfile()
-        print 'An error occurred: %s' % errmsg
-        f.close()
-    else:
-        print "Ok."

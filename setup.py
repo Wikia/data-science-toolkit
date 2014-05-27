@@ -12,7 +12,7 @@ setup(name="wikia_dstk",
           "wikia_dstk.pipeline.data_extraction",
           "wikia_dstk.pipeline.wiki_data_extraction", "wikia_dstk.authority",
           "wikia_dstk.recommendations", "wikia_dstk.loadbalancing",
-          "wikia_dstk.knowledge_graph"],
+          "wikia_dstk.knowledge_graph", "wikia_dstk.exist"],
       install_requires=[
           "nlp_services>=0.0.1", "pyro4", "gensim", "scikit-learn", "requests",
           "boto", "nltk"],

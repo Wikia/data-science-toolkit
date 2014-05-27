@@ -14,6 +14,6 @@ def xml_to_exist(args, xml, wiki_id, page_id):
     :type page_id: str
     """
     requests.put(u'%s/exist/%s/%s.xml' % (args.url, wiki_id, page_id),
-                 data=xml.encode(u'utf8'),
+                 data=xml.decode(u'utf8'),
                  headers={u'Content-Type': u'application/xml', u'Content-Length': len(xml), u'Charset': u'utf8'})
 

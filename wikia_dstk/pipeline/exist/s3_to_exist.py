@@ -22,6 +22,8 @@ def key_to_exist(args, key):
     """
     Send a given key's contents to exist
     """
+    print "i am here"
+
     wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
     xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
 

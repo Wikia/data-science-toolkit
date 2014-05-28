@@ -31,7 +31,7 @@ def key_to_file(key):
     if key.size:
         wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
         try:
-            ET.fromstring(key.get_contents_to_string())
+            ET.fromstring(key.get_contents_as_string())
             with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
                 key.get_contents_to_file(fl)
         except ParseError:
@@ -51,6 +51,7 @@ def for_wid(args, wid):
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
+    print u"All validated files written"
     print check_output([args.exist_path+u'/bin/client.sh',
                         u'-m', u'/db/nlp/%s' % wid,
                         u'-p', u'/tmp/%s/' % wid])

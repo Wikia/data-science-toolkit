@@ -28,11 +28,13 @@ def key_to_exist(key):
     args = get_args()
     if key.size:
         wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-        with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
+        fname = u'/tmp/%s/%s.xml' % (wiki_id, page_id)
+        with codecs.open(fname, u'w') as fl:
             key.get_contents_to_file(fl)
         print check_output([args.exist_path+u'/bin/client.sh',
                             u'-m', u'/db/nlp/%s' % wiki_id,
-                            u'-p', u'/tmp/%s/%s.xml' % (wiki_id, page_id)])
+                            u'-p', fname])
+        os.remove(fname)
 
 
 def for_wid(args, wid):

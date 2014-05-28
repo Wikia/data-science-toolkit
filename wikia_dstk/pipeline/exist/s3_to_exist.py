@@ -26,9 +26,10 @@ def key_to_file(key):
     """
     Send a given key's contents to exist
     """
-    wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-    with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
-        key.get_contents_to_file(fl)
+    if key.size:
+        wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
+        with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
+            key.get_contents_to_file(fl)
 
 
 def for_wid(args, wid):
@@ -44,8 +45,9 @@ def for_wid(args, wid):
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
-    print check_output([args.exist_path+u'/bin/client.sh', u'-m', u'/db/nlp/%s' % wid, u'-p', u'/filesystem-path'])
-    #shutil.rmtree(wid_path)
+    print check_output([args.exist_path+u'/bin/client.sh', u'-m', u'/db/nlp/%s' % wid, u'-p', u'/filesystem-path'],
+                       shell=True)
+    shutil.rmtree(wid_path)
 
 
 def main():

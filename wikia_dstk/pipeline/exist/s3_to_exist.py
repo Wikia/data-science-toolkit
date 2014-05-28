@@ -27,7 +27,7 @@ def key_to_file(key):
     Send a given key's contents to exist
     """
     wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-    with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id)) as fl:
+    with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
         key.get_contents_to_file(fl)
 
 

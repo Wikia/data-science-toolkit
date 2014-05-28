@@ -22,7 +22,6 @@ def key_to_exist(key):
     """
     Send a given key's contents to exist
     """
-    print "here"
     args = get_args()
     wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
     xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
@@ -34,8 +33,7 @@ def for_wid(args, wid):
     """
     print u"Working on", wid
     bucket = connect_s3().get_bucket(u'nlp-data')
-    pool = Pool(processes=args.threads)
-    map(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid))
+    pool.map(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid))
 
 
 def main():

@@ -35,7 +35,7 @@ def for_wid(args, wid):
     print u"Working on", wid
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
-    pool.imap(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid), 100)
+    map(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid), 100)
 
 
 def main():

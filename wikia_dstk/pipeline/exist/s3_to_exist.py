@@ -45,8 +45,9 @@ def for_wid(args, wid):
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
-    print check_output([args.exist_path+u'/bin/client.sh', u'-m', u'/db/nlp/%s' % wid, u'-p', u'/filesystem-path'],
-                       shell=True)
+    print check_output([args.exist_path+u'/bin/client.sh',
+                        u'-m', u'/db/nlp/%s' % wid,
+                        u'-p', u'/tmp/%s/' % wid])
     shutil.rmtree(wid_path)
 
 

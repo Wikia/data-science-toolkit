@@ -5,9 +5,7 @@ from subprocess import check_output
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
 from multiprocessing import Pool
-from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import ParseError
-
+from lxml.etree import fromstring, XMLSyntaxError
 
 total_documents = 0
 
@@ -31,10 +29,10 @@ def key_to_file(key):
     if key.size:
         wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
         try:
-            ET.fromstring(key.get_contents_as_string())
+            fromstring(key.get_contents_as_string())
             with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
                 key.get_contents_to_file(fl)
-        except ParseError:
+        except XMLSyntaxError:
             pass
 
 

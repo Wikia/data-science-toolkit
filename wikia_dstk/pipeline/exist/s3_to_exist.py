@@ -18,12 +18,12 @@ def get_args():
     return ap.parse_args()
 
 
-def key_to_exist(args, key):
+def key_to_exist(key):
     """
     Send a given key's contents to exist
     """
-    print "i am here"
-
+    print "here"
+    args = get_args()
     wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
     xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
 
@@ -33,14 +33,9 @@ def for_wid(args, wid):
     Suck down all xml parses from S3 for a wiki ID and put into exist
     """
     print u"Working on", wid
-    global total_documents
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
-
-    def this_key_to_exist(key):
-        key_to_exist(args, key)
-
-    pool.imap(this_key_to_exist, bucket.list(prefix=u'xml/%s/' % wid), 100)
+    pool.imap(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid), 100)
 
 
 def main():

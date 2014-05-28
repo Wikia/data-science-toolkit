@@ -37,7 +37,10 @@ def for_wid(args, wid):
     """
     print u"Working on", wid
     wid_path = u'/tmp/%s' % wid
-    os.mkdir(wid_path)
+    try:
+        os.mkdir(wid_path)
+    except OSError:
+        pass
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
     pool.map(key_to_file, bucket.list(prefix=u'xml/%s/' % wid))

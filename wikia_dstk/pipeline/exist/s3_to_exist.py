@@ -1,6 +1,7 @@
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
 from . import xml_to_exist
+from multiprocessing import Pool
 
 
 total_documents = 0
@@ -12,8 +13,17 @@ def get_args():
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), help=u'Control for multiple wiki IDs')
     ap.add_argument(u'--url', dest=u'url', default=u'http://localhost:8080', help=u'The exist DB URL')
     ap.add_argument(u'--user', dest=u'user', default='admin', help=u'Username to pass to exist')
-    ap.add_argument(u'--password', dest=u'password', default='admin', help=u'Password to pass to exist')
+    ap.add_argument(u'--password', dest=u'password', default='', help=u'Password to pass to exist')
+    ap.add_argument(u'--threads', dest=u'threads', default=8, type=int)
     return ap.parse_args()
+
+
+def key_to_exist(args, key):
+    """
+    Send a given key's contents to exist
+    """
+    wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
+    xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
 
 
 def for_wid(args, wid):
@@ -23,12 +33,11 @@ def for_wid(args, wid):
     print u"Working on", wid
     global total_documents
     bucket = connect_s3().get_bucket(u'nlp-data')
-    for key in bucket.list(prefix=u'xml/%s/' % wid):
-        wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-        xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
-        total_documents += 1
-        if total_documents % 100 == 0:
-            print total_documents
+    pool = Pool(processes=args.threads)
+
+    def this_key_to_exist(key):
+        key_to_exist(args, key)
+    pool.imap(this_key_to_exist, bucket.list(prefix=u'xml/%s/' % wid))
 
 
 def main():

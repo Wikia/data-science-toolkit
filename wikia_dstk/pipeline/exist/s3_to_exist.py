@@ -1,6 +1,9 @@
+import os
+import shutil
+import codecs
+from subprocess import check_output
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
-from . import xml_to_exist
 from multiprocessing import Pool
 
 
@@ -15,16 +18,17 @@ def get_args():
     ap.add_argument(u'--user', dest=u'user', default='admin', help=u'Username to pass to exist')
     ap.add_argument(u'--password', dest=u'password', default='', help=u'Password to pass to exist')
     ap.add_argument(u'--threads', dest=u'threads', default=8, type=int)
+    ap.add_argument(u'--exist-path', dest=u'exist_path', default=u'/opt/exist/')
     return ap.parse_args()
 
 
-def key_to_exist(key):
+def key_to_file(key):
     """
     Send a given key's contents to exist
     """
-    args = get_args()
     wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-    xml_to_exist(args, key.get_contents_as_string(), wiki_id, page_id)
+    with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id)) as fl:
+        key.get_contents_to_file(fl)
 
 
 def for_wid(args, wid):
@@ -32,9 +36,13 @@ def for_wid(args, wid):
     Suck down all xml parses from S3 for a wiki ID and put into exist
     """
     print u"Working on", wid
+    wid_path = u'/tmp/%s' % wid
+    os.mkdir(wid_path)
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
-    pool.map(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid))
+    pool.map(key_to_file, bucket.list(prefix=u'xml/%s/' % wid))
+    print check_output([args.exist_path+u'/bin/client.sh', u'-m', u'/db/nlp/%s' % wid, u'-p', u'/filesystem-path'])
+    shutil.rmtree(wid_path)
 
 
 def main():

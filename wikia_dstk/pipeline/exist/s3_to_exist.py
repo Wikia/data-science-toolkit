@@ -5,7 +5,6 @@ from subprocess import check_output
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
 from multiprocessing import Pool
-from lxml.etree import fromstring, XMLSyntaxError
 
 total_documents = 0
 
@@ -22,18 +21,18 @@ def get_args():
     return ap.parse_args()
 
 
-def key_to_file(key):
+def key_to_exist(key):
     """
     Send a given key's contents to exist
     """
+    args = get_args()
     if key.size:
         wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-        try:
-            fromstring(key.get_contents_as_string())
-            with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
-                key.get_contents_to_file(fl)
-        except XMLSyntaxError:
-            pass
+        with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
+            key.get_contents_to_file(fl)
+        print check_output([args.exist_path+u'/bin/client.sh',
+                            u'-m', u'/db/nlp/%s' % wiki_id,
+                            u'-p', u'/tmp/%s/%s.xml' % (wiki_id, page_id)])
 
 
 def for_wid(args, wid):
@@ -48,11 +47,7 @@ def for_wid(args, wid):
         pass
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
-    pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
-    print u"All validated files written"
-    print check_output([args.exist_path+u'/bin/client.sh',
-                        u'-m', u'/db/nlp/%s' % wid,
-                        u'-p', u'/tmp/%s/' % wid])
+    pool.map_async(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid)).get()
     shutil.rmtree(wid_path)
 
 

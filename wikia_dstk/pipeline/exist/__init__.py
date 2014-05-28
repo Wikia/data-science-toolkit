@@ -14,6 +14,7 @@ def xml_to_exist(args, xml, wiki_id, page_id):
     :param page_id: the id of the page this is a parse of
     :type page_id: str
     """
+    print wiki_id, page_id
     r = requests.put('%s/exist/rest/nlp/%s/%s.xml' % (args.url, wiki_id, page_id),
                      data=str(xml),
                      headers={'Content-Type': 'application/xml', 'Content-Length': len(xml), 'Charset': 'utf-8'},

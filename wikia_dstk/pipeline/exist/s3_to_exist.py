@@ -37,7 +37,8 @@ def for_wid(args, wid):
 
     def this_key_to_exist(key):
         key_to_exist(args, key)
-    pool.imap(this_key_to_exist, bucket.list(prefix=u'xml/%s/' % wid))
+
+    pool.imap(this_key_to_exist, bucket.list(prefix=u'xml/%s/' % wid), 100)
 
 
 def main():

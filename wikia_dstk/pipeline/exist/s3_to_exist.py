@@ -51,7 +51,7 @@ def xquery_ingest_files(args, wiki_id, delete=True):
         "file:delete('/tmp/%s')"
     query = """<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
 xquery version "3.0";
-xmldb:store-files-from-pattern('/db/nlp/%s/', '/tmp/%s' '*.xml')
+xmldb:store-files-from-pattern('/db/nlp/%s', '/tmp/%s/' '*.xml')
 %s
 </text></query>""" % (wiki_id, wiki_id, delete_query)
 
@@ -62,6 +62,7 @@ xmldb:store-files-from-pattern('/db/nlp/%s/', '/tmp/%s' '*.xml')
     if r.status_code > 299:
         print r.content, r.url, r.status_code
         return False
+    print r.content
     return True
 
 

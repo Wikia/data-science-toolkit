@@ -1,8 +1,6 @@
 import os
 import shutil
 import codecs
-import requests
-from requests.auth import HTTPBasicAuth
 from . import delete_collection, create_collection
 from subprocess import check_output
 from boto import connect_s3
@@ -36,7 +34,7 @@ def key_to_file(key):
             key.get_contents_to_file(fl)
 
 
-def xquery_ingest_files(args, wiki_id, delete=True):
+def xquery_ingest_files(args, wiki_id):
     """
     Populates a given collection
     :param args: an arg namespace -- allows flexible DI
@@ -46,24 +44,17 @@ def xquery_ingest_files(args, wiki_id, delete=True):
     :return: true if worked, false if not
     :rtype: bool
     """
-    delete_query = ""
-    if delete:
-        "file:delete('/tmp/%s')"
-    query = """<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
-xquery version "3.0";
-xmldb:store-files-from-pattern('/db/nlp/%s', '/tmp/%s/' '*.xml')
-%s
-</text></query>""" % (wiki_id, wiki_id, delete_query)
 
-    r = requests.post('%s/exist/rest/' % args.url,
-                      auth=HTTPBasicAuth(args.user, args.password),
-                      data=query,
-                      headers={'Content-type': 'application/xml'})
-    if r.status_code > 299:
-        print r.content, r.url, r.status_code
-        return False
-    print r.content
-    return True
+    abs_dirname = '/tmp/%s/' % wiki_id
+    files = [os.path.join(abs_dirname, f) for f in os.listdir(abs_dirname)]
+    dirs = ['%s/%d' % (abs_dirname, i) for i in range(0, n)]
+    map(os.mkdir, dirs)
+    dirlen = len(dirs)
+    [shutil.move(f, os.path.join(dirs[i % dirlen], os.path.basename(f))) for i, f in enumerate(files)]
+
+    pool = Pool(processes=args.threads)
+    calls = [("%s/bin/client.sh -m /db/nlp/%s -p %s" % (args.exist_path, wiki_id, tdir)).split(' ') for tdir in dirs]
+    print pool.map(check_output, calls)
 
 
 def for_wid(args, wid):

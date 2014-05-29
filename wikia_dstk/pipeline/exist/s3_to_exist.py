@@ -6,6 +6,7 @@ from boto import connect_s3
 from argparse import ArgumentParser, FileType
 from multiprocessing import Pool
 
+
 total_documents = 0
 
 
@@ -21,20 +22,14 @@ def get_args():
     return ap.parse_args()
 
 
-def key_to_exist(key):
+def key_to_file(key):
     """
     Send a given key's contents to exist
     """
-    args = get_args()
     if key.size:
         wiki_id, page_id = key.key.split(u'.')[0].split(u'/')[-2:]
-        fname = u'/tmp/%s/%s.xml' % (wiki_id, page_id)
-        with codecs.open(fname, u'w') as fl:
+        with codecs.open(u'/tmp/%s/%s.xml' % (wiki_id, page_id), u'w') as fl:
             key.get_contents_to_file(fl)
-        print check_output([args.exist_path+u'/bin/client.sh',
-                            u'-m', u'/db/nlp/%s' % wiki_id,
-                            u'-p', fname])
-        os.remove(fname)
 
 
 def for_wid(args, wid):
@@ -49,7 +44,14 @@ def for_wid(args, wid):
         pass
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
-    pool.map_async(key_to_exist, bucket.list(prefix=u'xml/%s/' % wid)).get()
+    pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
+    print u"Validating XML and removing cruft"
+    check_output((u"xmllint /tmp/%s/* --noout 2>&1 | grep 'error' | perl -pe 's/^([^:]*):.*$/\1/g' | xargs sudo rm -f"
+                 % wid),
+                 shell=True)
+    print check_output([args.exist_path+u'/bin/client.sh',
+                        u'-m', u'/db/nlp/%s' % wid,
+                        u'-p', u'/tmp/%s/' % wid])
     shutil.rmtree(wid_path)
 
 

@@ -47,7 +47,7 @@ def xquery_ingest_files(args, wiki_id):
 
     abs_dirname = '/tmp/%s/' % wiki_id
     files = [os.path.join(abs_dirname, f) for f in os.listdir(abs_dirname)]
-    dirs = ['%s/%d' % (abs_dirname, i) for i in range(0, n)]
+    dirs = ['%s/%d' % (abs_dirname, i) for i in range(0, 100)]
     map(os.mkdir, dirs)
     dirlen = len(dirs)
     [shutil.move(f, os.path.join(dirs[i % dirlen], os.path.basename(f))) for i, f in enumerate(files)]

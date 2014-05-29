@@ -46,8 +46,8 @@ def for_wid(args, wid):
     pool = Pool(processes=args.threads)
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
     print u"Validating XML and removing cruft"
-    print check_output(u" | ".join[u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'",
-                                   u"perl -pe 's/^([^:]*):.*$/\\1/g'", u"xargs sudo rm -f"],
+    print check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'",
+                                    u"perl -pe 's/^([^:]*):.*$/\\1/g'", u"xargs sudo rm -f"]),
                        shell=True)
     print check_output([args.exist_path+u'/bin/client.sh',
                         u'-m', u'/db/nlp/%s' % wid,

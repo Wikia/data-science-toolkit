@@ -1,6 +1,7 @@
 import os
 import shutil
 import codecs
+from . import delete_collection
 from subprocess import check_output
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
@@ -19,6 +20,7 @@ def get_args():
     ap.add_argument(u'--password', dest=u'password', default='', help=u'Password to pass to exist')
     ap.add_argument(u'--threads', dest=u'threads', default=8, type=int)
     ap.add_argument(u'--exist-path', dest=u'exist_path', default=u'/opt/exist/')
+    ap.add_argument(u'--no-delete', dest=u"delete_on_reindex", default=True, action=u"store_true")
     return ap.parse_args()
 
 
@@ -45,13 +47,20 @@ def for_wid(args, wid):
     bucket = connect_s3().get_bucket(u'nlp-data')
     pool = Pool(processes=args.threads)
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
+    current = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
     print u"Validating XML and removing cruft"
+    to_index = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
+    print u"Deleted %d invalid documents" % (current - to_index)
     print check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'",
                                     u"perl -pe 's/^([^:]*):.*$/\\1/g'", u"xargs sudo rm -f"]),
                        shell=True)
+    if args.delete_on_reindex:
+        print u"Deleting current collection for performance"
+        delete_collection(args, wid)
+    print u"Indexing %d documents" % to_index
     print check_output([args.exist_path+u'/bin/client.sh',
                         u'-m', u'/db/nlp/%s' % wid,
-                        u'-p', u'/tmp/%s/' % wid])
+                        u'-p', wid_path])
     shutil.rmtree(wid_path)
 
 

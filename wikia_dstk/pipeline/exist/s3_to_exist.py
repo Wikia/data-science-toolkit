@@ -49,9 +49,8 @@ def for_wid(args, wid):
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
     current = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
     print u"Validating XML and removing cruft"
-    print check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'",
-                                    u"perl -pe 's/^([^:]*):.*$/\\1/g'", u"xargs sudo rm -f"]),
-                       shell=True)
+    junk_files = check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'"]))
+    map(os.remove, list(set(junk_files)))
     to_index = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
     print u"Deleted %d invalid documents" % (current - to_index)
     if args.delete_on_reindex:

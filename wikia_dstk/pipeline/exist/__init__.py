@@ -37,7 +37,7 @@ def delete_collection(args, wiki_id):
     :return: true if worked, false if not
     :rtype: bool
     """
-    r = requests.delete('%s/exist/rest/nlp/%s/' % wiki_id, auth=HTTPBasicAuth(args.user, args.password))
+    r = requests.delete('%s/exist/rest/nlp/%s/' % (args.url, wiki_id), auth=HTTPBasicAuth(args.user, args.password))
     if r.status_code > 299:
         print r.content, r.url, r.status_code
         return False

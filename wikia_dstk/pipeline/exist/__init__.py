@@ -37,7 +37,15 @@ def delete_collection(args, wiki_id):
     :return: true if worked, false if not
     :rtype: bool
     """
-    r = requests.delete('%s/exist/rest/nlp/%s/' % (args.url, wiki_id), auth=HTTPBasicAuth(args.user, args.password))
+    query = """<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
+xquery version "3.0";
+xmldb:remove('/db/nlp/'%s')
+</text></query>""" % wiki_id
+
+    r = requests.post('%s/exist/rest/' % args.url,
+                      auth=HTTPBasicAuth(args.user, args.password),
+                      data=query,
+                      headers={'Content-type': 'application/xml'})
     if r.status_code > 299:
         print r.content, r.url, r.status_code
         return False

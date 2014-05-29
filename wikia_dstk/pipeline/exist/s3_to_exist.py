@@ -79,7 +79,7 @@ def for_wid(args, wid):
     print u"Deleted %d invalid documents" % (current - to_index)
     if args.delete_on_reindex:
         print u"Deleting current collection for performance"
-        delete_collection(args, wid)
+        check_output(u"%s/bin/client.sh --rmcol /db/nlp/%s" % wid, shell=True)
     print u"Indexing %d documents" % to_index
     create_collection(args, wid)
     xquery_ingest_files(args, wid)

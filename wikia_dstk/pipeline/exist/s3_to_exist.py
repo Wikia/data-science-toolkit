@@ -1,7 +1,9 @@
 import os
 import shutil
 import codecs
-from . import delete_collection
+import requests
+from requests.auth import HTTPBasicAuth
+from . import delete_collection, create_collection
 from subprocess import check_output
 from boto import connect_s3
 from argparse import ArgumentParser, FileType
@@ -34,6 +36,35 @@ def key_to_file(key):
             key.get_contents_to_file(fl)
 
 
+def xquery_ingest_files(args, wiki_id, delete=True):
+    """
+    Populates a given collection
+    :param args: an arg namespace -- allows flexible DI
+    :type args:class:`argparse.Namespace`
+    :param wiki_id: the id of the wiki corresponding to that collection
+    :type wiki_id: str
+    :return: true if worked, false if not
+    :rtype: bool
+    """
+    delete_query = ""
+    if delete:
+        "file:delete('/tmp/%s')"
+    query = """<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
+xquery version "3.0";
+xmldb:store-files-from-pattern('/db/nlp/%s/', '/tmp/%s' '*.xml')
+%s
+</text></query>""" % (wiki_id, wiki_id, delete_query)
+
+    r = requests.post('%s/exist/rest/' % args.url,
+                      auth=HTTPBasicAuth(args.user, args.password),
+                      data=query,
+                      headers={'Content-type': 'application/xml'})
+    if r.status_code > 299:
+        print r.content, r.url, r.status_code
+        return False
+    return True
+
+
 def for_wid(args, wid):
     """
     Suck down all xml parses from S3 for a wiki ID and put into exist
@@ -49,18 +80,17 @@ def for_wid(args, wid):
     pool.map_async(key_to_file, bucket.list(prefix=u'xml/%s/' % wid)).get()
     current = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
     print u"Validating XML and removing cruft"
-    junk_files = check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'"]), shell=True)
-    map(os.remove, list(set(junk_files)))
+    print check_output(u" | ".join([u"xmllint /tmp/%s/* --noout 2>&1" % wid, u"grep 'error'",
+                                    u"perl -pe 's/^([^:]*):.*$/\\1/g'", u"xargs sudo rm -f"]),
+                       shell=True)
     to_index = len([f for f in os.listdir(wid_path) if os.path.isfile(wid_path+u'/'+f)])
     print u"Deleted %d invalid documents" % (current - to_index)
     if args.delete_on_reindex:
         print u"Deleting current collection for performance"
         delete_collection(args, wid)
     print u"Indexing %d documents" % to_index
-    print check_output([args.exist_path+u'/bin/client.sh',
-                        u'-m', u'/db/nlp/%s' % wid,
-                        u'-p', wid_path])
-    shutil.rmtree(wid_path)
+    create_collection(args, wid)
+    xquery_ingest_files(args, wid)
 
 
 def main():

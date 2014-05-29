@@ -42,3 +42,29 @@ def delete_collection(args, wiki_id):
         print r.content, r.url, r.status_code
         return False
     return True
+
+
+def create_collection(args, wiki_id):
+    """
+    Creates a given collection
+    :param args: an arg namespace -- allows flexible DI
+    :type args:class:`argparse.Namespace`
+    :param wiki_id: the id of the wiki corresponding to that collection
+    :type wiki_id: str
+    :return: true if worked, false if not
+    :rtype: bool
+    """
+
+    query = """<query xmlns="http://exist.sourceforge.net/NS/exist"><text>
+xquery version "3.0";
+xmldb:create-collection('/db/nlp/', '%s')
+</text></query>""" % wiki_id
+
+    r = requests.post('%s/exist/rest/' % args.url,
+                      auth=HTTPBasicAuth(args.user, args.password),
+                      data=query,
+                      headers={'Content-type': 'application/xml'})
+    if r.status_code > 299:
+        print r.content, r.url, r.status_code
+        return False
+    return True

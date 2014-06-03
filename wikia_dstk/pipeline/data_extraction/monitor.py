@@ -89,7 +89,7 @@ while True:
             optimal = int(ceil(inqueue / args.threshold)) - numinstances
             allowed = args.max_size - numinstances
             instances_to_add = optimal if optimal <= allowed else allowed
-            ec2_conn.add_instances(instances_to_add, user_data=user_data)
+            ec2_conn.add_instances(instances_to_add, user_data=user_data, instance_type="data_extraction")
             instances = ec2_conn.get_tagged_instances(args.tag)
             numinstances = len(instances)
             ratio = inqueue / numinstances

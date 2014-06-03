@@ -104,7 +104,7 @@ def main():
                 r = dstk_connection.add_instances_async([dstk_user_data(args)],
                                                         num_instances=dstk_nodes_needed, wait=True)
                 dstk_instance_ids = [i for j in r.get() for i in j]
-                dstk_connection.tag_instances(dstk_instance_ids)
+                dstk_connection.tag_instances(dstk_instance_ids, type="authority")
         elif num_authority_instances == 0:
             log("Empty queue and no authority instances, exiting.")
             sys.exit()

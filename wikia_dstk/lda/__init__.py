@@ -150,7 +150,7 @@ def load_instance_ids(instance_ids):
     global instances_launched
     c = get_ec2_connection()
     instances_launched = c.get_all_reservations(instance_ids=instance_ids)
-    c.create_tags(instance_ids, {u"Name": u"LDA Worker Node"})
+    c.create_tags(instance_ids, {u"Name": u"LDA Worker Node", u"type": u"lda"})
 
 
 def launch_lda_nodes(instance_count=20, ami=u"ami-f4d0bfc4"):

@@ -51,7 +51,7 @@ while True:
             instances_to_add = optimal
         else:
             instances_to_add = args.max_size
-        ec2_conn.add_instances(instances_to_add, user_data=user_data)
+        ec2_conn.add_instances(instances_to_add, user_data=user_data, instance_type="parser")
         instances = ec2_conn.get_tagged_instances(args.tag)
         numinstances = len(instances)
         print "[%s %s] Scaled up to %d (%d in queue)" % (

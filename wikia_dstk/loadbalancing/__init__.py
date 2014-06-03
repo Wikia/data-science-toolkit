@@ -134,7 +134,7 @@ class EC2Connection(object):
             key_name=self.key, security_groups=self.sec, user_data=user_data,
             instance_type=self.type)
 
-    def add_instances(self, count, user_data=None):
+    def add_instances(self, count, user_data=None, instance_type="dstk_general"):
         """
         Add a specified number of instances with the same launch specification.
 
@@ -149,16 +149,16 @@ class EC2Connection(object):
         """
         reservation = self.get_reservation(count, user_data=user_data)
         instance_ids = get_instance_ids_from_reservation(self.conn, reservation)
-        self.tag_instances(instance_ids)
+        self.tag_instances(instance_ids, instance_type=instance_type)
         return instance_ids
 
-    def tag_instances(self, instance_ids):
+    def tag_instances(self, instance_ids, instance_type="dstk_general"):
         """
         Tag instances with tag provided
         :type instance_ids: list
         :param instance_ids: a list of instance ids
         """
-        self.conn.create_tags(instance_ids, {'Name': self.tag})
+        self.conn.create_tags(instance_ids, {'Name': self.tag, "type": instance_type})
 
     def add_instances_async(self, user_data_scripts, num_instances=1,
                             processes=2, wait=True):

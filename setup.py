@@ -6,6 +6,7 @@ setup(name="wikia_dstk",
       author_email="robert.elwell@gmail.com",
       description="A library for automated data science scripts that rely on NLP libs, etc.",
       license="Other",
+      url="https://github.com/Wikia/data-science-toolkit",
       packages=[
           "wikia_dstk", "wikia_dstk.lda", "wikia_dstk.pipeline",
           "wikia_dstk.pipeline.event", "wikia_dstk.pipeline.parser",

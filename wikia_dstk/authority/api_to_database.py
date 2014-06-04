@@ -1,10 +1,3 @@
-from boto import connect_s3
-from lxml import html
-from lxml.etree import ParserError
-from pygraph.classes.digraph import digraph
-from pygraph.algorithms.pagerank import pagerank
-from pygraph.classes.exceptions import AdditionError
-from wikia_authority import MinMaxScaler
 import logging
 import traceback
 import json
@@ -13,6 +6,13 @@ import sys
 import multiprocessing
 import argparse
 import time
+from boto import connect_s3
+from lxml import html
+from lxml.etree import ParserError
+from pygraph.classes.digraph import digraph
+from pygraph.algorithms.pagerank import pagerank
+from pygraph.classes.exceptions import AdditionError
+from wikia_authority import MinMaxScaler
 
 
 minimum_authors = 5
@@ -28,21 +28,6 @@ log.addHandler(logging.StreamHandler())
 fh = logging.FileHandler('api_to_database.log')
 fh.setLevel(logging.ERROR)
 log.addHandler(fh)
-
-
-class Unbuffered:
-
-    def __init__(self, stream):
-        self.stream = stream
-
-    def write(self, data):
-        self.stream.write(data)
-        self.stream.flush()
-
-    def __getattr__(self, attr):
-        return getattr(self.stream, attr)
-
-sys.stdout = Unbuffered(sys.stdout)
 
 
 # multiprocessing's gotta grow up and let me do anonymous functions

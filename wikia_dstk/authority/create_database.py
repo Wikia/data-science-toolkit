@@ -11,6 +11,7 @@ from nlp_services.caching import use_caching
 from nlp_services.discourse.entities import WikiPageToEntitiesService
 
 
+# TODO: No longer necessary, moved get_args to api_to_database.py
 def get_args():
     ap = add_db_arguments(ArgumentParser())
     ap.add_argument(u'-s', u'--s3path', dest=u's3path', default=u'datafiles/topwams.txt')

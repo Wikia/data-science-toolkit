@@ -5,19 +5,6 @@ from multiprocessing import Pool
 from boto import connect_s3
 
 
-class Unbuffered:
-
-    def __init__(self, stream):
-        self.stream = stream
-
-    def write(self, data):
-        self.stream.write(data)
-        self.stream.flush()
-
-    def __getattr__(self, attr):
-        return getattr(self.stream, attr)
-
-
 def exists(wid):
     return wid, requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
                              params=dict(ids=[wid.strip()])).json().get(u'items')
@@ -80,3 +67,51 @@ class MinMaxScaler:
     def scale(self, val):
         return (((self.enforced_max - self.enforced_min) * (val - self.min))
                 / (self.max - self.min)) + self.enforced_min
+
+
+class Unbuffered:
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
+
+
+class MockService(object):
+    """
+    A class that provides the same structure as a Service defined in the
+    nlp_services library, without having to interact with Amazon S3.
+    """
+    def __init__(self, data):
+        """
+        :param data: The data object to wrap for access
+        :type data: dict or list
+        """
+        self.data = data
+
+    def get(self, doc_id):
+        """
+        Get a mocked HTTP response based on the data with which the object was
+        instantiatd.
+
+        :param doc_id: The ID of the document
+        :type doc_id: str
+        """
+        return {'status': 200, doc_id: self.data.get(doc_id, [])}
+
+    def get_value(self, doc_id, backoff=None):
+        """
+        Extract data directly from the object's data, bypassing the mocked HTTP response.
+
+        :param doc_id: The ID of the document
+        :type doc_id: str
+
+        :param backoff: The default value to return if key doesn't exist
+        :type backoff: object
+        """
+        return self.get(doc_id).get(doc_id, backoff)

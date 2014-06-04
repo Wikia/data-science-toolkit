@@ -7,6 +7,7 @@ from argparse import ArgumentParser, FileType
 from boto import connect_s3
 from boto.ec2 import connect_to_region
 from boto.utils import get_instance_metadata
+from . import Unbuffered
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -14,19 +15,6 @@ log.addHandler(logging.StreamHandler())
 fh = logging.FileHandler('etl_scaled.log')
 fh.setLevel(logging.ERROR)
 log.addHandler(fh)
-
-
-class Unbuffered:
-
-    def __init__(self, stream):
-        self.stream = stream
-
-    def write(self, data):
-        self.stream.write(data)
-        self.stream.flush()
-
-    def __getattr__(self, attr):
-        return getattr(self.stream, attr)
 
 
 def get_args():

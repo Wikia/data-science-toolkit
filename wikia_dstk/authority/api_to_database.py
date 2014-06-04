@@ -34,18 +34,6 @@ fh.setLevel(logging.ERROR)
 log.addHandler(fh)
 
 
-# multiprocessing's gotta grow up and let me do anonymous functions
-def set_page_key(x):
-    log.debug(u"Setting page key for %s" % x)
-    # TODO: update db directly instead of via s3
-    bucket = connect_s3().get_bucket(u'nlp-data')
-    k = bucket.new_key(
-        key_name=u'/service_responses/%s/PageAuthorityService.get' % (
-            x[0].replace(u'_', u'/')))
-    k.set_contents_from_string(json.dumps(x[1], ensure_ascii=False))
-    return True
-
-
 def get_all_titles(aplimit=500):
     global api_url, wiki_id
     params = {u'action': u'query', u'list': u'allpages', u'aplimit': aplimit,
@@ -491,8 +479,8 @@ def main():
         json.dumps(comqscore_authority, ensure_ascii=False))
 
     q = pool.map_async(
-        set_page_key,
-        title_top_authors.items()
+        insert_contrib_data_from_object,
+        [(args, item) for item in title_top_authors.items()]
     )
     q.wait()
 

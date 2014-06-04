@@ -1,15 +1,14 @@
+import os
+import traceback
+import time
+import requests
 from argparse import ArgumentParser, Namespace
 from . import filter_wids, get_db_connection, get_db_and_cursor, MockService
 from . import add_db_arguments
 from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
-from nlp_services.authority import WikiAuthorityService, PageAuthorityService
 from nlp_services.discourse.entities import WikiPageToEntitiesService
-import os
-import traceback
-import time
-import requests
 
 
 def get_args():

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, Namespace
-from . import filter_wids, get_db_connection, get_db_and_cursor, add_db_arguments
+from . import filter_wids, get_db_connection, get_db_and_cursor, MockService
+from . import add_db_arguments
 from boto import connect_s3
 from multiprocessing import Pool
 from nlp_services.caching import use_caching
@@ -204,7 +205,11 @@ def insert_wiki_ids(args):
         return False
 
 
-def insert_contrib_data(args):
+def insert_contrib_data_from_object(args):
+    return insert_contrib_data(*args)
+
+
+def insert_contrib_data(args, obj):
     try:
         use_caching(is_read_only=True, shouldnt_compute=True)
         db,  cursor = get_db_and_cursor(args)
@@ -238,7 +243,7 @@ def insert_contrib_data(args):
 
             cursor = db.cursor()
 
-            for contribs in PageAuthorityService().get_value(doc_id, []):
+            for contribs in MockService(obj).get_value(doc_id, []):
                 cursor.execute(u"""
                 INSERT IGNORE INTO users (user_id, user_name) VALUES (%d, "%s")
                 """ % (contribs[u'userid'], my_escape(contribs[u'user'])))
@@ -264,8 +269,12 @@ def insert_contrib_data(args):
         return False
 
 
-def get_authority_dict_fixed(args):
-    authority_dict = WikiAuthorityService().get_value(args.wid)
+def get_authority_dict_fixed_from_object(args):
+    return insert_contrib_data(*args)
+
+
+def get_authority_dict_fixed(args, obj):
+    authority_dict = MockService(obj).get_value(args.wid)
     if not authority_dict:
         return False
 

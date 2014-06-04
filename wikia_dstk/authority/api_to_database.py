@@ -6,6 +6,7 @@ import sys
 import multiprocessing
 import argparse
 import time
+from argparse import ArgumentParser, Namespace
 from boto import connect_s3
 from lxml import html
 from lxml.etree import ParserError
@@ -13,6 +14,7 @@ from pygraph.classes.digraph import digraph
 from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
+from . import add_db_arguments
 
 
 minimum_authors = 5
@@ -30,9 +32,21 @@ fh.setLevel(logging.ERROR)
 log.addHandler(fh)
 
 
+def get_args():
+    ap = add_db_arguments(ArgumentParser())
+    ap.add_argument(u'-s', u'--s3path', dest=u's3path',
+                    default=u'datafiles/topwams.txt')
+    ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True,
+                    action=u'store_false')
+    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int,
+                    default=6)
+    return ap.parse_known_args()
+
+
 # multiprocessing's gotta grow up and let me do anonymous functions
 def set_page_key(x):
     log.debug(u"Setting page key for %s" % x)
+    # TODO: update db directly instead of via s3
     bucket = connect_s3().get_bucket(u'nlp-data')
     k = bucket.new_key(
         key_name=u'/service_responses/%s/PageAuthorityService.get' % (
@@ -469,12 +483,14 @@ def main():
 
     log.info(u"Got comsqscore, storing data")
 
+    # TODO: update db directly instead of via s3
     bucket = connect_s3().get_bucket(u'nlp-data')
     key = bucket.new_key(
         key_name=u'service_responses/%s/WikiAuthorCentralityService.get' % (
             wiki_id))
     key.set_contents_from_string(json.dumps(centralities, ensure_ascii=False))
 
+    # TODO: update db directly instead of via s3
     key = bucket.new_key(
         key_name=u'service_responses/%s/WikiAuthorityService.get' % wiki_id)
     key.set_contents_from_string(

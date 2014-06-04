@@ -5,6 +5,19 @@ from multiprocessing import Pool
 from boto import connect_s3
 
 
+class Unbuffered:
+
+    def __init__(self, stream):
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
+
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
+
+
 def exists(wid):
     return wid, requests.get(u'http://www.wikia.com/api/v1/Wikis/Details',
                              params=dict(ids=[wid.strip()])).json().get(u'items')

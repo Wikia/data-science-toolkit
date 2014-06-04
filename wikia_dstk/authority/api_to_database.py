@@ -1,20 +1,23 @@
-import logging
-import traceback
+import argparse
 import json
+import logging
+import multiprocessing
+import os
 import requests
 import sys
-import multiprocessing
-import argparse
 import time
+import traceback
 from argparse import ArgumentParser, Namespace
 from boto import connect_s3
 from lxml import html
 from lxml.etree import ParserError
+from multiprocessing import Pool
 from pygraph.classes.digraph import digraph
 from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
-from . import add_db_arguments
+from . import add_db_arguments, get_db_and_cursor, get_db_connection
+from . import filter_wids
 from .create_database import get_authority_dict_fixed_from_object
 from .create_database import insert_contrib_data_from_object
 
@@ -411,6 +414,19 @@ def main():
 
     args = get_args()
 
+    if os.path.exists(u'cached_wids'):
+        wids = [line.strip() for line in open(u'cached_wids', u'r').readlines()
+                if line.strip()]
+    else:
+        wids = filter_wids(
+            [line.strip() for line in
+             bucket.get_key(args.s3path).get_contents_as_string().split(u"\n")
+             if line.strip()],
+            True)
+        open(u'cached_wids', u'w').write(u"\n".join(wids))
+
+    wiki_args = [Namespace(wid=wid, **vars(args)) for wid in wids]
+
     edit_distance_memoization_cache = {}
 
     smoothing = 0.001
@@ -480,7 +496,7 @@ def main():
 
     q = pool.map_async(
         insert_contrib_data_from_object,
-        [(args, item) for item in title_top_authors.items()]
+        [(arg, title_top_authors) for arg in wiki_args]
     )
     q.wait()
 

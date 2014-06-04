@@ -15,6 +15,8 @@ from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
 from . import add_db_arguments
+from .create_database import get_authority_dict_fixed_from_object
+from .create_database import insert_contrib_data_from_object
 
 
 minimum_authors = 5
@@ -30,17 +32,6 @@ log.addHandler(logging.StreamHandler())
 fh = logging.FileHandler('api_to_database.log')
 fh.setLevel(logging.ERROR)
 log.addHandler(fh)
-
-
-def get_args():
-    ap = add_db_arguments(ArgumentParser())
-    ap.add_argument(u'-s', u'--s3path', dest=u's3path',
-                    default=u'datafiles/topwams.txt')
-    ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True,
-                    action=u'store_false')
-    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int,
-                    default=6)
-    return ap.parse_known_args()
 
 
 # multiprocessing's gotta grow up and let me do anonymous functions
@@ -411,16 +402,19 @@ def get_args():
     except NotImplementedError:
         default_cpus = 2   # arbitrary default
 
-    parser = argparse.ArgumentParser(
-        description=u'Get authoritativeness data for a given wiki.')
-    parser.add_argument(
-        u'--wiki-id', dest=u'wiki_id', action=u'store', required=True,
-        help=u'The ID of the wiki you want to operate on')
-    parser.add_argument(
-        u'--processes', dest=u'processes', action=u'store', type=int,
-        default=default_cpus,
-        help=u'Number of processes you want to run at once')
-    return parser.parse_args()
+    ap = add_db_arguments(ArgumentParser(
+        description=u'Get authoritativeness data for a given wiki.'))
+    ap.add_argument(u'-s', u'--s3path', dest=u's3path',
+                    default=u'datafiles/topwams.txt')
+    ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True,
+                    action=u'store_false')
+    ap.add_argument(u'--wiki-id', dest=u'wiki_id', action=u'store',
+                    required=True,
+                    help=u'The ID of the wiki you want to operate on')
+    ap.add_argument(u'--processes', dest=u'processes', action=u'store',
+                    type=int, default=default_cpus,
+                    help=u'Number of processes you want to run at once')
+    return ap.parse_known_args()
 
 
 def main():

@@ -151,6 +151,10 @@ def insert_entities(args):
         return False
 
 
+def insert_pages_from_object(args):
+    return insert_pages(*args)
+
+
 def insert_pages(args):
     try:
         use_caching(is_read_only=True, shouldnt_compute=True)
@@ -267,10 +271,6 @@ def insert_contrib_data(args, obj):
     except Exception as e:
         print e, traceback.format_exc()
         return False
-
-
-def get_authority_dict_fixed_from_object(args):
-    return insert_contrib_data(*args)
 
 
 def get_authority_dict_fixed(args, obj):

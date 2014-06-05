@@ -18,8 +18,8 @@ from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
 from . import add_db_arguments, get_db_and_cursor, get_db_connection
 from . import filter_wids
-from .create_database import insert_contrib_data_from_object
-from .create_database import insert_pages_from_object
+from .create_database import insert_contrib_data_from_object, insert_entities
+from .create_database import insert_pages_from_object, insert_wiki_ids
 
 
 minimum_authors = 5
@@ -489,15 +489,27 @@ def main():
     key.set_contents_from_string(json.dumps(centralities, ensure_ascii=False))
 
     q = pool.map_async(
+        insert_wiki_ids,
+        wiki_args
+        )
+    q.wait()
+
+    q = pool.map_async(
         insert_pages_from_object,
         [(arg, comqscore_authority) for arg in wiki_args]
-    )
+        )
+    q.wait()
+
+    q = pool.map_async(
+        insert_entities,
+        wiki_args
+        )
     q.wait()
 
     q = pool.map_async(
         insert_contrib_data_from_object,
         [(arg, title_top_authors) for arg in wiki_args]
-    )
+        )
     q.wait()
 
     log.info(u"%s finished in %s seconds" % (wiki_id, (time.time() - start)))

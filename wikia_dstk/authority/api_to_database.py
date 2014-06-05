@@ -18,8 +18,8 @@ from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
 from . import add_db_arguments, get_db_and_cursor, get_db_connection
 from . import filter_wids
-from .create_database import get_authority_dict_fixed_from_object
 from .create_database import insert_contrib_data_from_object
+from .create_database import insert_pages_from_object
 
 
 minimum_authors = 5
@@ -488,11 +488,11 @@ def main():
             wiki_id))
     key.set_contents_from_string(json.dumps(centralities, ensure_ascii=False))
 
-    # TODO: update db directly instead of via s3
-    key = bucket.new_key(
-        key_name=u'service_responses/%s/WikiAuthorityService.get' % wiki_id)
-    key.set_contents_from_string(
-        json.dumps(comqscore_authority, ensure_ascii=False))
+    q = pool.map_async(
+        insert_pages_from_object,
+        [(arg, comqscore_authority) for arg in wiki_args]
+    )
+    q.wait()
 
     q = pool.map_async(
         insert_contrib_data_from_object,

@@ -485,31 +485,29 @@ def main():
             wiki_id))
     key.set_contents_from_string(json.dumps(centralities, ensure_ascii=False))
 
-    q = pool.map_async(
-        insert_wiki_ids,
-        wiki_args
-        )
-    q.wait()
+    # TODO: DRY
+    wiki_args = filter(
+        lambda x: x, pool.map_async(insert_wiki_ids, wiki_args).get())
 
-    q = pool.map_async(
-        insert_pages_from_object,
-        [(arg, comqscore_authority) for arg in wiki_args]
-        )
-    q.wait()
+    wiki_args = filter(
+        lambda x: x, pool.map_async(
+            insert_pages_from_object,
+            [(arg, comqscore_authority) for arg in wiki_args]
+            ).get())
 
-    q = pool.map_async(
-        insert_entities,
-        wiki_args
-        )
-    q.wait()
+    wiki_args = filter(
+        lambda x: x, pool.map_async(insert_entities, wiki_args).get())
 
-    q = pool.map_async(
-        insert_contrib_data_from_object,
-        [(arg, title_top_authors) for arg in wiki_args]
-        )
-    q.wait()
+    wiki_args = filter(
+        lambda x: x, pool.map_async(
+            insert_contrib_data_from_object,
+            [(arg, title_top_authors) for arg in wiki_args]
+            ).get())
 
     log.info(u"%s finished in %s seconds" % (wiki_id, (time.time() - start)))
+
+    log.info(u"%d/%d wikis made it through the pipeline" % (
+        len(wiki_args), len(wids)))
 
 
 if __name__ == u'__main__':

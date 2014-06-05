@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import multiprocessing
@@ -11,13 +10,11 @@ from argparse import ArgumentParser, Namespace
 from boto import connect_s3
 from lxml import html
 from lxml.etree import ParserError
-from multiprocessing import Pool
 from pygraph.classes.digraph import digraph
 from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
-from . import add_db_arguments, get_db_and_cursor, get_db_connection
-from . import filter_wids
+from . import add_db_arguments, filter_wids
 from .create_database import insert_contrib_data_from_object, insert_entities
 from .create_database import insert_pages_from_object, insert_wiki_ids
 

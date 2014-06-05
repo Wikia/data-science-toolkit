@@ -155,12 +155,12 @@ def insert_pages_from_object(args):
     return insert_pages(*args)
 
 
-def insert_pages(args):
+def insert_pages(args, obj):
     try:
         use_caching(is_read_only=True, shouldnt_compute=True)
         db,  cursor = get_db_and_cursor(args)
 
-        authority_dict_fixed = get_authority_dict_fixed(args)
+        authority_dict_fixed = get_authority_dict_fixed(args, obj)
         if not authority_dict_fixed:
             return False
 

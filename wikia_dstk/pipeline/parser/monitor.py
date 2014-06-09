@@ -17,7 +17,13 @@ ap = get_argparser_from_config(default_config)
 args, _ = ap.parse_known_args()
 
 # Specific to parser
-user_data = None
+user_data = """
+#!/bin/sh
+cd /home/ubuntu/data-science-toolkit
+git pull --rebase origin master
+sudo python setup.py install
+sudo sv restart parser_poller
+"""
 
 s3_conn = connect_s3()
 bucket = s3_conn.get_bucket('nlp-data')

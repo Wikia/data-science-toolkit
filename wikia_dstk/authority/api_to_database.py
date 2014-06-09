@@ -491,7 +491,6 @@ def main():
 
     log.info(u"Got comsqscore, storing data")
 
-    # TODO: update db directly instead of via s3
     bucket = connect_s3().get_bucket(u'nlp-data')
     key = bucket.new_key(
         key_name=u'service_responses/%s/WikiAuthorCentralityService.get' % (
@@ -503,8 +502,12 @@ def main():
     key.set_contents_from_string(
         json.dumps(comqscore_authority, ensure_ascii=False))
 
+    q = pool.map_async(
+        set_page_key,
+        title_top_authors.items()
+    )
+    q.wait()
 
-    # TODO: DRY
     wiki_args = filter(
         lambda x: x, pool.map_async(insert_wiki_ids, wiki_args).get())
 

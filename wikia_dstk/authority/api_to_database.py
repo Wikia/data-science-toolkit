@@ -422,7 +422,13 @@ def main():
     global minimum_authors, minimum_contribution_pct, smoothing, wiki_id
     global api_url, edit_distance_memoization_cache
 
+    start = time.time()
+
     args = get_args()
+
+    #create_tables(args)
+    bucket = connect_s3().get_bucket(u'nlp-data')
+    log.info(u"Getting and filtering wiki IDs")
 
     if os.path.exists(u'cached_wids'):
         wids = [line.strip() for line in open(u'cached_wids', u'r').readlines()
@@ -440,8 +446,6 @@ def main():
     edit_distance_memoization_cache = {}
 
     smoothing = 0.001
-
-    start = time.time()
 
     wiki_id = args.wiki_id
     log.info(u"wiki id is %s" % wiki_id)

@@ -34,7 +34,7 @@ lastInQueue = None
 intervals = []
 while True:
     # Because it lists itself
-    inqueue = len([k for k in bucket.list('%s/' % args.queue)]) - 1
+    inqueue = len([k for k in bucket.list('text_events/')] + [j for j in bucket.list('text_bulk/')])
     # Sometimes the directory gets deleted when empty
     if inqueue < 0:
         inqueue = 0
@@ -67,12 +67,10 @@ while True:
 
     if lastInQueue is not None and lastInQueue != inqueue:
         delta = (lastInQueue - inqueue)
-        intervals.append((mins, delta * 250))
+        intervals.append((mins, delta))
         avg = reduce(lambda x, y: x + y,
-                     map(lambda x: x[1]/(x[0]*60), intervals))/len(intervals)
-        rate = ", %.3f docs/sec; %d in the last %d minute(s)" % (avg,
-                                                                 delta * 250,
-                                                                 mins)
+                     map(lambda x: x[1]/(x[0]), intervals))/len(intervals)
+        rate = ", %.3f tarballs/min; %d in the last %d minute(s)" % (avg, mins)
     else:
         rate = ""
 

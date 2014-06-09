@@ -14,7 +14,7 @@ from pygraph.classes.digraph import digraph
 from pygraph.algorithms.pagerank import pagerank
 from pygraph.classes.exceptions import AdditionError
 from wikia_authority import MinMaxScaler
-from . import add_db_arguments, filter_wids
+from . import add_db_arguments, filter_wids, Unbuffered
 from .create_database import insert_contrib_data_from_object, insert_entities
 from .create_database import insert_pages_from_object, insert_wiki_ids
 
@@ -32,6 +32,19 @@ log.addHandler(logging.StreamHandler())
 fh = logging.FileHandler('api_to_database.log')
 fh.setLevel(logging.ERROR)
 log.addHandler(fh)
+
+sys.stdout = Unbuffered(sys.stdout)
+
+
+# multiprocessing's gotta grow up and let me do anonymous functions
+def set_page_key(x):
+    log.debug(u"Setting page key for %s" % x)
+    bucket = connect_s3().get_bucket(u'nlp-data')
+    k = bucket.new_key(
+        key_name=u'/service_responses/%s/PageAuthorityService.get' % (
+            x[0].replace(u'_', u'/')))
+    k.set_contents_from_string(json.dumps(x[1], ensure_ascii=False))
+    return True
 
 
 def get_all_titles(aplimit=500):
@@ -484,6 +497,12 @@ def main():
         key_name=u'service_responses/%s/WikiAuthorCentralityService.get' % (
             wiki_id))
     key.set_contents_from_string(json.dumps(centralities, ensure_ascii=False))
+
+    key = bucket.new_key(
+        key_name=u'service_responses/%s/WikiAuthorityService.get' % wiki_id)
+    key.set_contents_from_string(
+        json.dumps(comqscore_authority, ensure_ascii=False))
+
 
     # TODO: DRY
     wiki_args = filter(

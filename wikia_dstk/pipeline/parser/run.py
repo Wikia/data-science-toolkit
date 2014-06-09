@@ -36,6 +36,10 @@ def add_files():
     keys = filter(lambda x: x.key.endswith('.tgz'),
                   bucket.list('text_events/'))
 
+    if not keys:
+        keys = filter(lambda x: x.key.endswith('.tgz'),
+                      bucket.list('text_bulk/'))
+
     # iterating over keys in case we try to grab a key that another instance
     # scoops
     for key in keys:

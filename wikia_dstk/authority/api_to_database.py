@@ -425,7 +425,7 @@ def main():
 
     start = time.time()
 
-    args = get_args()
+    args = get_args()  # Should this be `args, _ = get_args()` ?
 
     create_tables(args)
     bucket = connect_s3().get_bucket(u'nlp-data')

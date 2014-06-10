@@ -44,11 +44,10 @@ def main():
     events = []
     for line in fl:
         wid = line.strip()
-        # TODO: Not using S3 anymore; implement check if exists in MySQL
-        #key = bucket.get_key(key_name='service_responses/%s/WikiAuthorityService.get' % wid)
-        #if (not args.overwrite) and (key is not None and key.exists()):
-        #    log.info("Key exists for %s" % wid)
-        #    continue
+        key = bucket.get_key(key_name='service_responses/%s/WikiAuthorityService.get' % wid)
+        if (not args.overwrite) and (key is not None and key.exists()):
+            log.info("Key exists for %s" % wid)
+            continue
         log.info("Wiki %s" % wid)
         try:
             log.info(subprocess.call("python api_to_database.py --wiki-id=%s --processes=64" % wid, shell=True))

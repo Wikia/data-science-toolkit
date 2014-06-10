@@ -17,6 +17,7 @@ from wikia_authority import MinMaxScaler
 from . import add_db_arguments, filter_wids, Unbuffered
 from .create_database import insert_contrib_data_from_object, insert_entities
 from .create_database import insert_pages_from_object, insert_wiki_ids
+from .create_database import create_tables
 
 
 minimum_authors = 5

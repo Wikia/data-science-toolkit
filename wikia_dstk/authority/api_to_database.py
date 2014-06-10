@@ -495,7 +495,6 @@ def main():
 
     log.info(u"Got comsqscore, storing data")
 
-    bucket = connect_s3().get_bucket(u'nlp-data')
     key = bucket.new_key(
         key_name=u'service_responses/%s/WikiAuthorCentralityService.get' % (
             wiki_id))

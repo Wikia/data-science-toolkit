@@ -426,7 +426,7 @@ def main():
 
     args = get_args()
 
-    #create_tables(args)
+    create_tables(args)
     bucket = connect_s3().get_bucket(u'nlp-data')
     log.info(u"Getting and filtering wiki IDs")
 

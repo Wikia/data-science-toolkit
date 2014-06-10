@@ -92,7 +92,7 @@ if __name__ == '__main__':
                 logger.info(
                     'Uploading %s to S3' % os.path.basename(tarball_path))
                 k = Key(bucket)
-                k.key = 'text_events/%s' % os.path.basename(tarball_path)
+                k.key = 'bulk_events/%s' % os.path.basename(tarball_path)
                 k.set_contents_from_filename(tarball_path)
                 os.remove(tarball_path)
 

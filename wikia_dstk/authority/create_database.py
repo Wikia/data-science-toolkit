@@ -1,23 +1,8 @@
-import os
 import traceback
-import time
 import requests
-from argparse import ArgumentParser, Namespace
-from . import filter_wids, get_db_connection, get_db_and_cursor, MockService
-from . import add_db_arguments
-from boto import connect_s3
-from multiprocessing import Pool
+from . import get_db_connection, get_db_and_cursor, MockService
 from nlp_services.caching import use_caching
 from nlp_services.discourse.entities import WikiPageToEntitiesService
-
-
-# TODO: No longer necessary, moved get_args to api_to_database.py
-def get_args():
-    ap = add_db_arguments(ArgumentParser())
-    ap.add_argument(u'-s', u'--s3path', dest=u's3path', default=u'datafiles/topwams.txt')
-    ap.add_argument(u'-w', u'--no-wipe', dest=u'wipe', default=True, action=u'store_false')
-    ap.add_argument(u'-n', u'--num-processes', dest=u'num_processes', type=int, default=6)
-    return ap.parse_known_args()
 
 
 def create_tables(args):
@@ -138,8 +123,11 @@ def insert_entities(args):
 
         print u"Priming entity data on", args.wid
         for page, entity_data in wpe.items():
-            entity_list = map(my_escape,
-                              list(set(entity_data.get(u'redirects', {}).values() + entity_data.get(u'titles'))))
+            entity_list = map(
+                my_escape,
+                list(set(entity_data.get(u'redirects', {}).values() +
+                         entity_data.get(u'titles')))
+                )
             for i in range(0, len(entity_list), 50):
                 cursor.execute(u"""
                 INSERT IGNORE INTO topics (name) VALUES ("%s")
@@ -169,7 +157,10 @@ def insert_pages(args, obj):
         dbargs = []
         for doc_id in authority_dict_fixed:
                 wiki_id, article_id = doc_id.split(u'_')
-                dbargs.append((doc_id, article_id, wiki_id, str(authority_dict_fixed[doc_id])))
+                dbargs.append(
+                    (doc_id, article_id, wiki_id,
+                     str(authority_dict_fixed[doc_id]))
+                    )
 
         cursor.execute(u"""
             INSERT INTO articles (doc_id, article_id, wiki_id, local_authority) VALUES %s
@@ -280,33 +271,3 @@ def get_authority_dict_fixed(args, obj):
 
     return dict([(key.split(u'_')[-2]+u'_'+key.split(u'_')[-1], val)
                  for key, val in authority_dict.items()])
-
-
-def main():
-    args, _ = get_args()
-
-    start = time.time()
-    create_tables(args)
-    bucket = connect_s3().get_bucket(u'nlp-data')
-    print u"Getting and filtering wiki IDs"
-    # Already moved to api_to_database
-    #if os.path.exists(u'cached_wids'):
-    #    wids = [line.strip() for line in open(u'cached_wids', u'r').readlines() if line.strip()]
-    #else:
-    #    wids = filter_wids([line.strip()
-    #                        for line in bucket.get_key(args.s3path).get_contents_as_string().split(u"\n")
-    #                        if line.strip()], True)
-    #    open(u'cached_wids', u'w').write(u"\n".join(wids))
-    #p = Pool(processes=args.num_processes)
-    #print u"Inserting data"
-    #pipeline = [insert_wiki_ids, insert_pages, insert_entities, insert_contrib_data]
-    #wiki_args = [Namespace(wid=wid, **vars(args)) for wid in wids]
-    #for step in pipeline:
-    #    wiki_args = filter(lambda x: x, p.map_async(step, wiki_args).get())
-
-    print len(wiki_args), u"/", len(wids), u"wikis made it through the pipeline"
-    print u"Finished in", (time.time() - start), u"seconds"
-
-
-if __name__ == u'__main__':
-    main()

@@ -97,7 +97,7 @@ class MockService(object):
     def get(self, doc_id):
         """
         Get a mocked HTTP response based on the data with which the object was
-        instantiatd.
+        instantiated.
 
         :param doc_id: The ID of the document
         :type doc_id: str
@@ -106,7 +106,8 @@ class MockService(object):
 
     def get_value(self, doc_id, backoff=None):
         """
-        Extract data directly from the object's data, bypassing the mocked HTTP response.
+        Extract data directly from the object's data, bypassing the mocked HTTP
+        response.
 
         :param doc_id: The ID of the document
         :type doc_id: str

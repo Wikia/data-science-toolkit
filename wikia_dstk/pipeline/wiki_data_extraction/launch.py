@@ -14,18 +14,16 @@ def get_args():
                     help='Dump Solr data to JSON')
     ap.add_argument('-L', '--load-json', dest='load_json',
                     help='Load Solr data from JSON')
+    ap.add_argument('-e', '--solr-endpoint', dest='solr_endpoint', default='http://search-s9:8983/solr',
+                    help="The Solr endpoint")
     return ap.parse_known_args()
 
 
-def main():
-    args, extras = get_args()
-
+def execute_old(args):
     if args.load_json is not None:
         with open(args.load_json) as load:
             r = json.loads(load.read())
     else:
-        solr_endpoint = 'http://search-s9:8983/solr/main/select'
-
         # Read the last indexed date
         date = args.date
         if date is None:
@@ -46,7 +44,7 @@ def main():
         print 'Querying Solr...'
         while True:
             try:
-                r = requests.get(solr_endpoint, params=params).json()
+                r = requests.get("%s/main/select", args.solr_endpoint, params=params).json()
             except requests.exceptions.ConnectionError as e:
                 print e
                 print 'Connection error, retrying...'
@@ -69,9 +67,30 @@ def main():
     ids = r['facet_counts']['facet_fields']['wid']
     print 'Populating indexed dict...'
     d = dict((int(ids[i]), ids[i+1]) for i in range(0, len(ids), 2))
+    wids = filter(lambda x: d[x] > 0, d.keys())
+    return articles, wids
+
+
+def execute_all(args):
+    params = dict(wt='json', q='lang_s:en AND articles_i:[50 TO *]', rows=500, start=0, fields='articles_i, id')
+    return_data = []
+    while True:
+        response = requests.get('%s/xwiki/select' % args.solr_endpoint, params=params).json()
+        return_data += [(doc['id'], doc['articles_i']) for doc in response['response']['docs']]
+        if response['numFound'] <= params['start'] + params['rows']:
+            return zip(*return_data)
+        params['start'] += params['rows']
+
+
+def main():
+    args, extras = get_args()
+
+    if args.all:
+        wids, articles = execute_all(args)
+    else:
+        wids, articles = execute_old(args)
 
     # Launch EC2 instances with appropriate shell scripts
-    wids = filter(lambda x: d[x] > 0, d.keys())
     callback = lambda x: articles.get(x, 0)
     num_instances = config['max_size']
     user_data = """#!/bin/sh

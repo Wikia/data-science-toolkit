@@ -80,7 +80,8 @@ def execute_all(args):
         response = requests.get('%s/xwiki/select' % args.solr_endpoint, params=params).json()
         return_data += [(doc['id'], doc['articles_i']) for doc in response['response']['docs']]
         if response['response']['numFound'] <= params['start'] + params['rows']:
-            return zip(*return_data)
+            return_dict = dict(return_data)
+            return return_dict, return_dict.values()
         params['start'] += params['rows']
 
 

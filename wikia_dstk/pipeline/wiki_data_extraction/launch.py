@@ -89,9 +89,9 @@ def main():
     args, extras = get_args()
 
     if args.all:
-        wids, articles = execute_all(args)
+        articles, wids = execute_all(args)
     else:
-        wids, articles = execute_old(args)
+        articles, wids = execute_old(args)
 
     # Launch EC2 instances with appropriate shell scripts
     callback = lambda x: articles.get(x, 0)

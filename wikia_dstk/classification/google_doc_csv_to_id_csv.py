@@ -21,7 +21,7 @@ def secondary_transformation(fl):
     results = []
     for line in fl:
         splt = line.split(',')
-        [results.append(",".join([splt[2], secondary.strip().lower()])) for secondary in splt[4].split(',')]
+        [results.append(",".join([splt[2], secondary.strip().lower()])) for secondary in splt[4].split('|')]
     return "\n".join(results)
 
 

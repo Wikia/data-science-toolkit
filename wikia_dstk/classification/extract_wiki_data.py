@@ -87,7 +87,7 @@ def wiki_to_feature(wiki):
         features += [u'ORIGINAL_HUB:%s' % wiki.get(u'hub_s', u'')]
         features += [u'TOP_CAT:%s' % u'_'.join(normalize(c)) for c in wiki.get(u'top_categories_mv_en', [])]
         bow += [u"_".join(normalize(c)) for c in wiki.get(u'top_categories_mv_en', [])]
-        features += [u'TOP_ART:%s' % u"_".join(normalize(a)) for a in wiki.get(u'top_articles_mv_en', [])]
+        features += [u'TOP_ART:%s' % u"_".join(normalize(a)) for a in wiki.get(u'top_articles_mv_en', []) if len(a) > 2]
         bow += [u"_".join(normalize(a)) for a in wiki.get(u'top_articles_mv_en', [])]
         desc_ngrams = [u"_".join(n) for grouping in
                        [bigrams(normalize(np))

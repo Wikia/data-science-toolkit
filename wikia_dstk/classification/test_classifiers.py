@@ -5,6 +5,14 @@ from . import vertical_labels, Classifiers
 from collections import OrderedDict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from multiprocessing import Pool
+from argparse import ArgumentParser, FileType
+
+
+def get_args():
+    ap = ArgumentParser()
+    ap.add_argument('--class-file', type=FileType('r'), dest='class_file')
+    ap.add_argument('--features-file', type=FileType('r'), dest='features_file')
+    return ap.parse_args()
 
 
 def main():

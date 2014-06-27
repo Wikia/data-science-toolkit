@@ -73,7 +73,7 @@ def normalize(wordstring):
     global stemmer, tokenizer, stops
     try:
         return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower())
-                if len(word) > 2 and word not in stops]
+                if len(word) > 3 and word not in stops]
     except (Exception, IndexError) as e:
         traceback.format_exc()
         print e

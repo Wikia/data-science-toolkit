@@ -29,6 +29,7 @@ def main():
                                    [line.decode(u'utf8').strip().split(u',') for line in args.features_file]
                                    if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
                                    ])
+    print wid_to_features
 
     print u"Vectorizing..."
     vectorizer = TfidfVectorizer()

@@ -32,7 +32,7 @@ def transform(fl, for_secondary=False):
 def main():
     args = get_args()
     args.outfile.write(transform(args.infile, args.for_secondary))
-    print args.outfile.abspath
+    print args.outfile.name
 
 
 if __name__ == '__main__':

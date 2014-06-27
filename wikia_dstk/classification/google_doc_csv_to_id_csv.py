@@ -13,7 +13,7 @@ def primary_transformation(fl):
     results = []
     for line in fl:
         splt = line.split(',')
-        results.append(','.join(splt[2:4]))
+        results.append(','.join(splt[2:4]).lower())
     return "\n".join(results)
 
 

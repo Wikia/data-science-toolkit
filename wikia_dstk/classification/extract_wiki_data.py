@@ -130,7 +130,8 @@ def wikis_to_features(args, wikis):
 def main():
     args = get_args()
     features = wikis_to_features(args, get_mainpage_text(args, get_wiki_data(args)))
-    with codecs.open(args.s3dest, u'w', encoding=u'utf8') as fl:
+    flname = args.s3dest if args.s3dest else args.outfile
+    with codecs.open(flname, u'w', encoding=u'utf8') as fl:
         for wid, features in features.items():
             line_for_writing = u",".join([wid, u",".join(features)]) + u"\n"
             fl.write(line_for_writing)

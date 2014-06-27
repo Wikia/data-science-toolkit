@@ -21,7 +21,7 @@ def main():
         groups = defaultdict(list)
         for line in args.class_file:
             splt = line.strip().split(',')
-            groups[splt[1]].append(splt[0])
+            groups[splt[1]].append(int(splt[0]))
     else:
         groups = vertical_labels
     print u"Loading CSV..."
@@ -29,7 +29,6 @@ def main():
                                    [line.decode(u'utf8').strip().split(u',') for line in args.features_file]
                                    if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
                                    ])
-    print groups
 
     print u"Vectorizing..."
     vectorizer = TfidfVectorizer()

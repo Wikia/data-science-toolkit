@@ -19,7 +19,7 @@ stops = stopwords.words(u'english')
 
 def get_args():
     ap = ArgumentParser()
-    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8)
+    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8 , type=int)
     ap.add_argument(u'--solr-host', dest=u"solr_host", default=u"http://search-s10:8983")
     ap.add_argument(u'--outfile', dest=u'outfile', default=u'wiki_data.csv')
     ap.add_argument(u'--s3dest', dest=u's3dest')

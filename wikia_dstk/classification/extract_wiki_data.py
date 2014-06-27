@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from boto import connect_s3
 import requests
 import codecs
+import traceback
 
 
 stemmer = EnglishStemmer()
@@ -70,8 +71,14 @@ def get_mainpage_text(args, wikis):
 
 def normalize(wordstring):
     global stemmer, tokenizer, stops
-    return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower())
-            if len(word) > 2 and word not in stops]
+    try:
+        return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower())
+                if len(word) > 2 and word not in stops]
+    except (Exception, IndexError) as e:
+        traceback.format_exc()
+        print e
+        print wordstring
+        print tokenizer.tokenize(wordstring.lower())
 
 
 def wiki_to_feature(wiki):

@@ -1,8 +1,7 @@
-import sys
 import traceback
 import time
 from . import vertical_labels, Classifiers
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from multiprocessing import Pool
 from argparse import ArgumentParser, FileType
@@ -16,12 +15,18 @@ def get_args():
 
 
 def main():
-    fl = open(sys.argv[1], u'r')
+    args = get_args()
 
-    groups = vertical_labels
+    if args.class_file:
+        groups = defaultdict(list)
+        for line in args.class_file:
+            splt = line.strip().split(',')
+            groups[splt[1]].append(splt[0])
+    else:
+        groups = vertical_labels
     print u"Loading CSV..."
     wid_to_features = OrderedDict([(splt[0], u" ".join(splt[1:])) for splt in
-                                   [line.decode(u'utf8').strip().split(u',') for line in fl]
+                                   [line.decode(u'utf8').strip().split(u',') for line in args.features_file]
                                    if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group for now
                                    ])
 

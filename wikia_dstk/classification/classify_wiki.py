@@ -24,7 +24,7 @@ def main():
     args = get_args()
 
     if args.class_file:
-        wid_to_class = {}
+        wid_to_class = OrderedDict()
         groups = defaultdict(list)
         for line in args.class_file:
             splt = line.strip().split(',')
@@ -45,7 +45,7 @@ def main():
 
     logger.info(u"Vectorizing...")
     vectorizer = TfidfVectorizer()
-    feature_keys, feature_rows = zip(*[(wid_to_class[int(key)], features)
+    feature_keys, feature_rows = zip(*[(wid_to_class.keys().index(wid_to_class[int(key)]), features)
                                        for key, features in wid_to_features.items()
                                        if int(key) in wid_to_class])
 
@@ -74,7 +74,8 @@ def main():
         print prediction_matrix
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         print summed_probabilities
-        unknown_class = [class_to_label[list(summed_probabilities).index(max(summed_probabilities))]]
+        unknown_class = wid_to_class.keys()[summed_probabilities.index(max(summed_probabilities))]
+        print wid, unknown_class
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
 
     logger.info(u"Finished in %.2f seconds" % (time.time() - start))

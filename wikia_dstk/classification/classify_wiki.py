@@ -68,7 +68,7 @@ def main():
                 unknowns[wid] = features
 
         feature_rows = wid_to_features.values()
-        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys()]
+        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys() if int(key) in wid_to_class]
         training_vectors = np.array(feature_rows)
         test_vectors = np.array(unknowns.values())
 

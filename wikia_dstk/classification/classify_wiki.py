@@ -64,10 +64,10 @@ def main():
         classifiers[classifier_string] = clf
         logger.info(u"Trained.")
 
-    logger.info(u"Predicting with %s for %d unknowns..." % (classifier_name, len(unknowns)))
     for counter, (wid, unknown) in enumerate(unknowns.items()):
         unknown_vectors = vectorizer.transform([unknown])
-        prediction_matrix = [classifier.predict_proba([unknown_vectors.toarray()]) for classifier in classifiers.values()]
+        prediction_matrix = [classifier.predict_proba(unknown_vectors.toarray())
+                             for classifier in classifiers.values()]
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         print summed_probabilities
         unknown_class = [class_to_label[list(summed_probabilities).index(max(summed_probabilities))]]

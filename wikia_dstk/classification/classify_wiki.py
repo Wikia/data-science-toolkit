@@ -65,7 +65,7 @@ def main():
         logger.info(u"Trained.")
 
     for counter, (wid, unknown) in enumerate(unknowns.items()):
-        unknown_vectors = vectorizer.transform([unknown])
+        unknown_vectors = vectorizer.transform(unknown)
         prediction_matrix = [classifier.predict_proba(np.array([unknown_vectors.toarray()]))
                              for classifier in classifiers.values()]
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]

@@ -25,29 +25,32 @@ def main():
     args = get_args()
 
     if args.class_file:
+        wid_to_class = {}
         groups = defaultdict(list)
         for line in args.class_file:
             splt = line.strip().split(',')
             groups[splt[1]].append(int(splt[0]))
+            wid_to_class[int(splt[0])] = splt[1]
     else:
+        from . import wid_to_class
         groups = vertical_labels
     logger.info(u"Loading CSV...")
     lines = [line.decode(u'utf8').strip() for line in args.infile if line.strip()]
     if not args.as_sparse:
         wid_to_features = OrderedDict([(int(splt[0]), u" ".join(splt[1:])) for splt in
                                        [line.split(u',') for line in lines]
-                                       if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group
+                                       if int(splt[0]) in wid_to_class
                                        ])
 
         unknowns = OrderedDict([(int(splt[0]), u" ".join(splt[1:])) for splt in
                                 [line.split(u',') for line in lines]
-                                if int(splt[0]) not in [v for g in groups.values() for v in g]
+                                if int(splt[0]) not in wid_to_class
                                 ])
 
         logger.info(u"Vectorizing...")
         vectorizer = TfidfVectorizer()
         feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items()
-                                           if int(key) in groups])
+                                           if int(key) in wid_to_class])
         vectorizer.fit_transform(feature_rows)
         training_vectors = vectorizer.transform(feature_rows).toarray()
         test_vectors = vectorizer.transform(unknowns.values()).toarray()
@@ -68,7 +71,7 @@ def main():
                 unknowns[wid] = features
 
         feature_rows = wid_to_features.values()
-        feature_keys = [groups[int(key)] for key in wid_to_features.keys() if int(key) in groups]
+        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys() if int(key) in groups]
         training_vectors = np.array(feature_rows)
         test_vectors = np.array(unknowns.values())
 

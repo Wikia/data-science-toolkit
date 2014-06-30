@@ -40,10 +40,15 @@ def main():
                                        if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group
                                        ])
 
+        print len(wid_to_features), "known"
+
         unknowns = OrderedDict([(int(splt[0]), u" ".join(splt[1:])) for splt in
                                 [line.split(u',') for line in lines]
                                 if int(splt[0]) not in [v for g in groups.values() for v in g]
                                 ])
+
+        print len(unknowns), "unknown"
+
         logger.info(u"Vectorizing...")
         vectorizer = TfidfVectorizer()
         feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items()

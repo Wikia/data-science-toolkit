@@ -52,12 +52,8 @@ def main():
     training_vectors = vectorizer.transform(feature_rows).toarray()
     logger.info(u"Vectorized training features")
 
-    test_vectors = vectorizer.transform(unknowns.values()).toarray()
-    logger.info(u"Vectorized test vectors")
-
     logger.info(u"Training %d classifiers" % len(args.classifiers))
 
-    scores = defaultdict(lambda: defaultdict(list))
     classifiers = dict()
     for classifier_string in args.classifiers:
         clf = Classifiers.get(classifier_string)

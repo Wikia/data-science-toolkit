@@ -49,6 +49,8 @@ def main():
                                        for key, features in wid_to_features.items()
                                        if int(key) in wid_to_class])
 
+    print feature_keys
+
     vectorizer.fit_transform(feature_rows)
     logger.info(u"Vectorized feature rows")
     training_vectors = vectorizer.transform(feature_rows).toarray()

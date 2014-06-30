@@ -14,6 +14,7 @@ def get_args():
     ap.add_argument(u'--num-processes', dest=u'num_processes', default=8)
     ap.add_argument(u'--classifiers', dest=u'classifiers', default=[], action=u"append")
     ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
+    ap.add_argument(u'--class-file', dest=u'class_file', type=FileType(u'r'))
     ap.add_argument(u'--as-sparse', dest=u'as_sparse', default=False, action=u'store_true')
     ap.add_argument(u'--num-topicss', dest=u'num_topics', default=999)
     ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout)
@@ -24,7 +25,13 @@ def main():
     start = time.time()
     args = get_args()
 
-    groups = vertical_labels
+    if args.training_file:
+        groups = defaultdict(list)
+        for line in args.class_file:
+            splt = line.strip().split(',')
+            groups[splt[1]].append(int(splt[0]))
+    else:
+        groups = vertical_labels
     logger.info(u"Loading CSV...")
     lines = [line.decode(u'utf8').strip() for line in args.infile if line.strip()]
     if not args.as_sparse:

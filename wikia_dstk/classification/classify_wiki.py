@@ -46,7 +46,7 @@ def main():
                                 ])
         logger.info(u"Vectorizing...")
         vectorizer = TfidfVectorizer()
-        feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items
+        feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items()
                                            if int(key) in wid_to_class])
         vectorizer.fit_transform(feature_rows)
         training_vectors = vectorizer.transform(feature_rows).toarray()

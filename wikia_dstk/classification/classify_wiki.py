@@ -66,7 +66,7 @@ def main():
 
     logger.info(u"Predicting with %s for %d unknowns..." % (classifier_name, len(unknowns)))
     for counter, (wid, unknown) in enumerate(unknowns.items()):
-        unknown_vectors = vectorizer.transform([unknown.toarray()])
+        unknown_vectors = vectorizer.transform([vectorizer.transform([unknown]).toarray()])
         prediction_matrix = [classifier.predict_proba(unknown_vectors) for classifier in classifiers.values()]
         summed_probabilities = np.sum(prediction_matrix, axis=0)
         unknown_class = [class_to_label[list(summed_probabilities).index(max(summed_probabilities))]]

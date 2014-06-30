@@ -1,9 +1,8 @@
 import sys
 import time
 import numpy as np
-import traceback
 from collections import defaultdict
-from . import vertical_labels, wid_to_class, class_to_label, predict_ensemble, logger
+from . import vertical_labels, class_to_label, predict_ensemble, logger
 from collections import OrderedDict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from argparse import ArgumentParser, FileType
@@ -40,19 +39,15 @@ def main():
                                        if int(splt[0]) in [v for g in groups.values() for v in g]  # only in group
                                        ])
 
-        print len(wid_to_features), "known"
-
         unknowns = OrderedDict([(int(splt[0]), u" ".join(splt[1:])) for splt in
                                 [line.split(u',') for line in lines]
                                 if int(splt[0]) not in [v for g in groups.values() for v in g]
                                 ])
 
-        print len(unknowns), "unknown"
-
         logger.info(u"Vectorizing...")
         vectorizer = TfidfVectorizer()
         feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items()
-                                           if int(key) in wid_to_class])
+                                           if int(key) in groups])
         vectorizer.fit_transform(feature_rows)
         training_vectors = vectorizer.transform(feature_rows).toarray()
         test_vectors = vectorizer.transform(unknowns.values()).toarray()
@@ -73,7 +68,7 @@ def main():
                 unknowns[wid] = features
 
         feature_rows = wid_to_features.values()
-        feature_keys = [wid_to_class[int(key)] for key in wid_to_features.keys() if int(key) in wid_to_class]
+        feature_keys = [groups[int(key)] for key in wid_to_features.keys() if int(key) in groups]
         training_vectors = np.array(feature_rows)
         test_vectors = np.array(unknowns.values())
 

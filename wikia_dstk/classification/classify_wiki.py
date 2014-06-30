@@ -65,12 +65,12 @@ def main():
         logger.info(u"Trained.")
 
     logger.info(u"Predicting with %s for %d unknowns..." % (classifier_name, len(unknowns)))
-    for counter, unknown in enumerate(unknowns):
-        unknown_vectors = vectorizer.transform([unknown].toarray())
+    for counter, (wid, unknown) in enumerate(unknowns.items()):
+        unknown_vectors = vectorizer.transform([unknown.toarray()])
         prediction_matrix = [classifier.predict_proba(unknown_vectors) for classifier in classifiers.values()]
         summed_probabilities = np.sum(prediction_matrix, axis=0)
         unknown_class = [class_to_label[list(summed_probabilities).index(max(summed_probabilities))]]
-        args.outfile.write(u"%s,%s" % wid, unknown_class)
+        args.outfile.write(u"%s,%s" % (wid, unknown_class))
 
     logger.info(u"Finished in %.2f seconds" % (time.time() - start))
 

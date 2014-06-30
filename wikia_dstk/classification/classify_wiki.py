@@ -25,7 +25,7 @@ def main():
     start = time.time()
     args = get_args()
 
-    if args.training_file:
+    if args.class_file:
         groups = defaultdict(list)
         for line in args.class_file:
             splt = line.strip().split(',')

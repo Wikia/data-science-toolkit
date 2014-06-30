@@ -52,8 +52,11 @@ def main():
         feature_keys, feature_rows = zip(*[(int(key), features) for key, features in wid_to_features.items()
                                            if int(key) in wid_to_class])
         vectorizer.fit_transform(feature_rows)
+        logger.info(u"Vectorized feature rows")
         training_vectors = vectorizer.transform(feature_rows).toarray()
+        logger.info(u"Vectorized training features")
         test_vectors = vectorizer.transform(unknowns.values()).toarray()
+        logger.info(u"Vectorized test vectors")
     else:
         training_ids = [v for g in groups.values() for v in g]
         wid_to_features = OrderedDict()

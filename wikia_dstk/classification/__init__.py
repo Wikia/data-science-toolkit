@@ -80,11 +80,11 @@ class Classifiers():
     """
     classifiers = {
         u"Nearest Neighbors": (KNeighborsClassifier, [3], dict()),
-        u"Linear SVM": (SVC, [], dict(kernel="linear", C=0.025, probability=True)),
-        u"RBF_SVM": (SVC, [], dict(gamma=2, C=1, probability=True)),
+        #u"Linear SVM": (SVC, [], dict(kernel="linear", C=0.025, probability=True)),
+        #u"RBF_SVM": (SVC, [], dict(gamma=2, C=1, probability=True)),
         u"Decision Tree": (DecisionTreeClassifier, [], dict(max_depth=999)),
         u"Random_Forest": (RandomForestClassifier, [], dict(max_depth=999, n_estimators=100, max_features=7)),
-        u"AdaBoost": (AdaBoostClassifier, [], {}),
+        #u"AdaBoost": (AdaBoostClassifier, [], {}),
         u"Naive Bayes": (GaussianNB, [], {}),
         u"LDA": (LDA, [], {}),
         u"QDA": (QDA, [], {}),
@@ -93,11 +93,11 @@ class Classifiers():
 
     classifier_keys_to_names = {
         u"knn": u"Nearest Neighbors",
-        u"linear_svm": u"Linear SVM",
-        u"rbf_svm": u"RBF_SVM",
+        #u"linear_svm": u"Linear SVM",
+        #u"rbf_svm": u"RBF_SVM",
         u"decision_tree": u"Decision Tree",
         u"random_forest": u"Random_Forest",
-        u"adaboost": u"AdaBoost",
+        #u"adaboost": u"AdaBoost",
         u"naive_bayes": u"Naive Bayes",
         u"lda": u"LDA",
         u"qda": u"QDA",

@@ -68,8 +68,7 @@ def main():
     for counter, (wid, unknown) in enumerate(unknowns.items()):
         unknown_vectors = vectorizer.transform([unknown])
         prediction_matrix = [classifier.predict_proba(unknown_vectors.toarray()) for classifier in classifiers.values()]
-        summed_probabilities = np.sum(prediction_matrix, axis=0)
-        print summed_probabilities
+        summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         unknown_class = [class_to_label[list(summed_probabilities).index(max(summed_probabilities))]]
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
 

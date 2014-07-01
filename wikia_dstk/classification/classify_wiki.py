@@ -69,12 +69,11 @@ def main():
     for counter, (wid, unknown) in enumerate(unknowns.items()):
         prediction_matrix = [classifier.predict_proba(vectorizer.transform([unknown]).toarray())
                              for classifier in classifiers.values()]
-        print prediction_matrix
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
-        print summed_probabilities
         unknown_class = classes[list(summed_probabilities).index(max(summed_probabilities))]
-        print wid, unknown_class
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
+        if counter % 1000 == 0:
+            logger.info(counter)
 
     logger.info(u"Finished in %.2f seconds" % (time.time() - start))
 

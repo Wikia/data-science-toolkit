@@ -29,6 +29,7 @@ def main():
             splt = line.strip().split(',')
             groups[splt[1]] = groups.get(splt[1], []) + [int(splt[0])]
             wid_to_class[int(splt[0])] = splt[1]
+        classes = groups.keys()
 
     logger.info(u"Loading CSV...")
     lines = [line.decode(u'utf8').strip() for line in args.infile if line.strip()]
@@ -44,7 +45,7 @@ def main():
 
     logger.info(u"Vectorizing...")
     vectorizer = TfidfVectorizer()
-    feature_keys, feature_rows = zip(*[(groups.keys().index(wid_to_class[int(key)]), features)
+    feature_keys, feature_rows = zip(*[(classes.index(wid_to_class[int(key)]), features)
                                        for key, features in wid_to_features.items()
                                        if int(key) in wid_to_class])
 
@@ -71,7 +72,7 @@ def main():
         print prediction_matrix
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         print summed_probabilities
-        unknown_class = groups.keys()[list(summed_probabilities).index(max(summed_probabilities))]
+        unknown_class = classes[list(summed_probabilities).index(max(summed_probabilities))]
         print wid, unknown_class
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
 

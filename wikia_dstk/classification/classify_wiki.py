@@ -49,8 +49,6 @@ def main():
                                        for key, features in wid_to_features.items()
                                        if int(key) in wid_to_class])
 
-    print feature_keys
-
     vectorizer.fit_transform(feature_rows)
     logger.info(u"Vectorized feature rows")
     training_vectors = vectorizer.transform(feature_rows).toarray()
@@ -74,7 +72,7 @@ def main():
         print prediction_matrix
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         print summed_probabilities
-        unknown_class = wid_to_class.keys()[summed_probabilities.index(max(summed_probabilities))]
+        unknown_class = wid_to_class.keys()[list(summed_probabilities).index(max(summed_probabilities))]
         print wid, unknown_class
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
 

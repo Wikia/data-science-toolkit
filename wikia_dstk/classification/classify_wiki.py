@@ -1,9 +1,8 @@
 import sys
 import time
 import numpy as np
-from collections import defaultdict
-from . import class_to_label, logger, Classifiers
-from collections import OrderedDict
+from . import logger, Classifiers
+from collections import OrderedDict, defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from argparse import ArgumentParser, FileType
 
@@ -25,10 +24,10 @@ def main():
 
     if args.class_file:
         wid_to_class = OrderedDict()
-        groups = defaultdict(list)
+        groups = OrderedDict()
         for line in args.class_file:
             splt = line.strip().split(',')
-            groups[splt[1]].append(int(splt[0]))
+            groups[splt[1]] = groups.get(splt[1], []) + [int(splt[0])]
             wid_to_class[int(splt[0])] = splt[1]
 
     logger.info(u"Loading CSV...")
@@ -72,7 +71,7 @@ def main():
         print prediction_matrix
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         print summed_probabilities
-        unknown_class = wid_to_class.keys()[list(summed_probabilities).index(max(summed_probabilities))]
+        unknown_class = groups.keys()[list(summed_probabilities).index(max(summed_probabilities))]
         print wid, unknown_class
         args.outfile.write(u"%s,%s" % (wid, unknown_class))
 

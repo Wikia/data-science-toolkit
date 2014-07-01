@@ -71,7 +71,7 @@ def main():
                              for classifier in classifiers.values()]
         summed_probabilities = np.sum(prediction_matrix, axis=0)[0]
         unknown_class = classes[list(summed_probabilities).index(max(summed_probabilities))]
-        args.outfile.write(u"%s,%s" % (wid, unknown_class))
+        args.outfile.write(u"%s,%s\n" % (wid, unknown_class))
         if counter % 1000 == 0:
             logger.info(counter)
 

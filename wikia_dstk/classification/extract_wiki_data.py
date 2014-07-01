@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from boto import connect_s3
 import requests
 import codecs
+import traceback
 
 
 stemmer = EnglishStemmer()
@@ -19,7 +20,7 @@ stops = stopwords.words(u'english')
 
 def get_args():
     ap = ArgumentParser()
-    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8)
+    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8 , type=int)
     ap.add_argument(u'--solr-host', dest=u"solr_host", default=u"http://search-s10:8983")
     ap.add_argument(u'--outfile', dest=u'outfile', default=u'wiki_data.csv')
     ap.add_argument(u'--s3dest', dest=u's3dest')
@@ -70,7 +71,14 @@ def get_mainpage_text(args, wikis):
 
 def normalize(wordstring):
     global stemmer, tokenizer, stops
-    return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower()) if word not in stops]
+    try:
+        return [stemmer.stem(word) for word in tokenizer.tokenize(wordstring.lower())
+                if len(word) > 3 and word not in stops]
+    except (Exception, IndexError) as e:
+        traceback.format_exc()
+        print e
+        print wordstring
+        print tokenizer.tokenize(wordstring.lower())
 
 
 def wiki_to_feature(wiki):
@@ -122,7 +130,8 @@ def wikis_to_features(args, wikis):
 def main():
     args = get_args()
     features = wikis_to_features(args, get_mainpage_text(args, get_wiki_data(args)))
-    with codecs.open(args.s3dest, u'w', encoding=u'utf8') as fl:
+    flname = args.s3dest if args.s3dest else args.outfile
+    with codecs.open(flname, u'w', encoding=u'utf8') as fl:
         for wid, features in features.items():
             line_for_writing = u",".join([wid, u",".join(features)]) + u"\n"
             fl.write(line_for_writing)

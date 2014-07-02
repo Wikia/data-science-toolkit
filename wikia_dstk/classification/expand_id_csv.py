@@ -22,6 +22,9 @@ def get_wiki_data(wid_group):
 
 
 def main():
+    """
+    Adds title and URL to a CSV with wiki IDs.
+    """
     logger.info(u"Expanding Wiki Info...")
     args = get_args()
     wid_to_class = OrderedDict([line.strip().split(',') for line in args.infile])

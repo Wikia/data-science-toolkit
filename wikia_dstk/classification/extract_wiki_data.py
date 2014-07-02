@@ -20,7 +20,7 @@ stops = stopwords.words(u'english')
 
 def get_args():
     ap = ArgumentParser()
-    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8 , type=int)
+    ap.add_argument(u'--num-processes', dest=u"num_processes", default=8, type=int)
     ap.add_argument(u'--solr-host', dest=u"solr_host", default=u"http://search-s10:8983")
     ap.add_argument(u'--outfile', dest=u'outfile', default=u'wiki_data.csv')
     ap.add_argument(u'--s3dest', dest=u's3dest')
@@ -29,7 +29,8 @@ def get_args():
 
 def get_wiki_data(args):
     """
-    Gets wiki data as JSON docs
+    Gets wiki data as JSON docs for all English wikis with 50 or more articles (content pages).
+
     :return: OrderedDict of search docs, id to doc
     :rtype:class:`collections.OrderedDict`
     """

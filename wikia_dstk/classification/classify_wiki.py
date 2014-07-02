@@ -8,13 +8,15 @@ from argparse import ArgumentParser, FileType
 
 
 def get_args():
-    ap = ArgumentParser()
-    ap.add_argument(u'--num-processes', dest=u'num_processes', default=8)
-    ap.add_argument(u'--classifiers', dest=u'classifiers', default=[], action=u"append")
-    ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin)
-    ap.add_argument(u'--class-file', dest=u'class_file', type=FileType(u'r'))
-    ap.add_argument(u'--num-topicss', dest=u'num_topics', default=999)
-    ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout)
+    ap = ArgumentParser(description=u"Trains a single or ensemble model and generates predictions")
+    ap.add_argument(u'--classifiers', dest=u'classifiers', default=[], action=u"append",
+                    help=u"The classifiers to use; refer to Classifiers class for string keys")
+    ap.add_argument(u'--infile', dest=u'infile', type=FileType(u'r'), default=sys.stdin,
+                    help=u"The data source for wikis and their features. Expects stdin by default.")
+    ap.add_argument(u'--class-file', dest=u'class_file', type=FileType(u'r'),
+                    help=u"The CSV file correlating wikis to classes")
+    ap.add_argument(u'--outfile', dest=u'outfile', type=FileType(u'w'), default=sys.stdout,
+                    help=u"The output file, correlating wikis to their string vertical name. Defaults to stdout.")
     return ap.parse_args()
 
 

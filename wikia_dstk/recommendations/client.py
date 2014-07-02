@@ -5,8 +5,7 @@ import time
 
 
 def get_args():
-    ap = ArgumentParser()
-    ap.add_argument('--infile', dest="infile", type=FileType('r'))
+    ap = ArgumentParser("Performs pairwise recommendations for a given topics file in S3.")
     ap.add_argument('--s3file', dest='s3file')
     ap.add_argument('--metric', dest="metric", default="cosine")
     ap.add_argument('--slice-size', dest='slice_size', default=100, type=int)
